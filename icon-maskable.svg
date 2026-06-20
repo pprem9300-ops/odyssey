@@ -1,0 +1,38 @@
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Odyssey app icon (maskable)">
+  <!-- Maskable variant · full-bleed cream so any mask (circle/squircle) reads as intentional;
+       artwork pulled into the central safe zone (well inside the 40% radius) -->
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="78%">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="50%" stop-color="#FAF9F5"/>
+      <stop offset="100%" stop-color="#F1ECE2"/>
+    </radialGradient>
+    <linearGradient id="lung" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#6A9BCC" stop-opacity="0.34"/>
+      <stop offset="100%" stop-color="#788C5D" stop-opacity="0.46"/>
+    </linearGradient>
+    <radialGradient id="dot" cx="50%" cy="42%" r="60%">
+      <stop offset="0%" stop-color="#F0D6CB"/>
+      <stop offset="38%" stop-color="#D97757"/>
+      <stop offset="100%" stop-color="#C25B3C"/>
+    </radialGradient>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#D97757" stop-opacity="0.26"/>
+      <stop offset="100%" stop-color="#D97757" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- full-bleed background -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- artwork scaled to ~74% about center (256,256): safely inside the maskable safe zone -->
+  <g transform="translate(256 256) scale(0.74) translate(-256 -256)">
+    <path d="M256 150 V250" stroke="#8A887E" stroke-width="9" stroke-linecap="round" opacity="0.55"/>
+    <path d="M256 188 C188 184 168 250 162 312 C157 366 178 404 214 392 C246 381 246 300 246 250 C246 214 246 192 256 188 Z"
+          fill="url(#lung)" stroke="#6A9BCC" stroke-opacity="0.45" stroke-width="4"/>
+    <path d="M256 188 C324 184 344 250 350 312 C355 366 334 404 298 392 C266 381 266 300 266 250 C266 214 266 192 256 188 Z"
+          fill="url(#lung)" stroke="#6A9BCC" stroke-opacity="0.45" stroke-width="4"/>
+    <circle cx="256" cy="150" r="74" fill="url(#halo)"/>
+    <circle cx="256" cy="150" r="34" fill="url(#dot)"/>
+  </g>
+</svg>

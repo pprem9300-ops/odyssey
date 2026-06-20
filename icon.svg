@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Odyssey — omega">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="72%">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="0.5" stop-color="#FAF9F5"/>
+      <stop offset="1" stop-color="#EFE9DD"/>
+    </radialGradient>
+    <linearGradient id="om" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#E18A65"/>
+      <stop offset="1" stop-color="#C2592F"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <circle cx="256" cy="250" r="160" fill="#F0D6CB" opacity="0.42"/>
+  <text x="256" y="270" text-anchor="middle" dominant-baseline="central"
+        font-family="'Palatino Linotype','Palatino','Hoefler Text',Georgia,'Times New Roman',serif"
+        font-size="360" font-weight="500" fill="url(#om)">&#937;</text>
+</svg>

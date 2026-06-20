@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#FAF9F5" />
+
+  <!-- favicon (omega) -->
+  <link rel="icon" type="image/svg+xml" href="icon.svg" />
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png" />
+
+  <!-- PWA / installable (Add to Home Screen) -->
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Odyssey" />
+  <meta name="application-name" content="Odyssey" />
+
+  <title>Odyssey — breathe. build. become.</title>
+  <meta name="description" content="A cinematic lung-rehab, calisthenics & pure-veg nutrition companion. Breathe. Build. Become." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- cold-boot intro -->
+  <div id="intro">
+    <div class="intro-inner">
+      <div class="intro-omega">&#937;</div>
+      <div class="intro-word">ODYSSEY</div>
+      <div class="intro-tag serif-italic">breathe · build · become</div>
+      <div class="intro-bar"><i></i></div>
+    </div>
+  </div>
+
+  <!-- ============================ NAV ============================ -->
+  <nav class="nav" id="nav">
+    <a class="brand magnetic" data-view="landing" href="#"><span class="breath-dot"></span> Odyssey</a>
+    <div class="nav-links" id="nav-links">
+      <a class="nav-link" data-view="today" href="#">Today</a>
+      <a class="nav-link" data-view="week" href="#">Week</a>
+      <a class="nav-link" data-view="moves" href="#">Moves</a>
+      <a class="nav-link" data-view="lab" href="#">Lung Lab</a>
+      <a class="nav-link" data-view="fuel" href="#">Fuel</a>
+      <a class="nav-link" data-view="journey" href="#">Journey</a>
+    </div>
+    <div class="nav-right">
+      <button class="chip magnetic" id="profile-btn" aria-label="Edit profile">Profile</button>
+      <button class="chip magnetic" id="sync-btn" aria-label="Sync">On-device</button>
+      <button class="streak-pill magnetic" data-view="today"><span class="flame">▲</span> <span id="nav-streak">0</span>d</button>
+      <button class="btn btn--ghost nav-burger" id="burger" aria-label="Menu">☰</button>
+    </div>
+  </nav>
+
+  <!-- ============================ LANDING ============================ -->
+  <section class="view is-active" id="view-landing" data-view="landing">
+    <header class="hero">
+      <canvas id="breath-field"></canvas>
+      <div class="hero-inner container">
+        <p class="eyebrow reveal" data-d="0">Pulmonology · Calisthenics · Pure-veg fuel — for Anakin</p>
+        <h1 class="display" style="margin-top:18px">
+          <span class="kinetic"><span data-split>Smoke</span></span>
+          <span class="kinetic"><span class="swap-word" id="swap">becomes breath</span></span>
+        </h1>
+        <p class="lead hero-sub reveal" data-d="1">A living protocol that heals your lungs, rebuilds your body toward a lean 75&nbsp;kg, and turns every smoke-free day into measurable progress. Built to repeat — indefinitely.</p>
+        <div class="hero-cta reveal" data-d="2">
+          <button class="btn btn--clay magnetic" data-view="today">Begin the odyssey <span class="arrow">→</span></button>
+          <button class="btn btn--ghost magnetic" data-view="lab">Explore the Lung Lab</button>
+        </div>
+      </div>
+      <div class="scroll-hint"><span class="line"></span>scroll</div>
+    </header>
+
+    <!-- manifesto -->
+    <section class="section container">
+      <p class="eyebrow reveal">The premise</p>
+      <p class="manifesto reveal" style="margin-top:24px">Your lungs are <em>already</em> healing. Everything here just <em>amplifies</em> what your body is built to do.</p>
+    </section>
+
+    <!-- beats -->
+    <section class="section container">
+      <div class="beats">
+        <div class="beat reveal">
+          <div><p class="num">01 — BREATHE</p><h2 class="display">Rebuild the<br>engine first.</h2></div>
+          <p class="lead">10–15 minutes of daily breathwork — diaphragmatic, pursed-lip, costal expansion — retrains the muscle smoking stiffened. Forceful pranayama stays locked until your lungs earn it.</p>
+        </div>
+        <div class="beat reveal">
+          <div><p class="num">02 — BUILD</p><h2 class="display">Lean mass,<br>floor-first.</h2></div>
+          <p class="lead">A Push / Pull / Legs / Full calisthenics week scaled to your speed dial. Start on the floor; unlock new progressions the day your pull-up bar arrives.</p>
+        </div>
+        <div class="beat reveal">
+          <div><p class="num">03 — BECOME</p><h2 class="display">75 kilos<br>of you.</h2></div>
+          <p class="lead">A pure-veg, eggless fuel plan that recalculates as you grow, and a streak that becomes the north star of the whole machine. Watch the lungs in your hero literally turn greener.</p>
+        </div>
+      </div>
+      <div style="margin-top:64px" class="reveal">
+        <button class="btn btn--clay magnetic" data-view="today">Enter your cockpit <span class="arrow">→</span></button>
+      </div>
+    </section>
+    <footer class="disclaimer"><div class="container" id="disclaimer-foot"></div></footer>
+  </section>
+
+  <!-- ============================ TODAY / COCKPIT ============================ -->
+  <section class="view" id="view-today" data-view="today">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal" id="greet">Good to see you</p>
+
+      <!-- hero streak + ring -->
+      <div class="cockpit-hero" style="margin-top:24px">
+        <div class="streak-block reveal">
+          <p class="eyebrow">Smoke-free streak · north star</p>
+          <div class="day-count"><span id="day-count">0</span><span class="unit" id="streak-noun">days</span></div>
+          <p class="lead" id="streak-line" style="margin-top:10px"></p>
+          <div style="margin-top:22px; display:flex; gap:12px; flex-wrap:wrap">
+            <button class="btn btn--clay magnetic" id="log-day">+ Log a clean day</button>
+            <button class="btn btn--ghost magnetic" id="sos">Craving SOS</button>
+          </div>
+        </div>
+        <div class="reveal">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" />
+              <circle class="ring-fg" id="ring-fg" cx="60" cy="60" r="52" stroke-dasharray="326.7" stroke-dashoffset="326.7" />
+            </svg>
+            <div class="ring-center">
+              <div class="pct"><span id="recovery-pct">0</span>%</div>
+              <div class="lbl">Lung recovery</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- safety banner -->
+      <div class="safety-banner reveal" style="margin-top:36px" id="safety-banner"></div>
+
+      <!-- speed dial -->
+      <div class="reveal" style="margin-top:40px; display:flex; gap:20px; flex-wrap:wrap; align-items:center; justify-content:space-between">
+        <div>
+          <p class="eyebrow">Speed dial · paces everything</p>
+          <div class="dial" id="speed-dial" style="margin-top:10px"></div>
+        </div>
+        <p class="mono" style="color:var(--ink-faint); font-size:.8rem; max-width:280px" id="dial-note"></p>
+      </div>
+
+      <!-- sleep & readiness -->
+      <div class="card reveal" id="sleep-card" style="margin-top:24px"></div>
+
+      <!-- stat bento -->
+      <div class="bento" style="margin-top:24px" id="stat-cards"></div>
+
+      <!-- weight trend -->
+      <div class="bento" style="margin-top:24px" id="weight-trend-wrap">
+        <div class="card col-12 reveal" id="weight-trend-card">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px; margin-bottom:14px">
+            <h3 class="display">The climb to 75 kg</h3>
+            <span class="mono" style="color:var(--ink-faint); font-size:.8rem" id="weight-trend-delta"></span>
+          </div>
+          <div id="weight-trend-svg"></div>
+        </div>
+      </div>
+
+      <!-- today's protocol -->
+      <div class="bento" style="margin-top:24px">
+        <div class="card col-8 reveal">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
+            <h3 class="display">Today's protocol</h3>
+            <span class="tag" id="today-day">—</span>
+          </div>
+          <div class="checklist" id="today-checklist"></div>
+        </div>
+        <div class="card col-4 card--sky reveal">
+          <p class="eyebrow" style="color:var(--sky-deep)">Daily breathwork · non-negotiable</p>
+          <h3 class="display" style="margin:8px 0 12px">10–15 min</h3>
+          <div id="today-breath" style="display:flex; flex-direction:column; gap:8px"></div>
+          <button class="btn btn--ghost magnetic" style="margin-top:16px; width:100%; justify-content:center" data-view="lab">Open breath pacer →</button>
+        </div>
+      </div>
+    </div>
+    <footer class="disclaimer"><div class="container" id="disclaimer-foot-2"></div></footer>
+  </section>
+
+  <!-- ============================ WEEK ============================ -->
+  <section class="view" id="view-week" data-view="week">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal">Repeatable · indefinitely</p>
+      <h2 class="display reveal" style="margin:10px 0 6px">Your week</h2>
+      <p class="lead reveal" id="week-sub" style="max-width:680px"></p>
+      <div class="reveal" id="split-select" style="margin-top:28px"></div>
+      <div class="week-grid reveal" id="week-grid" style="margin-top:28px"></div>
+      <div class="card reveal" style="margin-top:24px">
+        <p class="eyebrow">Monthly rhythm</p>
+        <p class="lead" style="margin-top:8px">Every 4 weeks: progress photos, waist + strength numbers (not scale alone — recomp moves the mirror more than the scale). Deload every 4th–6th week at ~50% volume. The engine re-runs your BMR/TDEE on a fresh 7-day weigh-in average.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ LUNG LAB ============================ -->
+  <section class="view" id="view-lab" data-view="lab">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal">Lung Lab</p>
+      <div class="lab-hero" style="margin-top:20px">
+        <div class="reveal">
+          <h2 class="display">Watch them<br>come back.</h2>
+          <p class="lead" style="margin-top:14px" id="lab-intro"></p>
+          <div class="chip" style="margin-top:18px">Level · <span id="lab-level">foundation</span></div>
+        </div>
+        <div class="reveal" id="lungs-mount"></div>
+      </div>
+
+      <!-- breath pacer -->
+      <div class="card reveal" style="margin-top:48px">
+        <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px">
+          <h3 class="display">Breath pacer</h3>
+          <span class="mono" style="color:var(--ink-faint); font-size:.8rem" id="pacer-name">Diaphragmatic</span>
+        </div>
+        <div class="pacer-wrap">
+          <div class="pacer" id="pacer"><div class="core" id="pacer-core">Tap to<br>breathe</div></div>
+          <p class="lead" id="pacer-how" style="text-align:center; max-width:520px"></p>
+        </div>
+        <div class="breath-tiles" id="breath-tiles"></div>
+      </div>
+
+      <!-- recovery timeline -->
+      <div style="margin-top:56px">
+        <p class="eyebrow reveal">Recovery timeline · grounded in physiology</p>
+        <div class="timeline reveal" id="lung-timeline" style="margin-top:24px"></div>
+      </div>
+    </div>
+    <footer class="disclaimer"><div class="container" id="disclaimer-foot-3"></div></footer>
+  </section>
+
+  <!-- ============================ FUEL ============================ -->
+  <section class="view" id="view-fuel" data-view="fuel">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal">Pure-veg fuel · eggless · recalculates as you grow</p>
+      <h2 class="display reveal" style="margin:10px 0 6px">Today's plate</h2>
+      <p class="lead reveal" id="fuel-sub" style="max-width:660px"></p>
+
+      <div class="macro-band reveal" id="macro-band" style="margin-top:32px"></div>
+
+      <div class="bento" style="margin-top:24px">
+        <div class="card col-8 reveal">
+          <h3 class="display" style="margin-bottom:6px">Meals</h3>
+          <div id="meal-list"></div>
+        </div>
+        <div class="col-4" style="display:flex; flex-direction:column; gap:18px">
+          <div class="card card--sage reveal">
+            <p class="eyebrow" style="color:var(--sage-deep)">Lung-support foods</p>
+            <div class="food-rail" id="food-rail" style="margin-top:12px"></div>
+          </div>
+          <div class="card reveal">
+            <p class="eyebrow">Supplements (veg + recovery)</p>
+            <div id="supp-list" style="margin-top:10px; display:flex; flex-direction:column; gap:10px"></div>
+          </div>
+          <div class="card card--sky reveal">
+            <p class="eyebrow" style="color:var(--sky-deep)">Hydration</p>
+            <p class="lead" style="margin-top:6px; font-size:1rem">2.5–3 L/day + 500–750 ml per training hour. The upper end thins mucus — key while your lungs clear.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================ JOURNEY ============================ -->
+  <section class="view" id="view-journey" data-view="journey">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal">The journey</p>
+      <h2 class="display reveal" style="margin:10px 0 24px">Milestones</h2>
+      <div class="bento">
+        <div class="col-8">
+          <div class="journey-rail reveal" id="journey-rail"></div>
+        </div>
+        <div class="col-4" style="display:flex; flex-direction:column; gap:18px">
+          <div class="card card--clay reveal">
+            <p class="eyebrow" style="color:var(--clay-deep)">Next milestone</p>
+            <h3 class="display" id="next-ml" style="margin:8px 0 4px">—</h3>
+            <p class="mono" style="font-size:.82rem; color:var(--ink-soft)" id="next-ml-eta"></p>
+          </div>
+          <div class="card reveal">
+            <p class="eyebrow">Clean-day calendar</p>
+            <div class="heatmap" id="heatmap" style="margin-top:14px"></div>
+          </div>
+          <button class="btn btn--clay magnetic reveal" id="demo-celebrate" style="justify-content:center">▲ Preview a milestone</button>
+        </div>
+      </div>
+    </div>
+    <footer class="disclaimer"><div class="container" id="disclaimer-foot-4"></div></footer>
+  </section>
+
+  <!-- ============================ MOVES LIBRARY ============================ -->
+  <section class="view" id="view-moves" data-view="moves">
+    <div class="app-pad section container">
+      <p class="eyebrow reveal">The library · 60 moves, fully described</p>
+      <h2 class="display reveal" style="margin:10px 0 6px">Moves</h2>
+      <p class="lead reveal" id="moves-sub" style="max-width:660px">Every exercise in your protocol — with full form, cues, mistakes, muscles, breathing, tempo and progressions. Tap any card to open it.</p>
+      <div class="reveal" id="moves-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 8px"></div>
+      <div id="moves-body" style="margin-top:20px"></div>
+    </div>
+    <footer class="disclaimer"><div class="container" id="disclaimer-foot-5"></div></footer>
+  </section>
+
+  <!-- ============================ OVERLAYS ============================ -->
+  <div class="celebrate" id="celebrate">
+    <div>
+      <p class="eyebrow" style="margin-bottom:20px" id="celebrate-eyebrow">Milestone</p>
+      <p class="big" id="celebrate-title">Day <em>One</em></p>
+      <p class="lead serif-italic" id="celebrate-note" style="margin-top:20px; font-size:1.4rem"></p>
+      <button class="btn btn--ghost magnetic" id="celebrate-close" style="margin-top:36px">Keep going →</button>
+    </div>
+  </div>
+
+  <div class="modal-scrim" id="sync-modal">
+    <div class="modal" style="text-align:left">
+      <p class="eyebrow">Cross-device sync</p>
+      <h3 class="display" style="margin:8px 0 14px">Sync your odyssey</h3>
+      <div id="sync-body"></div>
+      <button class="btn btn--ghost magnetic" id="sync-close" style="margin-top:18px; width:100%; justify-content:center">Close</button>
+    </div>
+  </div>
+
+  <div class="modal-scrim" id="sos-modal">
+    <div class="modal">
+      <p class="eyebrow">Craving SOS · 4-7-8 breathing</p>
+      <div class="pacer" style="margin:24px auto" id="sos-pacer"><div class="core" id="sos-core">Begin</div></div>
+      <p class="lead" id="sos-text">A craving is a wave — it crests in 3–5 minutes. Breathe through it: inhale 4, hold 7, exhale 8.</p>
+      <button class="btn btn--ghost magnetic" id="sos-close" style="margin-top:22px">I'm okay now</button>
+    </div>
+  </div>
+
+  <div class="modal-scrim ex-modal" id="ex-modal">
+    <div class="modal">
+      <div class="ex-detail" id="ex-detail"></div>
+      <button class="btn btn--ghost magnetic" id="ex-close" style="margin-top:22px; width:100%; justify-content:center">Close</button>
+    </div>
+  </div>
+
+  <!-- ============================ LIBS + APP ============================ -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+  <script type="module" src="js/app.js?v=3"></script>
+  <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
+  <script>
+    if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {
+      addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js', { scope: './' })
+          .catch((err) => console.warn('[odyssey] SW registration failed:', err));
+      });
+    }
+  </script>
+</body>
+</html>
