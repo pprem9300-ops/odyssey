@@ -3,11 +3,25 @@
 > **Read this file first.** It is the living source of truth for the Odyssey build.
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
-**Last updated:** 2026-06-19
-**Current phase:** `P8 — v2 shipped (cloud sync live · deep library · sleep · routines · omega icon · intro · perf)`
-**Overall progress:** ▰▰▰▰▰▰▰ ~96% (running & verified; only the nutrition-regimes library is outstanding)
+**Last updated:** 2026-06-20
+**Current phase:** `P9 — DEPLOYED & live (GitHub Pages) · usable on iPhone / iPad / anywhere`
+**Overall progress:** ▰▰▰▰▰▰▰ ~97% (live & verified; remaining: live sign-in redirect config + nutrition-regimes library)
+**🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. ⚠️ Magic-link sign-in on the live URL needs the Pages URL added to **Supabase → Auth → URL Configuration** (Site URL + Redirect `…/odyssey/**`).
 
 > **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=3` cache-bust. Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
+
+---
+
+## ▶ RESUME HERE (next session)
+
+**State:** fully built, verified, and **deployed live** → https://pprem9300-ops.github.io/odyssey/ (auto-redeploys on `git push origin main`). `gh` CLI is installed + authed as **`pprem9300-ops`**. Repo: `github.com/pprem9300-ops/odyssey` (public; only the public-safe Supabase publishable key is committed).
+
+**Immediate next actions (priority order):**
+1. **Make live sign-in work** — the user must add the Pages URL in **Supabase → Authentication → URL Configuration**: Site URL = `https://pprem9300-ops.github.io/odyssey/`, and Redirect URLs += `https://pprem9300-ops.github.io/odyssey/**`. Then verify the magic-link round-trip on the live site (sign in → "Synced ✓" → data syncs across devices).
+2. **Build the nutrition-regimes library** (the one unbuilt feature) — proven **lean-gain + cut** protocols as a browsable view. The `odyssey-proven-regimes` research workflow failed earlier (account session limit); either re-run it or author the content directly, then add a "Regimes" view + nav link.
+3. Optional: §6 backlog (relapse/reset flow, per-day checklist persistence, wearable import, AI weekly insight).
+
+**Run locally:** `python3 ~/Desktop/odyssey/serve.py 4178 ~/Desktop/odyssey` then open `http://localhost:4178` — OR double-click `~/Desktop/Odyssey.app`. **Ship a change:** `cd ~/Desktop/odyssey && git add -A && git commit -m "…" && git push` (Pages rebuilds in ~1 min).
 
 ---
 
@@ -101,7 +115,10 @@ odyssey/
 - ✅ **P4 — Screens:** landing · cockpit · schedule · lung lab · nutrition · journey (6 working; onboarding deferred — values editable in-app)
 - ✅ **P5 — Motion:** Lenis, breath-field canvas, custom cursor, scroll reveals, count-ups, milestone celebration takeover
 - ✅ **P6 — Verify:** previewed desktop 1280 + mobile 390 · no console errors · celebration + speed-dial gating + breath-tile gating confirmed
-- 🔄 **P7 — Handoff:** see §9 below
+- ✅ **P7 — Handoff:** PWA · desktop launcher · deploy scripts · docs
+- ✅ **P8 — v2:** deep exercise library + Moves view · sleep + Readiness · routine-style picker · omega icon · cold-boot intro · perf pass · cloud sync live
+- ✅ **P9 — Deployed:** GitHub Pages live, auto-redeploy on push; works on iPhone / iPad / anywhere
+- 🔄 **P10 — Live polish:** verify live magic-link sign-in (needs Supabase redirect config) · build nutrition-regimes library
 
 ### Verified working (preview)
 Engine math correct · all 6 views render · Day-One milestone takeover fires · speed dial gates Balanced/Relentless until 8/30 days · breath tiles gate by level · floor-only foundation exercises · mobile responsive (burger nav, stacked CTAs). Known cosmetic: hero word-swap cross-fades every 2.6s (clean in live motion).
@@ -154,33 +171,28 @@ Updated at every phase boundary: bump date/phase/progress (§ top) · flip roadm
 
 ---
 
-## 9. How to open, run & deploy (P7 handoff)
+## 9. How to open, run & deploy
 
-**It's a zero-build static site** — `index.html` + `css/` + `js/`. No npm, no compile.
+**🌐 Live (anywhere):** **https://pprem9300-ops.github.io/odyssey/** — open on any device; on iPhone/iPad: Safari → Share → **Add to Home Screen** for the full-screen Ω app.
 
-**On your MacBook (local):**
+**Ship an update:** `cd ~/Desktop/odyssey && git add -A && git commit -m "…" && git push` → GitHub Pages rebuilds in ~1 min. Bump `?v=` on changed module imports (or `CACHE` in `sw.js`) so clients get fresh assets.
+
+**Run locally (dev):**
 ```bash
-cd ~/Desktop/odyssey
-python3 -m http.server 4178
-# open http://localhost:4178
+python3 ~/Desktop/odyssey/serve.py 4178 ~/Desktop/odyssey
+# open http://localhost:4178   — OR double-click ~/Desktop/Odyssey.app
 ```
-(A preview config named `odyssey` is already in `.claude/launch.json`.)
-*Note:* open via a server, not `file://` — the JS uses ES modules which browsers block on `file://`.
+Use **`serve.py`** (no-cache), NOT plain `http.server`. Serve over http (not `file://` — ES modules). Preview config `odyssey` is in `.claude/launch.json`.
 
-**On your iPhone:** deploy it (below) and open the URL, then "Add to Home Screen" for an app-like, full-screen launch. Same data lives per-device in `localStorage` (no account yet — that's the D1 "round two" cloud-sync option).
-
-**Deploy (free, ~2 min) — any of:**
-- **Netlify Drop:** drag the `odyssey` folder onto app.netlify.com/drop → instant URL.
-- **Vercel:** `npx vercel` in the folder.
-- **GitHub Pages:** push to a repo → Settings → Pages → deploy from root.
-
-**Data reset:** clear it from the browser console — `localStorage.removeItem('odyssey.profile.v1')`.
+**Data reset:** browser console → `localStorage.removeItem('odyssey.profile.v1')`.
 
 ---
 
 ## 10. Cloud sync setup (Supabase — free, ~10 min, no card)
 
-The app runs **local-first**: it works with zero setup (on-device). Do this only when you want your streak/weight/plan to **sync across iPhone + MacBook**. Free forever for a personal app.
+**Status:** ✅ steps 1–4 DONE — project live, `odyssey_state` table + RLS exist, keys are in `js/config.js`, client verified. **⏳ Remaining = step 5** (add the live Pages URL to the redirect allowlist so magic-link sign-in works on the deployed site).
+
+The app runs **local-first** (on-device, zero setup); this section is what makes it **sync across devices**. Free forever for a personal app.
 
 1. **Create the project** — go to [supabase.com](https://supabase.com) → sign up → **New project** (Free plan, no credit card). Wait ~2 min for provisioning.
 2. **Create the table** — open **SQL Editor** → **New query** → paste & **Run**:
@@ -200,7 +212,7 @@ The app runs **local-first**: it works with zero setup (on-device). Do this only
    export const SUPABASE_ANON_KEY = 'eyJ...your-anon-key...';
    ```
 4. **Email auth** is on by default (magic link). *(Optional: Authentication → Providers → Email → turn off "Confirm email" for instant one-tap links.)*
-5. **Add your deployed URL** to **Authentication → URL Configuration → Redirect URLs** (e.g. your Netlify/Vercel URL) so magic links open the live app.
+5. **⏳ DO THIS (only remaining step):** **Authentication → URL Configuration** → set **Site URL** = `https://pprem9300-ops.github.io/odyssey/` and add to **Redirect URLs**: `https://pprem9300-ops.github.io/odyssey/**` (keep `http://localhost:4178/**` for local). This is what makes magic-link sign-in work on the live site.
 
 Then: nav button shows **Sign in** → enter email → tap the magic link on each device → **Synced ✓**. The `anon` key is public-by-design (Row-Level Security means each user touches only their own row).
 

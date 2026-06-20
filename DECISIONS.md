@@ -5,6 +5,16 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-20 — Deployment → GitHub Pages (Streamlit rejected)
+
+### D17 · Hosting → **GitHub Pages** (public repo), NOT Streamlit
+User proposed "GitHub + Streamlit" to use the app anywhere. **Streamlit rejected** — it's a Python *data-app* framework that renders its own widget UI; Odyssey is a static HTML/CSS/JS PWA, so Streamlit could only bury it in an iframe (`components.html`), which breaks localStorage/auth/PWA-install, caps height, and adds Streamlit chrome. Chose **GitHub Pages**: free, HTTPS, auto-redeploy on `git push`, native fit for a static site, and our PWA → Add-to-Home-Screen gives the omega app on iPhone/iPad.
+Setup: installed `gh` via brew; user did one browser auth (account **`pprem9300-ops`**); created public repo `pprem9300-ops/odyssey`, pushed, enabled Pages (main/root). **Live: https://pprem9300-ops.github.io/odyssey/**. `config.js` is committed (publishable key only — public-safe; no secret key / DB password anywhere). Fixed manifest `id` → `/odyssey/` for subpath uniqueness; `sw.js` + manifest already used relative paths (subpath-safe).
+**Remaining:** add the Pages URL to Supabase Auth → URL Configuration (Site URL + Redirect `…/odyssey/**`) for live magic-link sign-in.
+**Why:** matches the real goal (use it anywhere on iPhone/iPad) with the right tool; zero ongoing cost; `git push` = deploy.
+
+---
+
 ## 2026-06-19 — v2 features + experience pass
 
 ### D12 · Deep exercise library (60 moves) → `js/exercises.js`, auto-generated
