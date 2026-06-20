@@ -5,6 +5,19 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-20 — Invite-only auth (email/password + emailed code via Brevo); Streamlit re-rejected
+
+### D18 · Access → **invite-only login gate**, two ways in, on GitHub Pages (Streamlit rejected again)
+User asked to (1) deploy via Streamlit, (2) add email/password **and** emailed-code login via **Brevo**, (3) make the app **invite-only** (no access without logging in). **Streamlit re-rejected** (reaffirms [D17]): it can only host our static PWA inside an iframe, which breaks localStorage/auth-redirects/PWA-install — and crucially, goals 2 & 3 need **none** of Streamlit. They're all achievable on the existing **GitHub Pages + Supabase** stack, better. User confirmed: keep Pages.
+**What was built (client):**
+- **`js/gate.js`** — a full-screen login gate that covers the app until authenticated. `app.js` now does `boot() → initGate(enterApp)`; the app only renders (`enterApp`) once a session exists. Sign-out → `location.reload()` re-shows the gate.
+- **Two ways in (user chose "password OR emailed code"):** a 6-digit **OTP code** (`signInWithOtp` → `verifyOtp type:'email'`, primary/recommended) **or** **email+password** (`signInWithPassword`, with create-password + reset). Both Supabase Auth.
+- **Invite-only via client allowlist** — `ALLOWED_EMAILS` in `js/config.js` (user chose "email allowlist in the app" over "disable signup + invite"). `cloud.js` enforces `isAllowed()` on every auth entry path. **Honest scope:** the allowlist is a *client-side* gate (good for a private personal app); the hard locks are (a) Supabase **RLS** already isolates every user to their own row, and (b) the optional server-side hardening noted in PROJECT_STATUS §10 (disable public signups, or an allowlist trigger).
+**What's manual (no dashboard creds):** wire **Brevo as Supabase's SMTP sender** (Supabase's built-in mailer is rate-limited ~2-3/hr → testing only, so Brevo is the *right* fix for real code delivery), set the Magic-Link email template to emit `{{ .Token }}` (the 6-digit code), and finish the still-pending Supabase **URL Configuration** (Site URL + redirect). Steps in PROJECT_STATUS §10.
+**Why:** matches the real goal (private, invite-only, reliable email codes) with the right tools; zero new infra; the PWA stays intact; `git push` = deploy.
+
+---
+
 ## 2026-06-20 — Deployment → GitHub Pages (Streamlit rejected)
 
 ### D17 · Hosting → **GitHub Pages** (public repo), NOT Streamlit

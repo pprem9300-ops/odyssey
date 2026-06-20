@@ -3,7 +3,8 @@
    ========================================================================== */
 import * as E from './engine.js?v=3';
 import * as M from './motion.js?v=3';
-import * as Cloud from './cloud.js?v=3';
+import * as Cloud from './cloud.js?v=4';
+import { initGate } from './gate.js?v=4';
 import { openCalibration } from './onboard.js?v=3';
 import { weightTrendSVG, weightDeltaLabel } from './chart.js?v=3';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=3';
@@ -544,7 +545,7 @@ function updateSyncUI() {
   const btn = $('#sync-btn'), body = $('#sync-body');
   if (!Cloud.cloudEnabled()) {
     btn.textContent = 'On-device';
-    if (body) body.innerHTML = `<p class="lead" style="font-size:.96rem">Your progress is saved <strong>on this device</strong>. To sync your streak, weight & plan across your iPhone and MacBook, add your free Supabase keys to <span class="mono" style="font-size:.85em">js/config.js</span> — setup steps are in <span class="mono" style="font-size:.85em">PROJECT_STATUS.md §10</span>. It's free, no card.</p>`;
+    if (body) body.innerHTML = `<p class="lead" style="font-size:.96rem">Your progress is saved <strong>on this device</strong>. Add your free Supabase keys to <span class="mono" style="font-size:.85em">js/config.js</span> to enable accounts + cross-device sync — steps in <span class="mono" style="font-size:.85em">PROJECT_STATUS.md §10</span>.</p>`;
     return;
   }
   const u = Cloud.currentUser();
@@ -553,7 +554,12 @@ function updateSyncUI() {
     if (body) body.innerHTML = `<p class="lead" style="font-size:.96rem">Signed in as <strong>${u.email || 'you'}</strong>. Your streak, weight & plan follow you across every device, automatically.</p>
       <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
         <button class="btn btn--clay magnetic" id="sync-now">Sync now</button>
+        <button class="btn btn--ghost magnetic" id="sync-pass">Set / change password</button>
         <button class="btn btn--ghost magnetic" id="sync-out">Sign out</button>
+      </div>
+      <div id="sync-pass-wrap" style="display:none; margin-top:12px">
+        <input id="sync-pass-input" type="password" autocomplete="new-password" placeholder="New password (min 6 chars)" style="width:100%;padding:12px 15px;border:1.5px solid var(--haze);border-radius:12px;font:inherit;background:var(--cream)">
+        <button class="btn btn--clay magnetic" id="sync-pass-save" style="margin-top:8px;width:100%;justify-content:center">Save password</button>
       </div>
       <p id="sync-status" class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:10px"></p>`;
     const now = $('#sync-now'); if (now) now.onclick = async () => {
@@ -561,28 +567,35 @@ function updateSyncUI() {
       Cloud.pushDebounced(profile); await syncPull();
       $('#sync-status').textContent = '✓ Up to date.';
     };
-    const out = $('#sync-out'); if (out) out.onclick = async () => { await Cloud.signOut(); updateSyncUI(); };
-  } else {
-    btn.textContent = 'Sign in';
-    if (body) body.innerHTML = `<p class="lead" style="font-size:.96rem">Enter your email — we'll send a one-tap magic link (no password). Sign in on both devices to sync.</p>
-      <input id="sync-email" type="email" inputmode="email" autocomplete="email" placeholder="you@email.com" style="width:100%;margin-top:14px;padding:13px 16px;border:1.5px solid var(--haze);border-radius:12px;font:inherit;background:var(--cream)">
-      <button class="btn btn--clay magnetic" id="sync-send" style="margin-top:12px;width:100%;justify-content:center">Send magic link</button>
-      <p id="sync-status" class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:10px"></p>`;
-    const send = $('#sync-send');
-    if (send) send.onclick = async () => {
-      const email = $('#sync-email').value.trim();
-      if (!email) return;
-      $('#sync-status').textContent = 'Sending…';
-      try { await Cloud.signIn(email); $('#sync-status').textContent = '✓ Check your email for the magic link.'; }
+    const passToggle = $('#sync-pass'); if (passToggle) passToggle.onclick = () => {
+      const w = $('#sync-pass-wrap'); w.style.display = w.style.display === 'none' ? 'block' : 'none';
+      if (w.style.display === 'block') $('#sync-pass-input').focus();
+    };
+    const passSave = $('#sync-pass-save'); if (passSave) passSave.onclick = async () => {
+      const pw = $('#sync-pass-input').value;
+      if (pw.length < 6) { $('#sync-status').textContent = 'Password must be at least 6 characters.'; return; }
+      $('#sync-status').textContent = 'Saving…';
+      try { await Cloud.updatePassword(pw); $('#sync-status').textContent = '✓ Password saved — you can now sign in with it.'; $('#sync-pass-wrap').style.display = 'none'; }
       catch (e) { $('#sync-status').textContent = 'Error: ' + e.message; }
     };
+    const out = $('#sync-out'); if (out) out.onclick = async () => { await Cloud.signOut(); location.reload(); };
+  } else {
+    // Within the app the user is always signed in; landing here means the
+    // session dropped — bring the gate back with a reload.
+    btn.textContent = 'Sign in';
+    if (body) body.innerHTML = `<p class="lead" style="font-size:.96rem">Your session ended. Reload to sign back in.</p>
+      <button class="btn btn--clay magnetic" id="sync-reload" style="margin-top:12px;width:100%;justify-content:center">Reload &amp; sign in</button>`;
+    const rl = $('#sync-reload'); if (rl) rl.onclick = () => location.reload();
   }
 }
 
 /* ============================================================================
    BOOT
    ========================================================================== */
-function boot() {
+let appEntered = false;
+function enterApp() {
+  if (appEntered) return;               // the gate calls this exactly once
+  appEntered = true;
   renderAll();
 
   // motion
@@ -629,21 +642,24 @@ function boot() {
   $('#ex-close').onclick = () => $('#ex-modal').classList.remove('on');
   $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') $('#ex-modal').classList.remove('on'); };
 
-  // cloud sync (local-first; dormant until config.js is filled in)
+  // account / sync modal — cloud is already initialised by the gate.
   const openSync = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
   const closeSync = () => $('#sync-modal').classList.remove('on');
   $('#sync-btn').onclick = openSync;
   $('#sync-close').onclick = closeSync;
   $('#sync-modal').onclick = (e) => { if (e.target.id === 'sync-modal') closeSync(); };
   updateSyncUI();
-  Cloud.initCloud().then((res) => { updateSyncUI(); if (res.enabled && Cloud.currentUser()) syncPull(); });
+  if (Cloud.currentUser()) syncPull();                         // pull this user's cloud state on entry
   Cloud.onAuth(() => { updateSyncUI(); if (Cloud.currentUser()) syncPull(); });
 
   // first-run welcome → calibration (only when nothing has ever been saved)
   if (!localStorage.getItem(STORE)) openProfileEditor(true);
 
-  console.log('%cODYSSEY','color:#D97757;font:600 16px sans-serif','— engine online. Cloud:', Cloud.cloudEnabled() ? 'configured' : 'local-only', '· Plan:', plan);
+  console.log('%cODYSSEY','color:#D97757;font:600 16px sans-serif','— engine online. Signed in:', Cloud.currentUser()?.email || '—', '· Plan:', plan);
 }
+
+/* The app is invite-only: render nothing until the gate authenticates the user. */
+function boot() { initGate(enterApp); }
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
 else boot();

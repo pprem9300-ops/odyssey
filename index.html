@@ -27,6 +27,14 @@
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
+  <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
+  <div id="gate" role="dialog" aria-modal="true" aria-label="Sign in to Odyssey">
+    <div class="gate-card">
+      <div class="gate-omega">&#937;</div>
+      <div id="gate-body"><p class="gate-checking mono">Checking access…</p></div>
+    </div>
+  </div>
+
   <!-- cold-boot intro -->
   <div id="intro">
     <div class="intro-inner">
@@ -343,7 +351,10 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
-  <script type="module" src="js/app.js?v=3"></script>
+  <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
+       (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
+  <script src="js/vendor/supabase.umd.js?v=4"></script>
+  <script type="module" src="js/app.js?v=4"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {

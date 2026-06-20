@@ -4,9 +4,9 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-20
-**Current phase:** `P9 — DEPLOYED & live (GitHub Pages) · usable on iPhone / iPad / anywhere`
-**Overall progress:** ▰▰▰▰▰▰▰ ~97% (live & verified; remaining: live sign-in redirect config + nutrition-regimes library)
-**🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. ⚠️ Magic-link sign-in on the live URL needs the Pages URL added to **Supabase → Auth → URL Configuration** (Site URL + Redirect `…/odyssey/**`).
+**Current phase:** `P10 — Live polish · invite-only login gate built (code OR password via Brevo); needs Supabase+Brevo dashboard config`
+**Overall progress:** ▰▰▰▰▰▰▰ ~97% (auth gate built & verified locally; remaining: Brevo SMTP + Supabase auth config to make live login deliver codes · nutrition-regimes library)
+**🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. ⚠️ The app is now **invite-only** — it shows a login gate until you sign in (`js/gate.js`). Live sign-in needs the **manual Supabase + Brevo setup in §10** (SMTP sender, code email template, URL Configuration).
 
 > **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=3` cache-bust. Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
 
@@ -17,9 +17,10 @@
 **State:** fully built, verified, and **deployed live** → https://pprem9300-ops.github.io/odyssey/ (auto-redeploys on `git push origin main`). `gh` CLI is installed + authed as **`pprem9300-ops`**. Repo: `github.com/pprem9300-ops/odyssey` (public; only the public-safe Supabase publishable key is committed).
 
 **Immediate next actions (priority order):**
-1. **Make live sign-in work** — the user must add the Pages URL in **Supabase → Authentication → URL Configuration**: Site URL = `https://pprem9300-ops.github.io/odyssey/`, and Redirect URLs += `https://pprem9300-ops.github.io/odyssey/**`. Then verify the magic-link round-trip on the live site (sign in → "Synced ✓" → data syncs across devices).
+1. **Finish the auth setup so live login works (≈10 min in two dashboards) — see §10.** The invite-only gate (`js/gate.js`) is built & verified locally; it needs: (a) **Brevo** account → verify a sender → SMTP key; (b) **Supabase → Project Settings → Auth → SMTP** = Brevo creds; (c) **Supabase → Auth → Email Templates → Magic Link** → emit `{{ .Token }}` so "email me a code" delivers a **6-digit code**; (d) **Supabase → Auth → URL Configuration** Site URL + redirect `…/odyssey/**`; (e) add invited emails to `ALLOWED_EMAILS` in `js/config.js`. Then verify the code + password round-trips on the live site.
 2. **Build the nutrition-regimes library** (the one unbuilt feature) — proven **lean-gain + cut** protocols as a browsable view. The `odyssey-proven-regimes` research workflow failed earlier (account session limit); either re-run it or author the content directly, then add a "Regimes" view + nav link.
-3. Optional: §6 backlog (relapse/reset flow, per-day checklist persistence, wearable import, AI weekly insight).
+3. Optional hardening: make invite-only enforce **server-side** too (Supabase → Auth → disable public signups, or an allowlist trigger — §10). Today the allowlist is client-side; RLS already isolates each user's data.
+4. Optional: §6 backlog (relapse/reset flow, per-day checklist persistence, wearable import, AI weekly insight).
 
 **Run locally:** `python3 ~/Desktop/odyssey/serve.py 4178 ~/Desktop/odyssey` then open `http://localhost:4178` — OR double-click `~/Desktop/Odyssey.app`. **Ship a change:** `cd ~/Desktop/odyssey && git add -A && git commit -m "…" && git push` (Pages rebuilds in ~1 min).
 
@@ -99,10 +100,11 @@ odyssey/
     ├── onboard.js      ← calibration / edit-every-metric overlay   [✅]
     ├── chart.js        ← weight-trend SVG (pure)                   [✅]
     ├── exercises.js    ← 60-move encyclopedia (AUTO-GENERATED from workflow) [✅]
-    ├── cloud.js        ← Supabase sync (free, local-first)         [✅]
-    └── config.js       ← Supabase keys (SET — sync live)           [✅]
+    ├── gate.js         ← invite-only LOGIN GATE (code OR password) — covers app until authed [✅]
+    ├── cloud.js        ← Supabase auth + sync (code/password/reset, allowlist, free) [✅]
+    └── config.js       ← Supabase keys + ALLOWED_EMAILS invite list [✅]
 ```
-*Module imports use `?v=3` cache-bust. Bump it (or rely on serve.py) when shipping CSS/JS changes.*
+*Module imports use a `?v=` cache-bust (auth files at `?v=4`, unchanged modules at `?v=3`). Bump it (or rely on serve.py) when shipping CSS/JS changes; bump `CACHE` in `sw.js` (now `odyssey-v3`) for the PWA.*
 
 ---
 
@@ -118,7 +120,7 @@ odyssey/
 - ✅ **P7 — Handoff:** PWA · desktop launcher · deploy scripts · docs
 - ✅ **P8 — v2:** deep exercise library + Moves view · sleep + Readiness · routine-style picker · omega icon · cold-boot intro · perf pass · cloud sync live
 - ✅ **P9 — Deployed:** GitHub Pages live, auto-redeploy on push; works on iPhone / iPad / anywhere
-- 🔄 **P10 — Live polish:** verify live magic-link sign-in (needs Supabase redirect config) · build nutrition-regimes library
+- 🔄 **P10 — Live polish:** ✅ invite-only login gate (code OR password, allowlist) built + verified locally · ⏳ Brevo SMTP + Supabase auth config to make live login deliver codes (§10) · build nutrition-regimes library
 
 ### Verified working (preview)
 Engine math correct · all 6 views render · Day-One milestone takeover fires · speed dial gates Balanced/Relentless until 8/30 days · breath tiles gate by level · floor-only foundation exercises · mobile responsive (burger nav, stacked CTAs). Known cosmetic: hero word-swap cross-fades every 2.6s (clean in live motion).
@@ -188,31 +190,58 @@ Use **`serve.py`** (no-cache), NOT plain `http.server`. Serve over http (not `fi
 
 ---
 
-## 10. Cloud sync setup (Supabase — free, ~10 min, no card)
+## 10. Auth + cloud-sync setup (Supabase + Brevo — free, ~10 min, no card)
 
-**Status:** ✅ steps 1–4 DONE — project live, `odyssey_state` table + RLS exist, keys are in `js/config.js`, client verified. **⏳ Remaining = step 5** (add the live Pages URL to the redirect allowlist so magic-link sign-in works on the deployed site).
+The app is **invite-only**: `js/gate.js` shows a login gate until you sign in, with **two ways in** — an emailed **6-digit code** (recommended) **or** email + **password**. Codes/emails are delivered by **Brevo** (SMTP) because Supabase's built-in mailer is rate-limited (~2–3/hr → testing only). Supabase RLS keeps every user's data private to them. The `anon`/publishable key is public-by-design.
 
-The app runs **local-first** (on-device, zero setup); this section is what makes it **sync across devices**. Free forever for a personal app.
+**Already done:** ✅ Supabase project live, `odyssey_state` table + RLS, keys in `js/config.js`, gate + auth code built & verified locally.
 
-1. **Create the project** — go to [supabase.com](https://supabase.com) → sign up → **New project** (Free plan, no credit card). Wait ~2 min for provisioning.
-2. **Create the table** — open **SQL Editor** → **New query** → paste & **Run**:
-   ```sql
-   create table if not exists odyssey_state (
-     user_id uuid primary key references auth.users on delete cascade,
-     data jsonb,
-     updated_at timestamptz default now()
-   );
-   alter table odyssey_state enable row level security;
-   create policy "own row only" on odyssey_state
-     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+**⏳ TO DO (these are dashboard steps — I can't do them without your logins):**
+
+**A. Brevo (the email sender) — free, 300 emails/day**
+1. Sign up at [brevo.com](https://www.brevo.com) (free "Starter").
+2. **Senders, Domains & Dedicated IPs → Senders →** add & **verify** a sender email (e.g. your Gmail — click the confirmation Brevo emails you). This is the "from" address.
+3. **SMTP & API → SMTP** → note: **Server** `smtp-relay.brevo.com`, **Port** `587`, **Login** (your Brevo account email), and **generate an SMTP key** (the password). Copy the key.
+
+**B. Supabase → point auth emails at Brevo**
+4. **Project Settings → Authentication → SMTP Settings → Enable custom SMTP:**
+   - Host `smtp-relay.brevo.com` · Port `587` · Username = your Brevo login · Password = the Brevo **SMTP key** · Sender email = the **verified** sender from step 2 · Sender name `Odyssey`.
+5. **Authentication → Email Templates → "Magic Link"** → make sure the body includes the **code token** so "email me a code" delivers a 6-digit code (not only a link). Use e.g.:
+   ```html
+   <h2>Your Odyssey code</h2>
+   <p>Enter this code to sign in:</p>
+   <p style="font-size:28px;letter-spacing:6px"><strong>{{ .Token }}</strong></p>
+   <p>Or tap: <a href="{{ .ConfirmationURL }}">sign in</a></p>
    ```
-3. **Copy your keys** — **Settings → API** → copy **Project URL** and the **anon public** key into `js/config.js`:
-   ```js
-   export const SUPABASE_URL = 'https://YOURPROJECT.supabase.co';
-   export const SUPABASE_ANON_KEY = 'eyJ...your-anon-key...';
-   ```
-4. **Email auth** is on by default (magic link). *(Optional: Authentication → Providers → Email → turn off "Confirm email" for instant one-tap links.)*
-5. **⏳ DO THIS (only remaining step):** **Authentication → URL Configuration** → set **Site URL** = `https://pprem9300-ops.github.io/odyssey/` and add to **Redirect URLs**: `https://pprem9300-ops.github.io/odyssey/**` (keep `http://localhost:4178/**` for local). This is what makes magic-link sign-in work on the live site.
+6. **Authentication → Providers → Email** → keep **Email** enabled; **password** sign-in is on by default. *(Optional: turn OFF "Confirm email" so a freshly created password account is usable instantly; with invite-only + the allowlist this is reasonable.)*
+7. **Authentication → URL Configuration** → **Site URL** = `https://pprem9300-ops.github.io/odyssey/` and add to **Redirect URLs**: `https://pprem9300-ops.github.io/odyssey/**` (keep `http://localhost:4178/**` for local). Needed for password-reset/confirm links and the magic-link fallback.
 
-Then: nav button shows **Sign in** → enter email → tap the magic link on each device → **Synced ✓**. The `anon` key is public-by-design (Row-Level Security means each user touches only their own row).
+**C. The invite list (in code — I seeded yours)**
+8. `js/config.js` → `ALLOWED_EMAILS` already contains `pprem9300@gmail.com`. Add a line per invited person; `git push` to deploy. Only listed emails can sign in/up from the app.
+
+**Verify:** open the live site → gate appears → enter your email → **Email me a code** → type the 6-digit code → you're in (or use a password). Sign out (Profile-area "Synced ✓" modal) re-shows the gate.
+
+**Optional hardening — make invite-only *server-side* too (recommended).** The `ALLOWED_EMAILS` list is a **client** gate: it stops casual access and unwanted accounts in the UI, but the publishable key in `config.js` is public, so a determined person could call Supabase's signup API directly and self-provision an (empty) account. **RLS already prevents them seeing anyone else's data** — the only gap is unwanted account creation. To close it, pick one:
+- **Easiest:** Supabase → **Authentication → Sign In / Providers** (or Auth → Settings) → turn **OFF "Allow new users to sign up."** Then create your account once (sign in via code while it's still on, or use the dashboard's **Add user**), and turn it off. New invitees need you to add them in the dashboard.
+- **Keeps the in-code list working for self-signup —** add this trigger (SQL Editor → Run). It rejects any signup whose email isn't in an `allowed_emails` table:
+  ```sql
+  create table if not exists allowed_emails (email text primary key);
+  insert into allowed_emails (email) values ('pprem9300@gmail.com') on conflict do nothing;
+
+  create or replace function public.enforce_invite() returns trigger
+    language plpgsql security definer as $$
+  begin
+    if not exists (select 1 from allowed_emails where lower(email) = lower(new.email)) then
+      raise exception 'not invited';
+    end if;
+    return new;
+  end $$;
+
+  drop trigger if exists enforce_invite_trg on auth.users;
+  create trigger enforce_invite_trg before insert on auth.users
+    for each row execute function public.enforce_invite();
+  ```
+  Keep this table in sync with `ALLOWED_EMAILS` in `config.js` (the client list still drives the nice UI rejection message).
+
+**Offline behavior (by design):** the gate needs Supabase to confirm your session. `supabase-js` is **vendored same-origin** (`js/vendor/supabase.umd.js`, precached by `sw.js`), so once you've signed in, the PWA opens **offline** with an unexpired session. A *first-ever* sign-in, or an expired session, needs a connection — offline cold-start then shows a clear "You're offline" message instead of looping.
 
