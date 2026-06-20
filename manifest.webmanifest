@@ -2,7 +2,7 @@
   "name": "Odyssey — breathe. build. become.",
   "short_name": "Odyssey",
   "description": "A cinematic lung-rehab, calisthenics & pure-veg nutrition companion. Heal your lungs, rebuild toward a lean 75 kg, and turn every smoke-free day into measurable progress.",
-  "id": "/",
+  "id": "/odyssey/",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
