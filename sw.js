@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v9';   // bumped: removed Lenis smooth-scroll (native scroll — fixes scroll stall/jank)
+const CACHE = 'odyssey-v10';  // bumped: subtle animation set (CSS/IO reveals + masked headlines + hover/press + rAF count-up)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

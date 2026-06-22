@@ -2,7 +2,7 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=3';
-import * as M from './motion.js?v=9';
+import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';

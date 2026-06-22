@@ -50,7 +50,7 @@ export function initReveals(root = document) {
     entries.forEach((en) => {
       if (en.isIntersecting) {
         const d = parseInt(en.target.dataset.d || 0, 10);
-        setTimeout(() => en.target.classList.add('in'), d * 90);
+        setTimeout(() => en.target.classList.add('in'), d * 70);
         io.unobserve(en.target);
       }
     });
@@ -59,11 +59,18 @@ export function initReveals(root = document) {
 }
 
 /* ---- Eased count-up ----------------------------------------------------- */
-export function countUp(el, to, { dur = 1.4, dp = 0 } = {}) {
+export function countUp(el, to, { dur = 1400, dp = 0 } = {}) {
   if (!el) return;
-  if (RM) { el.textContent = (+to).toFixed(dp); return; }
-  const o = { v: parseFloat(el.textContent) || 0 };
-  gsap.to(o, { v: +to, duration: dur, ease: 'power2.out', onUpdate: () => { el.textContent = o.v.toFixed(dp); } });
+  const target = +to;
+  if (RM) { el.textContent = target.toFixed(dp); return; }
+  const from = parseFloat(el.textContent) || 0;
+  const t0 = performance.now();
+  (function frame(t) {                                  // rAF ease-out — no ticker dependency
+    const k = Math.min(1, (t - t0) / dur);
+    const e = 1 - Math.pow(1 - k, 3);
+    el.textContent = (from + (target - from) * e).toFixed(dp);
+    if (k < 1) requestAnimationFrame(frame);
+  })(performance.now());
 }
 
 /* ---- Hero kinetic intro + word swap ------------------------------------- */
@@ -92,21 +99,25 @@ export function transitionView(swap) {
   swap();
 }
 
-/* ---- Masked split-line headline reveals (vanilla, no paid SplitText) ----- */
+/* ---- Masked split-line headline reveals — CSS + IntersectionObserver (no ticker dependency) --- */
 export function revealHeadline(scope = document) {
-  if (RM || !gsap) return;
+  if (RM) return;
+  const watch = (el, lines) => {
+    const io = new IntersectionObserver((es) => es.forEach((en) => {
+      if (en.isIntersecting) {
+        lines ? el.querySelectorAll('.ln').forEach((ln) => ln.classList.add('in')) : el.classList.add('in');
+        io.disconnect();
+      }
+    }), { threshold: 0.25, rootMargin: '0px 0px -6% 0px' });
+    io.observe(el);
+  };
   scope.querySelectorAll('h2.display:not([data-split])').forEach((h) => {
     h.dataset.split = '1';
-    const complex = [...h.children].some((c) => c.tagName !== 'BR');   // has inline markup → don't line-split
-    if (complex) {
-      gsap.from(h, { yPercent: 24, autoAlpha: 0, duration: DUR.slow, ease: EASE.out,
-        scrollTrigger: { trigger: h, start: 'top 88%' } });
-      return;
-    }
+    const complex = [...h.children].some((c) => c.tagName !== 'BR');   // inline markup → plain fade-reveal
+    if (complex) { h.classList.add('reveal'); watch(h, false); return; }
     const lines = h.innerHTML.split(/<br\s*\/?>/i).map((s) => s.trim()).filter(Boolean);
-    h.innerHTML = lines.map((l) => `<span class="ln"><i>${l}</i></span>`).join('');
-    gsap.from(h.querySelectorAll('.ln i'), { yPercent: 115, duration: DUR.slow, ease: EASE.out, stagger: 0.08,
-      scrollTrigger: { trigger: h, start: 'top 86%' } });
+    h.innerHTML = lines.map((l, i) => `<span class="ln"><i style="transition-delay:${i * 80}ms">${l}</i></span>`).join('');
+    watch(h, true);
   });
 }
 

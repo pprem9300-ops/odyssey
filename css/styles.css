@@ -91,8 +91,8 @@ h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
 .container { width: 100%; max-width: var(--container); margin-inline: auto; padding-inline: clamp(20px, 5vw, 56px); }
 .section { padding-block: clamp(64px, 11vw, 150px); position: relative; }
 .bento { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(14px, 1.6vw, 22px); }
-.reveal { opacity: 0; transform: translateY(26px); }
-.reveal.in { opacity: 1; transform: none; transition: opacity var(--slow) var(--ease), transform var(--slow) var(--ease); }
+.reveal { opacity: 0; transform: translateY(14px); }
+.reveal.in { opacity: 1; transform: none; transition: opacity .55s var(--ease), transform .55s var(--ease); }
 
 /* ---- Custom cursor ------------------------------------------------------ */
 .cursor, .cursor-dot { position: fixed; top: 0; left: 0; z-index: 9999; pointer-events: none; border-radius: 50%; mix-blend-mode: multiply; }
@@ -119,7 +119,8 @@ h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
   transition: transform var(--fast) var(--ease), box-shadow var(--base) var(--ease);
   will-change: transform;
 }
-.btn:hover { box-shadow: var(--e3); }
+.btn:hover { box-shadow: var(--e3); transform: translateY(-2px); }
+.btn:active { transform: translateY(0) scale(.98); }
 .btn--clay { background: var(--clay); color: #fff; box-shadow: var(--glow-clay); }
 .btn--ghost { background: transparent; color: var(--ink); border: 1.5px solid var(--haze); }
 .btn--ghost:hover { border-color: var(--clay); }
@@ -179,7 +180,9 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .view-wipe { position: fixed; inset: 0; z-index: 7500; background: var(--cream); pointer-events: none; opacity: 0; visibility: hidden; }
 /* masked split-line headline reveals — padding/-margin gives descenders room inside the clip */
 .ln { display: block; overflow: hidden; padding-bottom: .1em; margin-bottom: -.1em; }
-.ln i { display: block; font-style: inherit; }
+.ln i { display: block; font-style: inherit; transform: translateY(118%); transition: transform .7s var(--ease); }
+.ln.in i { transform: none; }
+@media (prefers-reduced-motion: reduce) { .ln i { transform: none; transition: none; } }
 .app-pad { padding-top: 86px; }
 
 /* ============================================================================
