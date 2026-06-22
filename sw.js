@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v6';   // bumped: scroll-driven journey + robust timer-based view transition
+const CACHE = 'odyssey-v7';   // bumped: perf pass (instant transitions, magnetic rect-cache, lighter Lenis, content-visibility)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

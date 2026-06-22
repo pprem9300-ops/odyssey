@@ -172,7 +172,7 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
    VIEWS
    ========================================================================== */
 .view { display: none; }
-.view.is-active { display: block; animation: viewIn var(--base) var(--ease); }
+.view.is-active { display: block; animation: viewIn .3s var(--ease); }
 @keyframes viewIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 /* view-transition wipe (clip-path, compositor-only) */
@@ -378,7 +378,7 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .moves-fam { margin-bottom: 40px; }
 .moves-fam .fam-h { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
 .moves-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 14px; }
-.move-card { text-align: left; background: var(--paper); border: 1px solid var(--haze); border-radius: var(--r-md); padding: 18px; cursor: pointer; transition: border-color var(--fast) var(--ease), box-shadow var(--base) var(--ease), transform var(--base) var(--ease); display: flex; flex-direction: column; gap: 9px; }
+.move-card { text-align: left; background: var(--paper); border: 1px solid var(--haze); border-radius: var(--r-md); padding: 18px; cursor: pointer; transition: border-color var(--fast) var(--ease), box-shadow var(--base) var(--ease), transform var(--base) var(--ease); display: flex; flex-direction: column; gap: 9px; content-visibility: auto; contain-intrinsic-size: auto 132px; }
 .move-card:hover { border-color: var(--clay); box-shadow: var(--e2); transform: translateY(-3px); }
 .move-card .mc-name { font-family: var(--font-display); font-size: 1.1rem; line-height: 1.12; }
 .move-card .mc-musc { font-size: .82rem; color: var(--ink-faint); line-height: 1.4; }

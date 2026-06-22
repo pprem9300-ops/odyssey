@@ -16,9 +16,9 @@ const isMobile = () => matchMedia('(max-width: 768px)').matches;
 let lenisInstance = null;
 export function initSmoothScroll() {
   if (RM || !window.Lenis) return null;
-  lenisInstance = new window.Lenis({ lerp: 0.085, wheelMultiplier: 1, smoothWheel: true });
+  lenisInstance = new window.Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true, syncTouch: false });
   lenisInstance.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((t) => lenisInstance.raf(t * 1000));
+  gsap.ticker.add((t) => lenisInstance.raf(t * 1000), false, true);  // early priority: scroll settles before ScrollTrigger reads
   gsap.ticker.lagSmoothing(0);
   return lenisInstance;
 }
@@ -39,12 +39,14 @@ export function bindMagnetic(root = document) {
     if (el._mag) return; el._mag = true;
     const xT = gsap.quickTo(el, 'x', { duration: 0.4, ease: 'power3' });
     const yT = gsap.quickTo(el, 'y', { duration: 0.4, ease: 'power3' });
+    let r = null;                                   // cache rect on enter — no layout read per move
+    el.addEventListener('pointerenter', () => { r = el.getBoundingClientRect(); });
     el.addEventListener('pointermove', (e) => {
-      const r = el.getBoundingClientRect();
-      xT((e.clientX - (r.left + r.width / 2)) * 0.32);
-      yT((e.clientY - (r.top + r.height / 2)) * 0.32);
+      if (!r) r = el.getBoundingClientRect();
+      xT((e.clientX - (r.left + r.width / 2)) * 0.3);
+      yT((e.clientY - (r.top + r.height / 2)) * 0.3);
     });
-    el.addEventListener('pointerleave', () => { xT(0); yT(0); });
+    el.addEventListener('pointerleave', () => { r = null; xT(0); yT(0); });
   });
 }
 
@@ -93,13 +95,9 @@ export function initHero() {
 
 /* ---- View transition — clip-path wipe (desktop), instant on mobile/RM ---- */
 export function transitionView(swap) {
-  const w = document.getElementById('view-wipe');
-  if (RM || !gsap || !w || isMobile()) { swap(); return; }   // mobile/RM: instant swap + CSS viewIn fade
-  // Swap on a REAL timer, never a gsap callback — navigation must never depend on the
-  // ticker advancing (it can be throttled when the tab/preview isn't actively rendering).
-  // The opacity wipe is decorative on top.
-  gsap.to(w, { autoAlpha: 1, duration: DUR.fast, ease: EASE.io });
-  setTimeout(() => { swap(); gsap.to(w, { autoAlpha: 0, duration: DUR.base, ease: EASE.io }); }, DUR.fast * 1000);
+  // Snappy + light: swap immediately, let the cheap CSS `viewIn` fade do the transition.
+  // (The old gsap/timer wipe added ~800ms of perceived lag on every page change.)
+  swap();
 }
 
 /* ---- Masked split-line headline reveals (vanilla, no paid SplitText) ----- */

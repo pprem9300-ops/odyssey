@@ -2,7 +2,7 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=3';
-import * as M from './motion.js?v=7';
+import * as M from './motion.js?v=8';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
@@ -572,10 +572,14 @@ function switchView(name) {
     $$('.nav-link').forEach(l => l.classList.toggle('is-active', l.dataset.view === name));
     M.scrollToTop();
     const view = $(`#view-${name}`);
-    M.initReveals(view); M.bindMagnetic(view); M.revealHeadline(view); M.refreshScrollTriggers();
-    if (name === 'journey') initJourneyScroll();
-    // stop pacers when leaving lab
+    M.initReveals(view);
     if (name !== 'lab' && pacer) { pacer.stop(); pacer = null; }
+    // defer the heavy work (magnetic bind, ScrollTrigger.refresh, journey) one frame
+    // so the new view paints instantly — no per-navigation hitch
+    requestAnimationFrame(() => {
+      M.revealHeadline(view); M.bindMagnetic(view); M.refreshScrollTriggers();
+      if (name === 'journey') initJourneyScroll();
+    });
   });
 }
 
