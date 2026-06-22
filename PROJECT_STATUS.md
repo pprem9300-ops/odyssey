@@ -5,7 +5,7 @@
 
 **Last updated:** 2026-06-22
 **Current phase:** `P13 — TRAINING BRAIN v2 (D21): performance-driven progression (decoupled from the smoke-free streak), aesthetic/looksmaxx engine, + agility/cardio/plyo woven into a pro calisthenics week. Engine node-tested (26 asserts) + verified live. Remaining = optional queue (progress photos, plate calc, grocery, body measurements, reminders).`
-**Overall progress:** ▰▰▰▰▰▰▰ ~99% (auth · cinematic-dark redesign · subtle CSS/IO animations · native-scroll perf · feature increments + the performance-driven training brain — all live, verified). Cache-bust now `?v=18`, `sw odyssey-v18` (engine/exercises module imports at `?v=4`).
+**Overall progress:** ▰▰▰▰▰▰▰ ~99% (auth · cinematic-dark redesign · subtle CSS/IO animations · native-scroll perf · feature increments + the performance-driven training brain + auto-graduation + reset/undo — all live, verified). Cache-bust now `?v=19`, `sw odyssey-v19` (engine import `?v=5`, exercises `?v=4`).
 **🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
@@ -67,6 +67,7 @@
 - ✅ **Workout — rest timer** (`5360fc1`): exercise-modal coral ring countdown, Start/Pause, ±15, vibrate at 0.
 - ✅ **Wellness — journaling + data export** (`347e325`): daily note on the mood card (`journalLog`); 'Export data' in account modal → JSON backup of all logs.
 - ✅ **TRAINING BRAIN v2 — performance-driven (D21)**: exercises auto-progress from `workoutLog` (basic→advanced); cockpit-lead **aesthetic/looksmaxx index** (V-taper/posture/consistency + weakest-link nudge); **agility · cardio · plyometrics** woven into a pro, undulating calisthenics week; **decoupled from the streak**; Today checklist now **persisted** (`checklistLog`); Today view reordered **training-first**. Library → **73 moves**.
+- ✅ **AUTO-GRADUATION + RESET/UNDO (D21 follow-up)**: after ~14 training-weeks OR peak OR a manual "I'm ready" toggle, an **Advanced phase** retires beginner moves (rung floor rises) and **auto-adds skill work** (handstand/pistol/L-sit) per session. Plus **reset + undo everywhere** — per-exercise "Clear today", checklist/meals/water "Reset", and a global "Reset logs" in the account modal. Node-tested (32 asserts), verified live.
 - 🔜 **Workout** — progress photos, plate calculator, macro/volume trend chart.
 - 🔜 **Nutrition** — saved meals / swap chips, grocery list, macro-history chart.
 - 🔜 **Wellness** — body measurements (waist + photos), **reminders/notifications** (⚠️ true push needs a push server + SW push handlers; a static PWA can only do local `Notification` while open — scope this honestly before building).

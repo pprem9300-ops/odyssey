@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v18';  // bumped: performance-driven training brain + aesthetic/looksmaxx engine
+const CACHE = 'odyssey-v19';  // bumped: graduation/skill layer + reset & undo controls
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

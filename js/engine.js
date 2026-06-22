@@ -30,6 +30,7 @@ export const DEFAULT_PROFILE = {
   mode: 'auto',               // speed dial — 'auto' follows your performance; or pick gentle/balanced/relentless
   splitStyle: 'auto',         // 'auto' | 'full-body' | 'upper-lower' | 'ppl'
   goalFocus: 'aesthetic',     // calisthenics aesthetic + strength + athleticism
+  advancedMode: false,        // manual override: opt into the Advanced phase before the ~14-week auto-unlock
   streakDays: 0,              // reduce + rehab, no quit date yet → day one (WELLNESS layer only)
   weeksElapsed: 0,            // training weeks since start
   diet: { vegan: false, allowEgg: false },
@@ -215,6 +216,39 @@ export function resolveMode(p) {
   return recommendedMode(p);
 }
 
+/* ---- TRAINING TENURE → GRADUATION ---------------------------------------
+   Distinct calendar weeks with ≥1 logged session. ~14 of them (≈3.5 months)
+   can't be faked without months passing → a robust "duration" signal.        */
+function trainingWeeks(p) {
+  const weeks = new Set();
+  const log = wlog(p);
+  Object.keys(log).forEach(d => {
+    if (Object.keys(log[d] || {}).length) {
+      const ms = Date.parse(d + 'T00:00:00');
+      if (!Number.isNaN(ms)) weeks.add(Math.floor(ms / (7 * DAY_MS)));
+    }
+  });
+  return weeks.size;
+}
+// The smart graduation layer: after sustained training OR demonstrated peak OR a
+// manual opt-in, enter the Advanced phase → retire easy rungs + add skill work.
+export function graduation(p) {
+  const tl = trainingLevel(p);
+  const tenureWeeks = trainingWeeks(p);
+  const manual = !!(p && p.advancedMode);
+  const advanced = manual || tl.stage === 'peak' || (tenureWeeks >= 14 && tl.stage !== 'foundation');
+  const developing = !advanced && (tl.stage === 'build' || tenureWeeks >= 6);
+  const phase = advanced ? 'advanced' : developing ? 'developing' : 'starter';
+  const baseFloor = advanced ? 3 : developing ? 2 : 1;            // raises the rung floor → easy moves drop out
+  return { phase, advanced, developing, manual, tenureWeeks, baseFloor, skillUnlocked: advanced, weeksToAdvanced: advanced ? 0 : Math.max(0, 14 - tenureWeeks) };
+}
+// Advanced-phase skill movement per focus (floor-only, trained fresh, low volume).
+function skillFor(focus) {
+  if (focus === 'legs' || focus === 'lower') return { ladder: LADDERS.squat, base: LADDERS.squat.length - 2, range: [3, 8], tag: 'pistol line', timed: false };
+  if (focus === 'push' || focus === 'upper') return { ladder: LADDERS.vpush, base: LADDERS.vpush.length - 2, range: [3, 8], tag: 'handstand line', timed: false };
+  return { ladder: LADDERS.core, base: LADDERS.core.length - 2, range: [5, 12], tag: 'L-sit', timed: true };
+}
+
 // Lung/breath level — WELLNESS layer; governs forceful-pranayama safety only.
 export function lungLevel(weeksElapsed, streakDays) {
   if (weeksElapsed >= 12 && streakDays >= 30) return 'peak';
@@ -248,17 +282,19 @@ function equipCap(k, eq) {
   eq = eq || {};
   if (k === 'pull') { if (eq.bar) return LADDERS.pull.length - 1; if (eq.bands) return 2; return 1; }
   if (k === 'dip')  { return eq.bar ? LADDERS.dip.length - 1 : 2; }
+  if (k === 'hrow') { return eq.bands ? LADDERS.hrow.length - 1 : 2; }   // 'Band row' needs bands → floor-cap at table rows
   return undefined;   // uncapped
 }
 
 /* ---- The adaptive picker — double-progression + ladder climb ------------- */
 // Returns the rung to train NOW + whether it advanced/held/regressed + the
 // next rep target, all from logged performance. `range` = [lo, hi] for this slot.
-function adaptiveRung(ladder, baseIdx, p, range, capIdx) {
+function adaptiveRung(ladder, baseIdx, p, range, capIdx, minIdx = 0) {
   const [lo, hi] = range;
   const top = ladderTopLoggedIdx(p, ladder);
   const ceil = Math.min(ladder.length - 1, capIdx == null ? ladder.length - 1 : capIdx);
-  let idx = Math.max(baseIdx, top);
+  const floor = Math.min(Math.max(0, minIdx), ceil);             // graduated floor — retires easy rungs
+  let idx = Math.max(baseIdx, top, floor);
   if (idx < 0) idx = 0;
   idx = Math.min(idx, ceil);
   const name = ladder[idx];
@@ -270,7 +306,7 @@ function adaptiveRung(ladder, baseIdx, p, range, capIdx) {
   } else if (masteredRecent(p, name, hi)) {
     held = true;
     reason = `Top of this ladder — add load, slow the tempo, or push past ${hi} reps.`;
-  } else if (strugglingRecent(p, name, lo) && idx > Math.max(0, baseIdx)) {
+  } else if (strugglingRecent(p, name, lo) && idx > Math.max(floor, baseIdx)) {
     idx -= 1; regressed = true;
     reason = `Easing back to ${ladder[idx]} to rebuild clean reps, then climb again.`;
   } else {
@@ -279,6 +315,7 @@ function adaptiveRung(ladder, baseIdx, p, range, capIdx) {
       ? `Progressing — drive toward ${hi} clean reps across all sets to level up.`
       : `New movement — log your sets and it auto-progresses from here.`;
   }
+  idx = Math.max(floor, Math.min(idx, ceil));                    // never below the graduated floor
 
   const trainName = ladder[idx];
   if (advanced) target = lo;                                  // fresh rung → start at the bottom
@@ -379,7 +416,9 @@ export function generateWeek(p, now = Date.now()) {
   const mode = resolveMode(p);
   const dial = SPEED_DIAL[mode];
   const tl = trainingLevel(p);
-  const baseIdx = STAGE_BASE_IDX[tl.stage];
+  const grad = graduation(p);
+  const baseIdx = grad.baseFloor;                  // graduation raises the rung floor (retires easy moves)
+  const minIdx = grad.advanced ? 3 : 0;
   const u = conditioningUnlocks(p, now);
   const splitStyle = resolveSplit(p);
   const focuses = SPLITS[splitStyle].focuses;
@@ -409,11 +448,26 @@ export function generateWeek(p, now = Date.now()) {
     const focus = focuses[fi % focuses.length]; fi++;
     const emphasis = (ti % 2 === 0) ? 'strength' : 'hypertrophy';   // weekly undulation
 
-    // strength blocks — performance-driven rung + reps (deduped within a session)
+    // skill work (Advanced phase) — a NEW high-skill movement auto-added, trained fresh
     const used = new Set();
+    let skill = null;
+    if (grad.advanced) {
+      const sk = skillFor(focus);
+      const sr = adaptiveRung(sk.ladder, sk.base, p, sk.range, undefined, sk.base);
+      used.add(sr.exercise);                                       // strength blocks dedupe around the skill
+      skill = {
+        exercise: sr.exercise, sets: 3,
+        reps: sk.timed ? `${sr.target}s hold` : `${sr.target} quality reps`,
+        rest: '90–120s', advanced: sr.advanced, kind: 'skill',
+        aesthetic: 'Skill · ' + sk.tag,
+        reason: `Skill work — own the advanced ${sk.tag} while you're fresh.`,
+      };
+    }
+
+    // strength blocks — performance-driven rung + reps (deduped within a session)
     const blocks = FOCUS_BLOCKS[focus].map(([k, sets, range]) => {
       const cap = equipCap(k, p.equipment);
-      let r = adaptiveRung(LADDERS[k], baseIdx, p, range, cap);
+      let r = adaptiveRung(LADDERS[k], baseIdx, p, range, cap, minIdx);
       if (used.has(r.exercise)) {                                    // two patterns landed on the same move → split them
         const ladder = LADDERS[k];
         const ceil = Math.min(ladder.length - 1, cap == null ? ladder.length - 1 : cap);
@@ -478,7 +532,7 @@ export function generateWeek(p, now = Date.now()) {
 
     return {
       day, key: focus, focus: FOCUS_LABEL[focus] || focus, strength: true, emphasis,
-      warmup: warmupFor(focus), power, blocks, conditioning,
+      warmup: warmupFor(focus), power, skill, blocks, conditioning,
       cardio: conditioning.kind === 'zone2' ? 'Zone-2 15–25 min' : conditioning.label,
       breathwork: breath,
     };
@@ -732,6 +786,7 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
     diet: generateDietDay(p, m),
     level: tl.stage,                             // TRAINING level (performance-based)
     training: tl,
+    graduation: graduation(p),                   // time/readiness phase → retires easy moves + adds skills
     aesthetic: aestheticBalance(p, exDb, now),
     milestones: { next: nextMilestone(p), achieved: achievedMilestones(p), all: MILESTONES },
     readiness: computeReadiness(p),

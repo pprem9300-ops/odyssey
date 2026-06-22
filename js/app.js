@@ -1,7 +1,7 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=4';
+import * as E from './engine.js?v=5';
 import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
@@ -145,6 +145,7 @@ function renderCockpit() {
   const rows = [];
   if (today.warmup && today.warmup.length) rows.push(row('warmup', 'Warm-up & mobility', today.warmup.join(' · '), 'Prep'));
   if (today.power) rows.push(row('power', today.power.exercise, `${today.power.sets} × ${today.power.reps} · ${today.power.aesthetic} · do these fresh`, 'Power', today.power.exercise, false, upChip(today.power)));
+  if (today.skill) rows.push(row('skill', today.skill.exercise, `${today.skill.sets} × ${today.skill.reps} · ${today.skill.aesthetic}`, 'Skill', today.skill.exercise, false, upChip(today.skill)));
   if (today.strength && today.blocks.length) {
     today.blocks.forEach(b => {
       const logged = exSetsToday(b.exercise);
@@ -226,6 +227,10 @@ function subScore(k, v) {
 function renderAesthetic() {
   const el = $('#aesthetic-card'); if (!el) return;
   const a = plan.aesthetic;
+  const g = plan.graduation;
+  const phaseHtml = g.advanced
+    ? `<div class="ab-phase adv"><div><strong>Advanced phase active</strong> · ${g.tenureWeeks} training week${g.tenureWeeks === 1 ? '' : 's'} — beginner moves retired, skill work auto-added.</div>${g.manual ? `<button class="ab-adv-btn" id="adv-undo">↺ back to auto</button>` : ''}</div>`
+    : `<div class="ab-phase"><div>${cap(g.phase)} phase · ${g.tenureWeeks} training week${g.tenureWeeks === 1 ? '' : 's'} logged. Advanced auto-unlocks at ~14 weeks${g.weeksToAdvanced ? ` (${g.weeksToAdvanced} to go)` : ''} — or whenever you're ready.</div><button class="ab-adv-btn" id="adv-go">I'm ready →</button></div>`;
   const order = ['back', 'shoulders', 'chest', 'core', 'legs', 'arms'];
   const maxIdeal = Math.max(...Object.values(a.ideal));
   const bars = order.map(g => {
@@ -250,7 +255,10 @@ function renderAesthetic() {
     <p class="eyebrow" style="margin-top:22px">Muscle balance vs your V-taper target <span class="ab-target-key">▏ target</span></p>
     <div class="ab-bars">${bars}</div>
     <div class="ab-nudge"><span class="ab-nudge-ic">◎</span><div>${a.nudge}</div></div>
+    ${phaseHtml}
     <p class="ab-foot mono">Pull : push ${a.hasData ? a.pullPushRatio + '× — aim ≥ 1 for posture &amp; back width' : '— log sets to score it'} · last 28 days of training</p>`;
+  const go = $('#adv-go'); if (go) go.onclick = () => { profile.advancedMode = true; save(); recompute(); renderAll(); };
+  const undo = $('#adv-undo'); if (undo) undo.onclick = () => { profile.advancedMode = false; save(); recompute(); renderAll(); };
 }
 
 /* ---- Sleep & readiness -------------------------------------------------- */
@@ -324,6 +332,7 @@ function renderWeek() {
   $('#week-grid').innerHTML = plan.week.map(d => {
     const rest = !d.strength;
     const power = d.power ? `<div class="blk ex-tap blk-power" data-ex="${escAttr(d.power.exercise)}"><span>⚡ ${d.power.exercise}${d.power.advanced ? ' <span class="up-dot" title="leveled up">▲</span>' : ''}</span><span class="s">${d.power.sets}×</span></div>` : '';
+    const skill = d.skill ? `<div class="blk ex-tap blk-skill" data-ex="${escAttr(d.skill.exercise)}"><span>◇ ${d.skill.exercise}</span><span class="s">${d.skill.sets}×</span></div>` : '';
     const blocks = d.strength && d.blocks.length
       ? d.blocks.map(b => `<div class="blk ex-tap" data-ex="${escAttr(b.exercise)}"><span>${b.exercise}${b.advanced ? ' <span class="up-dot" title="leveled up">▲</span>' : ''}</span><span class="s">${b.sets}×${b.reps.replace(' reps', '')}</span></div>`).join('')
       : `<div class="blk" style="border:none;color:var(--sky-deep)">${(d.conditioning && d.conditioning.label) || d.cardio}</div>`;
@@ -333,7 +342,7 @@ function renderWeek() {
     return `<div class="day-card ${rest ? 'rest' : ''} ${d.day === td ? 'today' : ''}">
       <div class="dh"><span class="dn">${d.day}</span>${cornerTag}</div>
       <div class="df">${d.focus}</div>
-      <div class="blocks">${power}${blocks}</div>
+      <div class="blocks">${skill}${power}${blocks}</div>
       ${cond}
       <div class="breath">◷ ${d.breathwork.join(' · ')}</div>
     </div>`;
@@ -442,8 +451,10 @@ function renderFuel() {
       <div class="mmacros">${meal.kcal} kcal<br>${meal.protein}g P</div>
     </div>`).join('') +
     `<div style="display:flex;justify-content:space-between;padding-top:16px;font-family:var(--font-mono);font-size:.86rem">
-      <span style="color:var(--ink-faint)">DAY TOTAL <span id="meal-logged" style="color:var(--sage-deep)"></span></span><span>${diet.totalKcal} kcal · ${diet.totalProtein}g protein</span></div>`;
+      <span style="color:var(--ink-faint)">DAY TOTAL <span id="meal-logged" style="color:var(--sage-deep)"></span></span><span>${diet.totalKcal} kcal · ${diet.totalProtein}g protein</span></div>` +
+    `<div style="margin-top:12px"><button class="mini-reset" id="meals-reset">↺ Reset today's meals</button></div>`;
   $$('#meal-list .meal-check').forEach(r => r.onclick = () => toggleMeal(r.dataset.meal));
+  const mr = $('#meals-reset'); if (mr) mr.onclick = () => { delete mealStore()[todayISO()]; save(); paintMeals(); };
   paintMeals();
 
   $('#food-rail').innerHTML = E.LUNG_FOODS.map(f => `<span class="chip">${f}</span>`).join('');
@@ -469,10 +480,12 @@ function renderWater() {
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="btn btn--clay magnetic" id="water-add" style="padding:11px 20px;font-size:.92rem">+ Glass</button>
       <button class="btn btn--ghost magnetic" id="water-sub" style="padding:11px 17px;font-size:.92rem" aria-label="Remove a glass">−</button>
+      <button class="mini-reset" id="water-reset" style="align-self:center" aria-label="Reset water to zero">↺ Reset</button>
     </div>
     <p style="font-size:.78rem;color:var(--ink-faint);margin-top:12px;line-height:1.5">250 ml each · tap a glass to set. The upper end thins mucus while your lungs clear.</p>`;
   $('#water-add').onclick = () => setWater(waterToday() + 1);
   $('#water-sub').onclick = () => setWater(waterToday() - 1);
+  $('#water-reset').onclick = () => setWater(0);
   $$('#water-card .wpip').forEach(p => p.onclick = () => { const v = +p.dataset.w; setWater(v === waterToday() ? v - 1 : v); });
   paintWater(waterToday());
 }
@@ -705,6 +718,7 @@ function openExerciseDetail(name) {
       <div class="ex-track-actions">
         <button class="btn btn--ghost" id="ex-add-set" type="button">+ Add set</button>
         <button class="btn btn--clay" id="ex-save-log" type="button">Save session</button>
+        <button class="btn btn--ghost" id="ex-clear-log" type="button">Clear today</button>
       </div>
       ${_last ? `<p class="ex-last">Last session: ${_last.map(setLabel).join(', ')}</p>` : ''}
       <p id="ex-log-status" class="ex-log-status"></p>
@@ -752,6 +766,12 @@ function openExerciseDetail(name) {
     saveExerciseLog(name, clean);
     const st = $('#ex-log-status'); if (st) st.textContent = clean.length ? `✓ Saved ${clean.length} set${clean.length > 1 ? 's' : ''} for today` : 'Cleared today’s log';
     renderAll();
+  };
+  $('#ex-clear-log').onclick = () => {
+    saveExerciseLog(name, []);        // remove today's entry for this move (undo the session)
+    renderAll();
+    openExerciseDetail(name);         // refresh modal (history · PR · inputs)
+    const st = $('#ex-log-status'); if (st) st.textContent = '↺ Cleared today’s log for this move.';
   };
   // ---- rest timer ----
   (() => {
@@ -892,6 +912,13 @@ function resetStreak() {
   profile.weeksElapsed = 0;
   save(); recompute(); renderAll();
 }
+function resetLogs() {
+  if (!confirm('Reset ALL logged training, meals, water, mood, journal and checklist data?\n\nYour streak, weight history, sleep and settings stay. This cannot be undone.')) return;
+  ['workoutLog', 'waterLog', 'mealLog', 'moodLog', 'journalLog', 'checklistLog'].forEach(k => { profile[k] = {}; });
+  doneToday = new Set();
+  save(); recompute(); renderAll();
+  const s = $('#sync-status'); if (s) s.textContent = '✓ Logged data reset.';
+}
 function titleFx(label) {
   return label.replace(/(\w+)$/, '<em>$1</em>');
 }
@@ -945,6 +972,7 @@ function updateSyncUI() {
         <button class="btn btn--clay magnetic" id="sync-now">Sync now</button>
         <button class="btn btn--ghost magnetic" id="sync-pass">Set / change password</button>
         <button class="btn btn--ghost magnetic" id="sync-export">Export data</button>
+        <button class="btn btn--ghost magnetic" id="sync-reset">Reset logs</button>
         <button class="btn btn--ghost magnetic" id="sync-out">Sign out</button>
       </div>
       <div id="sync-pass-wrap" style="display:none; margin-top:12px">
@@ -969,6 +997,7 @@ function updateSyncUI() {
       catch (e) { $('#sync-status').textContent = 'Error: ' + e.message; }
     };
     const exp = $('#sync-export'); if (exp) exp.onclick = exportData;
+    const rst = $('#sync-reset'); if (rst) rst.onclick = resetLogs;
     const out = $('#sync-out'); if (out) out.onclick = async () => { await Cloud.signOut(); location.reload(); };
   } else {
     // Within the app the user is always signed in; landing here means the
@@ -1020,6 +1049,7 @@ function enterApp() {
   // buttons
   $('#log-day').onclick = toggleCleanDay;
   $('#reset-streak').onclick = resetStreak;
+  $('#checklist-reset').onclick = () => { doneToday.clear(); saveChecklist(); renderCockpit(); };
   $('#sos').onclick = openSOS;
   $('#sos-close').onclick = closeSOS;
   $('#sos-modal').onclick = (e) => { if (e.target.id === 'sos-modal') closeSOS(); };

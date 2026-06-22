@@ -22,6 +22,8 @@ User direction (3 interrupts that sharpened the spec): make plans **smart & indu
 
 **Engine API change:** `computePlan(profile, EXERCISE_DB, now?)` now takes the exercise DB (for muscle mapping) — engine stays import-free + node-testable. Verified live in preview (no console errors). Cache-bust → `?v=18` (engine/exercises imports `?v=4`), `sw odyssey-v18`.
 
+**Follow-up same day (graduation + reset/undo):** added the **auto-graduation layer** — `graduation(p)` enters an **Advanced phase** after ~14 distinct training-weeks (≈3.5 months) OR demonstrated peak OR a manual `advancedMode` opt-in ("I'm ready" toggle). Advanced **raises the rung floor** (`adaptiveRung` gained a `minIdx`) so beginner moves are retired, and **auto-adds a skill block** per session via `skillFor()` (handstand line / pistol line / L-sit). Also **reset + undo everywhere**: per-exercise "Clear today", Today-checklist "Reset", meals "Reset", water "Reset", and a global "Reset logs" in the account modal (clears day-to-day logs; keeps streak/weight/sleep/settings). `hrow` got an equip cap (Band row needs bands). Node-tested (**32 asserts**) + verified live. Cache-bust → `?v=19` (engine import `?v=5`), `sw odyssey-v19`.
+
 ---
 
 ## 2026-06-20 — D20 · Complete design refactor → CINEMATIC DARK (supersedes light/pastel)

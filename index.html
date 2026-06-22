@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=18" />
+  <link rel="stylesheet" href="css/styles.css?v=19" />
 </head>
 <body>
   <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
@@ -135,9 +135,12 @@
       <!-- today's session -->
       <div class="bento" style="margin-top:24px">
         <div class="card col-8 reveal">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px; gap:10px">
             <h3 class="display">Today's session</h3>
-            <span class="tag" id="today-day">—</span>
+            <div style="display:flex; align-items:center; gap:10px">
+              <button class="mini-reset" id="checklist-reset" title="Uncheck today's checklist">↺ Reset</button>
+              <span class="tag" id="today-day">—</span>
+            </div>
           </div>
           <div class="checklist" id="today-checklist"></div>
         </div>
@@ -375,7 +378,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=18"></script>
+  <script type="module" src="js/app.js?v=19"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {
