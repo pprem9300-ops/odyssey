@@ -52,9 +52,12 @@
 **Pattern established** (reuse it): per-date data in `profile.{workoutLog,waterLog,moodLog}` (auto-syncs via cloud); render the card structure once, then a `paint*()` toggles classes IN PLACE so CSS transitions animate (don't full-re-render on each tap). Reflect in the Today checklist where relevant.
 - ✅ **Nutrition — water tracker** (`55ef9a0`): Fuel hydration card → fillable glass pips, target from bodyweight, `waterLog`.
 - ✅ **Wellness — mood check-in** (`88a81cb`): cockpit card, Rough→Great, `moodLog`.
-- 🔜 **Workout** — rest timer (in exercise modal; note: timer can't be verified in the frozen preview), a Progress/PR surface (aggregate `workoutLog`: volume, PRs, sessions — verifiable), progress photos.
-- 🔜 **Nutrition** — per-meal check-off/logging vs targets, saved meals, grocery list.
-- 🔜 **Wellness** — reminders/notifications (PWA push), journaling, weekly insight, body measurements.
+- ✅ **Workout — training progress + PRs** (`1f7cdf7`): Week view aggregates `workoutLog` → sessions/sets/volume + personal-records list.
+- ✅ **Nutrition — per-meal check-off** (`d2ac6d2`): tappable Fuel meal rows, logged-protein tally, `mealLog`.
+- ✅ **Wellness — weekly insight** (`96f8d6f`): Journey 'This week' card, adaptive sentence + chips from all daily logs (last 7 days).
+- 🔜 **Workout** — rest timer (in exercise modal; ⚠️ timer can't be verified in the frozen preview — build robust + test live), progress photos, plate calculator.
+- 🔜 **Nutrition** — saved meals / swap chips, grocery list, macro-history chart.
+- 🔜 **Wellness** — reminders/notifications (PWA push — needs permission flow), journaling/notes, body measurements (waist + photos), data export.
 
 ### 🔜 ALSO OPEN
 1. **Confirm perf live** (4× CPU throttle, real device). If still janky on low-end, native scroll is already in; next lever is trimming reveals.

@@ -33,7 +33,7 @@ let profile = load();
 let plan = E.computePlan(profile);
 const doneToday = new Set();
 let selectedBreath = 'Diaphragmatic';
-let pacer = null, sosPacer = null;
+let pacer = null, sosPacer = null, restInterval = null;
 
 function load() {
   try { const s = JSON.parse(localStorage.getItem(STORE)); if (s) return { ...E.DEFAULT_PROFILE, ...s }; } catch (_) {}
@@ -601,6 +601,8 @@ function openExerciseDetail(name) {
   const _today = exSetsToday(name).map(s => ({ reps: s.reps, weight: s.weight }));
   const _last = exLastSets(name); const _pr = exPR(name); const _hist = exHistory(name).slice(0, 6);
   let working = _today.length ? _today : [{ reps: _last && _last[0] ? _last[0].reps : '', weight: _last && _last[0] ? _last[0].weight : '' }];
+  clearInterval(restInterval); restInterval = null;                       // kill any prior rest timer
+  const restSec = parseInt((String(rest).match(/\d+/) || ['90'])[0], 10) || 90;
   $('#ex-detail').innerHTML = `
     <div class="ex-head">
       <div>
@@ -625,6 +627,20 @@ function openExerciseDetail(name) {
       </div>
       ${_last ? `<p class="ex-last">Last session: ${_last.map(setLabel).join(', ')}</p>` : ''}
       <p id="ex-log-status" class="ex-log-status"></p>
+      <div class="ex-rest">
+        <div class="rest-dial">
+          <svg class="rest-ring" viewBox="0 0 72 72" aria-hidden="true"><circle class="rr-bg" cx="36" cy="36" r="31"/><circle class="rr-fg" id="rest-ring-fg" cx="36" cy="36" r="31"/></svg>
+          <span id="rest-time" class="rest-time mono">0:00</span>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:9px">
+          <span class="eyebrow" style="font-size:10px">Rest timer · ${restSec}s</span>
+          <div class="rest-ctrls">
+            <button class="btn btn--ghost" id="rest-minus" type="button" aria-label="minus 15 seconds">−15</button>
+            <button class="btn btn--clay" id="rest-toggle" type="button">Start</button>
+            <button class="btn btn--ghost" id="rest-plus" type="button" aria-label="plus 15 seconds">+15</button>
+          </div>
+        </div>
+      </div>
     </div>
     <div class="ex-sec"><h4>History</h4>${_hist.length ? `<div class="ex-hist">${_hist.map(h => `<div class="ex-hist-row"><span class="mono">${fmtDate(h.date)}${h.date === todayISO() ? ' · today' : ''}</span><span>${h.sets.map(setLabel).join(' · ')}</span></div>`).join('')}</div>` : `<p style="color:var(--ink-faint)">No sessions logged yet — log your sets above and they'll appear here.</p>`}</div>
     ${e.benefitForUser ? `<div class="ex-sec"><h4>Why it matters for you</h4><p class="lead" style="font-size:1rem">${e.benefitForUser}</p></div>` : ''}
@@ -656,6 +672,22 @@ function openExerciseDetail(name) {
     const st = $('#ex-log-status'); if (st) st.textContent = clean.length ? `✓ Saved ${clean.length} set${clean.length > 1 ? 's' : ''} for today` : 'Cleared today’s log';
     renderAll();
   };
+  // ---- rest timer ----
+  (() => {
+    let total = restSec, remaining = restSec;
+    const C = 2 * Math.PI * 31;
+    const ring = $('#rest-ring-fg'), timeEl = $('#rest-time'), btn = $('#rest-toggle');
+    if (ring) ring.style.strokeDasharray = C;
+    const fmt = (s) => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
+    const paint = () => { if (timeEl) timeEl.textContent = fmt(remaining); if (ring) ring.style.strokeDashoffset = (C * (1 - remaining / total)).toFixed(1); };
+    const stop = () => { clearInterval(restInterval); restInterval = null; if (btn) btn.textContent = 'Start'; };
+    const tick = () => { remaining--; paint(); if (remaining <= 0) { stop(); ring && ring.classList.add('rr-done'); if (navigator.vibrate) navigator.vibrate([140, 70, 140]); } };
+    const start = () => { if (restInterval || remaining <= 0) return; if (btn) btn.textContent = 'Pause'; ring && ring.classList.remove('rr-done'); restInterval = setInterval(tick, 1000); };
+    paint();
+    if (btn) btn.onclick = () => restInterval ? stop() : start();
+    $('#rest-minus') && ($('#rest-minus').onclick = () => { remaining = Math.max(5, remaining - 15); total = Math.max(total, remaining); paint(); });
+    $('#rest-plus') && ($('#rest-plus').onclick = () => { remaining += 15; total = Math.max(total, remaining); paint(); });
+  })();
   M.bindMagnetic($('#ex-modal'));
   $('#ex-modal').classList.add('on');
 }
@@ -924,8 +956,9 @@ function enterApp() {
   $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
 
   // exercise detail modal
-  $('#ex-close').onclick = () => $('#ex-modal').classList.remove('on');
-  $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') $('#ex-modal').classList.remove('on'); };
+  const closeEx = () => { $('#ex-modal').classList.remove('on'); clearInterval(restInterval); restInterval = null; };
+  $('#ex-close').onclick = closeEx;
+  $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') closeEx(); };
 
   // account / sync modal — cloud is already initialised by the gate.
   const openSync = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
