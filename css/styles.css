@@ -447,6 +447,11 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .wpip.on { border-color: var(--sky); }
 .wpip.on::after { transform: translateY(0); }
 @media (prefers-reduced-motion: reduce) { .wpip::after { transition: none; } }
+/* daily mood check-in */
+.mood-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.mood-pip { flex: 1; min-width: 60px; padding: 12px 8px; border-radius: var(--r-sm); border: 1.5px solid var(--haze); background: transparent; color: var(--ink-soft); font: inherit; font-size: .9rem; cursor: pointer; transition: transform .2s var(--ease), border-color .2s var(--ease), background .2s, color .2s; }
+.mood-pip:hover { border-color: var(--lilac); transform: translateY(-2px); }
+.mood-pip.on { background: var(--clay); border-color: var(--clay); color: #fff; transform: scale(1.05); }
 
 /* ============================================================================
    RESPONSIVE

@@ -63,6 +63,7 @@ function renderAll() {
   renderNav();
   renderCockpit();
   renderSleep();
+  renderMood();
   renderWeek();
   renderMoves();
   renderLab();
@@ -383,6 +384,34 @@ function setWater(n) {
   waterStore()[todayISO()] = n;
   save();
   paintWater(n);                              // toggle classes in place → pips animate via CSS
+}
+
+/* ---- Daily mood check-in (per-date, persisted + synced) ----------------- */
+const MOODS = ['Rough', 'Low', 'OK', 'Good', 'Great'];
+function moodStore() { profile.moodLog = profile.moodLog || {}; return profile.moodLog; }
+function renderMood() {
+  const card = $('#mood-card'); if (!card) return;
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="eyebrow">Daily check-in</p>
+      <span class="mono" id="mood-status" style="font-size:.76rem"></span>
+    </div>
+    <h3 class="display" style="margin:8px 0 16px;font-size:1.4rem">How's today feeling?</h3>
+    <div class="mood-row">${MOODS.map((m, i) => `<button class="mood-pip" data-m="${i}">${m}</button>`).join('')}</div>`;
+  $$('#mood-card .mood-pip').forEach((b) => b.onclick = () => pickMood(+b.dataset.m));
+  paintMood(moodStore()[todayISO()]);
+}
+function paintMood(sel) {
+  $$('#mood-card .mood-pip').forEach((b, i) => b.classList.toggle('on', sel === i));
+  const s = $('#mood-status');
+  if (s) { s.textContent = sel != null ? '✓ noted' : 'tap how you feel'; s.style.color = sel != null ? 'var(--sage-deep)' : 'var(--ink-faint)'; }
+}
+function pickMood(i) {
+  const cur = moodStore()[todayISO()];
+  const next = cur === i ? undefined : i;
+  if (next == null) delete moodStore()[todayISO()]; else moodStore()[todayISO()] = next;
+  save();
+  paintMood(next);
 }
 
 /* ---- Journey ------------------------------------------------------------ */
