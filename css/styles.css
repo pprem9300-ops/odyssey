@@ -140,6 +140,7 @@ h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
 .card--clay { background: var(--clay-mist); border-color: var(--clay-soft); }
 .card--sky  { background: var(--sky-mist);  border-color: var(--sky-soft); }
 .card--sage { background: var(--sage-mist); border-color: var(--sage-soft); }
+.card--lilac { background: var(--lilac-mist); border-color: var(--lilac-soft); }
 
 /* ============================================================================
    NAV

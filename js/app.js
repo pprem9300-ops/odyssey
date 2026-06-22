@@ -202,7 +202,7 @@ function renderSleep() {
   const last7 = log.slice(-7);
   const qLabels = ['', 'Poor', 'OK', 'Good', 'Great'];
   const bars = last7.length
-    ? last7.map(e => { const pct = Math.max(8, Math.min(100, (e.hours / 9) * 100)); return `<div title="${e.date}: ${e.hours}h" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;align-items:center"><div style="width:100%;background:var(--sky);opacity:.8;border-radius:5px 5px 0 0;height:${pct}%"></div><span class="mono" style="font-size:9px;color:var(--ink-faint)">${e.date.slice(8)}</span></div>`; }).join('')
+    ? last7.map(e => { const pct = Math.max(8, Math.min(100, (e.hours / 9) * 100)); return `<div title="${e.date}: ${e.hours}h" style="flex:1;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;align-items:center"><div style="width:100%;background:var(--lilac);opacity:.85;border-radius:5px 5px 0 0;height:${pct}%"></div><span class="mono" style="font-size:9px;color:var(--ink-faint)">${e.date.slice(8)}</span></div>`; }).join('')
     : `<span class="mono" style="color:var(--ink-faint);font-size:.8rem;align-self:center;margin:auto">No nights logged yet</span>`;
   const band = r.band, color = band === 'high' ? 'sage' : band === 'low' ? 'clay' : 'sky';
   const score = r.score == null ? '—' : r.score;
