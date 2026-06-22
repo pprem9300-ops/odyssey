@@ -4,8 +4,9 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-20
-**Current phase:** `P11 — AWWWARDS REFACTOR · all shipped (HEAD 1cd0b1a): auth, hero, pastel palette, streak-reset, exercise-tracker, scroll-Journey, PERF PASS. Next: confirm perf live + chosen feature build-out`
-**Overall progress:** ▰▰▰▰▰▰▰ ~97% (everything above live; remaining: confirm 60fps live, then build Workout/Nutrition/Wellness depth incrementally)
+**Current phase:** `P11 — AWWWARDS REFACTOR · all shipped (HEAD d605bed): auth, hero, exercise-tracker, scroll-Journey, perf pass, + COMPLETE CINEMATIC-DARK REDESIGN (D20). Next: confirm perf/feel live + chosen feature build-out`
+**Overall progress:** ▰▰▰▰▰▰▰ ~97% (everything live; design is now cinematic-dark — dark void + warm off-white + glowing pastel accents, Fraunces + Space Grotesk; remaining: confirm 60fps live, build Workout/Nutrition/Wellness depth incrementally)
+**🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
 > **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=3` cache-bust. Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.

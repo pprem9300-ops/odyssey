@@ -12,20 +12,12 @@ export const EASE = { out: 'power4.out', in: 'power3.in', io: 'power3.inOut', sc
 export const DUR  = { micro: 0.18, fast: 0.32, base: 0.5, slow: 0.8, exit: 0.32 };
 const isMobile = () => matchMedia('(max-width: 768px)').matches;
 
-/* ---- Smooth scroll (Lenis drives one rAF loop) -------------------------- */
-let lenisInstance = null;
-export function initSmoothScroll() {
-  if (RM || !window.Lenis) return null;
-  lenisInstance = new window.Lenis({ lerp: 0.1, wheelMultiplier: 1, smoothWheel: true, syncTouch: false });
-  lenisInstance.on('scroll', ScrollTrigger.update);
-  gsap.ticker.add((t) => lenisInstance.raf(t * 1000), false, true);  // early priority: scroll settles before ScrollTrigger reads
-  gsap.ticker.lagSmoothing(0);
-  return lenisInstance;
-}
-export function scrollToTop() {
-  if (lenisInstance) lenisInstance.scrollTo(0, { immediate: true });
-  else window.scrollTo(0, 0);
-}
+/* ---- Scroll — NATIVE (Lenis removed) ------------------------------------ */
+// Lenis smooth-scroll was hijacking native scroll and stalling / "freeze-framing" on real
+// devices (it runs ScrollTrigger.update every frame). Native scroll is jank-proof and
+// ScrollTrigger works on it out of the box. Kept as a no-op so callers don't break.
+export function initSmoothScroll() { return null; }
+export function scrollToTop() { window.scrollTo(0, 0); }
 
 /* ---- Custom cursor REMOVED — native cursor (clearer + no pointermove cost) */
 export function initCursor() {

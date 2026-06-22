@@ -5,6 +5,14 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-20 — D20 · Complete design refactor → CINEMATIC DARK (supersedes light/pastel)
+
+User: "completely refactor design of app with the 3 websites." Chose (via options) **Cinematic dark** (pacômepertant-style) + **Fraunces serif headlines with Space Grotesk grotesque accents** (eyebrows/labels/marquee). This **supersedes the light pastel direction (D19)** — but the multi-accent identity is KEPT: the coral/periwinkle/sage/lilac pastels are **retuned to glow on the void** rather than dropped (honors the earlier "not monotone" ask).
+**What changed (css `:root` token flip — most components adapt automatically):** canvas → dark void `#0B0B0C`, surfaces `#161618`, text warm off-white `#F4F1EA`; each accent now has base=fill / `-deep`=light text-on-tint / `-soft`=dark border-or-tag-bg / `-mist`=darkest card surface. Added `--font-grotesk` (Space Grotesk) → `.eyebrow` + marquee. Added a CSS-only **marquee tempo band** on the landing. Fixed light-theme leftovers: `#intro` + `#gate` radial backgrounds → dark vignette, `theme-color` meta → dark, `[data-takeover]` → deeper void. The `#fff` values that remain are text ON colored accent fills (fine on dark). Verified desktop across landing/cockpit/Moves; components adapt via tokens. **`--font-display` stays Fraunces** (serif headlines = the warm signature against the grotesque accents).
+**Lesson reinforced:** bump `?v=` on any changed module/CSS (styles now `?v=9`, sw `odyssey-v8`) or the browser serves stale.
+
+---
+
 ## 2026-06-20 — D19 · Awwwards-grade refactor (research-grounded) + palette pivot to premium pastel
 
 User wants the app to feel **awwwards-grade**, modeled on **digitalists.at** (light/bold duotone, electric accent, oversized kinetic type, scroll-wired WebGL), **aircenter.space** (mono-white architectural restraint, Onest grotesque, Locomotive virtual scroll on Expo easing, Barba page transitions, split-text + clip-path reveals), **pacomepertant.com** (two-value cinematic `#0a0a0a`/`#fafafa`, one signature scrubbed WebGL interaction, marquee tempo). **Thesis: restraint is expensive — craft lives in timing, easing, spacing, transition continuity; one signature interaction; high contrast; whitespace.** A 6-agent research workflow produced the full plan; key parts preserved here (the `/tmp` raw file is ephemeral).
