@@ -335,6 +335,9 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
    ========================================================================== */
 .journey-rail { position: relative; padding-left: 40px; }
 .journey-rail::before { content: ''; position: absolute; left: 11px; top: 0; bottom: 0; width: 2px; background: var(--haze); }
+.journey-fill { position: absolute; left: 11px; top: 0; width: 2px; height: 100%; border-radius: 2px; z-index: 0;
+  background: linear-gradient(var(--clay), var(--sage)); transform: scaleY(0); transform-origin: top center; will-change: transform; }
+@media (min-width: 901px) { .journey-aside { position: sticky; top: 96px; align-self: start; } }
 .mnode { position: relative; padding: 20px 0 40px; }
 .mnode::before { content: ''; position: absolute; left: -34px; top: 22px; width: 22px; height: 22px; border-radius: 50%; background: var(--paper); border: 3px solid var(--haze); transition: all var(--base) var(--ease); }
 .mnode.done::before { background: var(--clay); border-color: var(--clay); box-shadow: var(--glow-clay); }

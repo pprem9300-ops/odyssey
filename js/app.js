@@ -2,7 +2,7 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=3';
-import * as M from './motion.js?v=5';
+import * as M from './motion.js?v=7';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
@@ -347,11 +347,11 @@ function renderFuel() {
 /* ---- Journey ------------------------------------------------------------ */
 function renderJourney() {
   const p = plan;
-  $('#journey-rail').innerHTML = E.MILESTONES.map(m => {
+  const _mnodes = E.MILESTONES.map((m, i) => {
     const done = p.milestones.achieved.some(a => a.id === m.id);
     const isNext = p.milestones.next.id === m.id && !done;
     const target = m.kind === 'streak' ? plural(m.at, 'day') : `${m.at} kg`;
-    return `<div class="mnode ${done ? 'done' : ''} ${isNext ? 'next' : ''}">
+    return `<div class="mnode reveal ${done ? 'done' : ''} ${isNext ? 'next' : ''}" data-d="${i}">
       <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
         <span class="ml">${m.label}</span><span class="mono" style="font-size:.76rem;color:var(--ink-faint)">${target}</span>
       </div>
@@ -359,6 +359,7 @@ function renderJourney() {
       ${done ? '<p class="mq" style="margin-top:6px">— reached</p>' : ''}
     </div>`;
   }).join('');
+  $('#journey-rail').innerHTML = `<i class="journey-fill" id="journey-fill"></i>${_mnodes}`;
   $('#next-ml').textContent = p.milestones.next.label;
   $('#next-ml-eta').textContent = `${plural(Math.max(0, p.milestones.next.at - p.profile.streakDays), 'clean day')} to go`;
 
@@ -559,7 +560,11 @@ function lungsSVG(rec) {
 /* ============================================================================
    ROUTING
    ========================================================================== */
-function initJourneyScroll() { /* built in Phase 4 — scroll-driven journey timeline */ }
+function initJourneyScroll() {
+  const all = plan.milestones.all.length || 1;
+  const reached = Math.min(1, plan.milestones.achieved.length / all);   // rail fills to where you really are
+  M.journeyScroll(reached);
+}
 
 function switchView(name) {
   M.transitionView(() => {

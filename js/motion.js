@@ -95,11 +95,11 @@ export function initHero() {
 export function transitionView(swap) {
   const w = document.getElementById('view-wipe');
   if (RM || !gsap || !w || isMobile()) { swap(); return; }   // mobile/RM: instant swap + CSS viewIn fade
-  // Reliable opacity fade (autoAlpha) through the canvas color — covers the DOM swap, never collapses.
-  gsap.timeline()
-    .to(w, { autoAlpha: 1, duration: DUR.fast, ease: EASE.io })
-    .add(() => swap())                                        // DOM swap fully covered
-    .to(w, { autoAlpha: 0, duration: DUR.base, ease: EASE.io });
+  // Swap on a REAL timer, never a gsap callback — navigation must never depend on the
+  // ticker advancing (it can be throttled when the tab/preview isn't actively rendering).
+  // The opacity wipe is decorative on top.
+  gsap.to(w, { autoAlpha: 1, duration: DUR.fast, ease: EASE.io });
+  setTimeout(() => { swap(); gsap.to(w, { autoAlpha: 0, duration: DUR.base, ease: EASE.io }); }, DUR.fast * 1000);
 }
 
 /* ---- Masked split-line headline reveals (vanilla, no paid SplitText) ----- */
@@ -265,3 +265,18 @@ export function closeCelebrate() {
 }
 
 export function refreshScrollTriggers() { if (ScrollTrigger && !RM) ScrollTrigger.refresh(); }
+
+/* ---- Scroll-driven Journey — filling spine + staggered milestone reveals -- */
+export function journeyScroll(reached = 0) {
+  // Node reveals are handled by initReveals (IntersectionObserver — robust without the ticker).
+  // This adds only the decorative scrubbed progress spine, filling to the real achieved fraction.
+  if (RM || !gsap || !ScrollTrigger) return;
+  const rail = document.getElementById('journey-rail');
+  const fill = document.getElementById('journey-fill');
+  if (!rail || !fill) return;
+  ScrollTrigger.getAll().forEach((t) => { if (t.vars && t.vars.id === 'journey') t.kill(); });  // re-entrant on view switch
+  gsap.set(fill, { scaleY: 0 });
+  gsap.to(fill, { scaleY: Math.max(0.03, Math.min(1, reached)), ease: 'none',
+    scrollTrigger: { id: 'journey', trigger: rail, start: 'top 75%', end: 'bottom 60%', scrub: 0.6 } });
+  ScrollTrigger.refresh();
+}
