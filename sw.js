@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v14';  // bumped: per-meal check-off (Nutrition depth)
+const CACHE = 'odyssey-v15';  // bumped: weekly insight (Wellness)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

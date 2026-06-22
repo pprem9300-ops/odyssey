@@ -500,6 +500,40 @@ function renderJourney() {
   const cells = [];
   for (let i = 48; i >= 0; i--) cells.push(`<span class="heat ${clean.has(isoMinus(i)) ? 'l2' : ''}" title="${isoMinus(i)}"></span>`);
   $('#heatmap').innerHTML = cells.join('');
+  renderInsight();
+}
+
+/* ---- Weekly insight — ties together every daily log (last 7 days) -------- */
+function renderInsight() {
+  const el = $('#weekly-insight'); if (!el) return;
+  const days = []; for (let i = 0; i < 7; i++) days.push(isoMinus(i));
+  const clean = (profile.cleanDates || []).filter(d => days.includes(d)).length;
+  const sleeps = (profile.sleepLog || []).filter(s => days.includes(s.date));
+  const avgSleep = sleeps.length ? sleeps.reduce((a, s) => a + (s.hours || 0), 0) / sleeps.length : null;
+  const moods = days.map(d => moodStore()[d]).filter(v => v != null);
+  const avgMood = moods.length ? moods.reduce((a, b) => a + b, 0) / moods.length : null;
+  const sessions = days.filter(d => { const x = wLog()[d]; return x && Object.keys(x).length; }).length;
+  const wTarget = waterTarget();
+  const waterHit = days.filter(d => (waterStore()[d] || 0) >= wTarget).length;
+  const stats = [
+    { k: 'Clean days', v: `${clean}/7` },
+    { k: 'Workouts', v: `${sessions}` },
+    avgSleep != null ? { k: 'Avg sleep', v: `${avgSleep.toFixed(1)}h` } : null,
+    avgMood != null ? { k: 'Avg mood', v: MOODS[Math.round(avgMood)] } : null,
+    { k: 'Hydration', v: `${waterHit}/7` },
+  ].filter(Boolean);
+  const line = [];
+  line.push(clean >= 6 ? `A near-perfect ${clean}/7 clean days — the momentum is real.`
+    : clean >= 3 ? `${clean} clean days this week — every one is your lungs healing.`
+    : `${clean} clean ${clean === 1 ? 'day' : 'days'} — a reset is a fresh start, not a failure.`);
+  if (sessions >= 4) line.push(`${sessions} training sessions in — strong.`);
+  else if (sessions > 0) line.push(`${sessions} session${sessions > 1 ? 's' : ''} logged.`);
+  if (avgSleep != null && avgSleep < 6.5) line.push(`Sleep averaged ${avgSleep.toFixed(1)}h — aim for 7+ to recover faster.`);
+  el.innerHTML = `<div class="card card--clay">
+    <p class="eyebrow" style="color:var(--clay-deep)">This week</p>
+    <p class="lead" style="margin:8px 0 18px;font-size:1.05rem">${line.join(' ')}</p>
+    <div class="insight-stats">${stats.map(s => `<div><div class="mono" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)">${s.k}</div><div style="font-family:var(--font-display);font-size:1.5rem;margin-top:3px">${s.v}</div></div>`).join('')}</div>
+  </div>`;
 }
 
 /* ---- Moves library + exercise detail ------------------------------------ */

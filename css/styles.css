@@ -461,6 +461,7 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .pr-list { margin-top: 12px; display: flex; flex-direction: column; }
 .pr-row { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: .5px solid var(--haze); font-size: .95rem; }
 .pr-row:last-child { border-bottom: none; }
+.insight-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 16px; }
 
 /* ============================================================================
    RESPONSIVE
