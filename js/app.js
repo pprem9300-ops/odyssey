@@ -1,13 +1,13 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=3';
+import * as E from './engine.js?v=4';
 import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
 import { weightTrendSVG, weightDeltaLabel } from './chart.js?v=3';
-import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=3';
+import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=4';
 
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
@@ -30,8 +30,8 @@ const GOAL_LABEL = { recomp: 'recomp', cut: 'cut', leanGain: 'lean-gain' };
 
 /* ---- State -------------------------------------------------------------- */
 let profile = load();
-let plan = E.computePlan(profile);
-const doneToday = new Set();
+let plan = E.computePlan(profile, EXERCISE_DB);
+let doneToday = new Set();
 let selectedBreath = 'Diaphragmatic';
 let pacer = null, sosPacer = null, restInterval = null;
 
@@ -40,7 +40,11 @@ function load() {
   return { ...E.DEFAULT_PROFILE };
 }
 function save() { localStorage.setItem(STORE, JSON.stringify(profile)); Cloud.pushDebounced(profile); }
-function recompute() { plan = E.computePlan(profile); }
+function recompute() { plan = E.computePlan(profile, EXERCISE_DB); }
+
+/* ---- Today checklist persistence (per-date, persisted + synced) --------- */
+function checklistStore() { profile.checklistLog = profile.checklistLog || {}; return profile.checklistLog; }
+function saveChecklist() { const a = [...doneToday]; const d = todayISO(); if (a.length) checklistStore()[d] = a; else delete checklistStore()[d]; save(); }
 
 /* ---- dated streak helpers ---------------------------------------------- */
 function todayISO() { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`; }
@@ -62,6 +66,7 @@ function renderAll() {
   recompute();
   renderNav();
   renderCockpit();
+  renderAesthetic();
   renderSleep();
   renderMood();
   renderWeek();
@@ -79,6 +84,7 @@ function renderNav() {
 /* ---- Cockpit ------------------------------------------------------------ */
 function renderCockpit() {
   const p = plan;
+  doneToday = new Set(checklistStore()[todayISO()] || []);   // per-date, persisted + synced
   $('#greet').textContent = `Welcome back, ${p.profile.name} — day ${p.profile.streakDays} of your odyssey`;
   M.countUp($('#day-count'), p.profile.streakDays);
   $('#streak-noun').textContent = p.profile.streakDays === 1 ? 'day' : 'days';
@@ -105,7 +111,7 @@ function renderCockpit() {
     { ic: 'target', c: 'sage', k: 'Weight → 75kg', v: s.weightToGo, sm: 'kg', sub: `~${s.weeksToTarget} wks at a healthy pace`, weight: true },
     { ic: 'cig', c: 'sky', k: 'Cigarettes avoided', v: s.cigsAvoided, sm: '', sub: 'since day one' },
     { ic: 'coin', c: 'clay', k: 'Money saved', v: s.moneySaved, sm: '₹', sub: `~₹${profile.smoking.baselineCigsPerDay * profile.smoking.costPerCig}/day`, money: true },
-    { ic: 'level', c: 'sky', k: 'Lung level', v: cap(p.level), sm: '', sub: `${p.lung.techniques.length} techniques unlocked`, txt: true },
+    { ic: 'level', c: 'sky', k: 'Lung level', v: cap(p.lung.level), sm: '', sub: `${p.lung.techniques.length} techniques unlocked`, txt: true },
   ];
   $('#stat-cards').innerHTML = cards.map(c => `
     <div class="card col-4 keep card--lift reveal stat">
@@ -132,29 +138,38 @@ function renderCockpit() {
     }
   }
 
-  // today's protocol
+  // today's full session — performance-driven, woven power/cardio/agility
   const today = todayPlan();
-  $('#today-day').textContent = today.day + ' · ' + today.focus.split('—')[0].trim();
+  const focusShort = today.focus.split('—')[0].trim();
+  $('#today-day').textContent = today.day + ' · ' + focusShort + (today.emphasis ? ' · ' + today.emphasis : '');
   const rows = [];
-  rows.push(row('breath', `Breathwork — ${today.breathwork.join(' · ')}`, '10–15 min · non-negotiable', 'Breath'));
+  if (today.warmup && today.warmup.length) rows.push(row('warmup', 'Warm-up & mobility', today.warmup.join(' · '), 'Prep'));
+  if (today.power) rows.push(row('power', today.power.exercise, `${today.power.sets} × ${today.power.reps} · ${today.power.aesthetic} · do these fresh`, 'Power', today.power.exercise, false, upChip(today.power)));
   if (today.strength && today.blocks.length) {
     today.blocks.forEach(b => {
       const logged = exSetsToday(b.exercise);
-      const sub = logged.length ? `✓ Logged ${logged.map(setLabel).join(', ')}` : `${b.sets} sets · ${b.reps} · rest ${b.rest}`;
-      rows.push(row('s_' + b.exercise, b.exercise, sub, 'Strength', b.exercise, logged.length > 0));
+      const sub = logged.length
+        ? `✓ Logged ${logged.map(setLabel).join(', ')} · ${b.aesthetic}`
+        : `${b.sets} sets · ${b.reps} · ${b.aesthetic}`;
+      rows.push(row('s_' + b.exercise, b.exercise, sub, 'Strength', b.exercise, logged.length > 0, upChip(b)));
     });
-  } else {
-    rows.push(row('recovery', today.focus, today.cardio, 'Recovery'));
   }
-  rows.push(row('cardio', 'Zone-2 cardio', today.cardio + ' · keep the talk-test', 'Cardio'));
+  const cond = today.conditioning || {};
+  if (cond.label) {
+    const condTag = cond.kind === 'intervals' ? 'HIIT' : cond.kind === 'agility' ? 'Agility' : cond.kind === 'rest' ? 'Rest' : 'Cardio';
+    const condEx = (cond.exercises && cond.exercises[0] && EXERCISE_DB[cond.exercises[0]]) ? cond.exercises[0] : null;
+    rows.push(row('conditioning', cond.label, cond.detail || '', condTag, condEx));
+  }
+  rows.push(row('breath', `Breathwork — ${today.breathwork.join(' · ')}`, '10–15 min · non-negotiable', 'Breath'));
   const _wt = waterTarget(), _wn = waterToday();
-  rows.push(row('hydrate', 'Hydration', _wn > 0 ? `${_wn}/${_wt} glasses logged · ${(_wn * 0.25).toFixed(2).replace(/\.?0+$/, '')} L` : '2.5–3 L today — log it in Fuel', 'Fuel', _wn >= _wt));
+  rows.push(row('hydrate', 'Hydration', _wn > 0 ? `${_wn}/${_wt} glasses logged · ${(_wn * 0.25).toFixed(2).replace(/\.?0+$/, '')} L` : 'Hit your water target — log it in Fuel', 'Fuel', _wn >= _wt));
   rows.push(row('protein', `Hit ${m.protein_g}g protein`, `${m.proteinPerFeeding_g}g across ${m.feedings} meals`, 'Fuel'));
   rows.push(row('checkin', 'Smoke-free check-in', 'Log the streak · note mood & cravings', 'Mind'));
   $('#today-checklist').innerHTML = rows.join('');
   $$('#today-checklist .check-row').forEach(r => r.onclick = () => {
     const id = r.dataset.id;
     r.classList.toggle('done'); doneToday.has(id) ? doneToday.delete(id) : doneToday.add(id);
+    saveChecklist();
   });
   $$('#today-checklist [data-ex]').forEach(s => s.onclick = (ev) => { ev.stopPropagation(); openExerciseDetail(s.dataset.ex); });
 
@@ -165,13 +180,20 @@ function renderCockpit() {
   }).join('');
 }
 
-function row(id, title, sub, tag, exName, forceDone) {
+function row(id, title, sub, tag, exName, forceDone, titleSuffix = '') {
   const done = (forceDone || doneToday.has(id)) ? ' done' : '';
   const titleHtml = (exName && EXERCISE_DB[exName]) ? `<span class="ex-link" data-ex="${escAttr(exName)}">${title}</span>` : title;
   return `<div class="check-row${done}" data-id="${id}">
     <div class="check-box">${svg(ICON.check, '#fff')}</div>
-    <div class="ct"><div>${titleHtml}</div><div class="sub">${sub}</div></div>
+    <div class="ct"><div>${titleHtml}${titleSuffix}</div><div class="sub">${sub}</div></div>
     <span class="tag">${tag}</span></div>`;
+}
+function upChip(b) {
+  if (!b) return '';
+  if (b.advanced) return ` <span class="up-chip">▲ leveled up</span>`;
+  if (b.regressed) return ` <span class="up-chip down">↺ eased</span>`;
+  if (b.held) return ` <span class="up-chip hold">maxed — add load</span>`;
+  return '';
 }
 
 function streakLine(p) {
@@ -181,22 +203,56 @@ function streakLine(p) {
 }
 
 function renderDial() {
-  const modes = ['gentle', 'balanced', 'relentless'];
-  const allowedIdx = modes.indexOf(plan.allowed);
-  $('#speed-dial').innerHTML = modes.map((mo, i) => {
-    const locked = i > allowedIdx;
-    const on = plan.effectiveMode === mo ? ' is-on' : '';
-    return `<button class="${on}" data-mode="${mo}" ${locked ? 'disabled' : ''}>${E.SPEED_DIAL[mo].label}${locked ? ' ' + lockIco() : ''}</button>`;
+  const modes = ['auto', 'gentle', 'balanced', 'relentless'];
+  const isAuto = plan.modeIsAuto;
+  $('#speed-dial').innerHTML = modes.map((mo) => {
+    const active = mo === 'auto' ? isAuto : (!isAuto && plan.effectiveMode === mo);
+    const rec = mo !== 'auto' && plan.recommendedMode === mo;
+    const label = mo === 'auto' ? 'Auto' : E.SPEED_DIAL[mo].label;
+    return `<button class="${active ? 'is-on' : ''}" data-mode="${mo}">${label}${rec ? ' <span class="rec-dot" title="recommended for your level">●</span>' : ''}</button>`;
   }).join('');
-  $$('#speed-dial button').forEach(b => b.onclick = () => { if (b.disabled) return; profile.mode = b.dataset.mode; save(); renderAll(); });
+  $$('#speed-dial button').forEach(b => b.onclick = () => { profile.mode = b.dataset.mode; save(); renderAll(); });
   const dial = E.SPEED_DIAL[plan.effectiveMode];
-  const gate = plan.allowed !== 'relentless'
-    ? `${cap(plan.allowed === 'gentle' ? 'balanced' : 'relentless')} unlocks at ${plan.allowed === 'gentle' ? 8 : 30} clean days. Caps protect lungs that are still clearing — supportive, not punitive.`
-    : `Full range unlocked. ${dial.trainingDays} training days · ${Math.round(dial.volumeMod * 100)}% volume.`;
-  $('#dial-note').textContent = gate;
+  const tl = plan.training;
+  $('#dial-note').textContent = isAuto
+    ? `Auto — tracking your performance (${cap(plan.level)} level · ${tl.sessions} session${tl.sessions === 1 ? '' : 's'} logged) → ${dial.label}: ${dial.trainingDays} days · ${Math.round(dial.volumeMod * 100)}% volume. Log your sets and it climbs on its own — never gated by your streak.`
+    : `${dial.label}: ${dial.trainingDays} training days · ${Math.round(dial.volumeMod * 100)}% volume. Recommended for your level: ${cap(plan.recommendedMode)}.`;
 }
 
-/* ---- Week --------------------------------------------------------------- */
+/* ---- Aesthetic / looksmaxx index — scored from the workout log ---------- */
+function subScore(k, v) {
+  return `<div class="ab-ss"><div class="ab-ss-k mono">${k}</div><div class="ab-ss-v display">${v}</div></div>`;
+}
+function renderAesthetic() {
+  const el = $('#aesthetic-card'); if (!el) return;
+  const a = plan.aesthetic;
+  const order = ['back', 'shoulders', 'chest', 'core', 'legs', 'arms'];
+  const maxIdeal = Math.max(...Object.values(a.ideal));
+  const bars = order.map(g => {
+    const v = a.groups[g] || 0, ideal = a.ideal[g];
+    const w = a.hasData ? Math.min(100, (v / maxIdeal) * 100) : 0;
+    const mark = (ideal / maxIdeal) * 100;
+    const weak = a.weakest === g ? ' weak' : '';
+    return `<div class="ab-row${weak}">
+      <span class="ab-k">${a.groupLabels[g]}</span>
+      <div class="ab-track"><i style="width:${w}%"></i><b style="left:${mark}%" title="V-taper target ${ideal}%"></b></div>
+      <span class="ab-v mono">${a.hasData ? v + '%' : '—'}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML = `
+    <div class="ab-head">
+      <div><p class="eyebrow" style="color:var(--clay-deep)">Aesthetic index · looksmaxx</p>
+        <h3 class="display" style="margin-top:6px">${cap(plan.level)} athlete</h3></div>
+      <div class="ab-score"><div class="display ab-score-n">${a.score}<small>/100</small></div>
+        <div class="mono ab-score-l">V-taper · posture · lean</div></div>
+    </div>
+    <div class="ab-sub">${subScore('Balance', a.balance)}${subScore('Posture', a.posture)}${subScore('Consistency', a.consistency)}</div>
+    <p class="eyebrow" style="margin-top:22px">Muscle balance vs your V-taper target <span class="ab-target-key">▏ target</span></p>
+    <div class="ab-bars">${bars}</div>
+    <div class="ab-nudge"><span class="ab-nudge-ic">◎</span><div>${a.nudge}</div></div>
+    <p class="ab-foot mono">Pull : push ${a.hasData ? a.pullPushRatio + '× — aim ≥ 1 for posture &amp; back width' : '— log sets to score it'} · last 28 days of training</p>`;
+}
+
 /* ---- Sleep & readiness -------------------------------------------------- */
 function renderSleep() {
   const r = plan.readiness;
@@ -247,7 +303,7 @@ function logSleep(hours, quality) {
 function renderWeek() {
   const td = todayPlan().day;
   const sp = plan.split;
-  $('#week-sub').textContent = `${sp.styles[sp.style].label} — ${sp.styles[sp.style].muscles.toLowerCase()}, scaled to ${cap(plan.effectiveMode)}. Daily breathwork on every day; one full rest day (Sun) is where muscle is actually built. Repeat it indefinitely; it re-tunes as you grow.`;
+  $('#week-sub').innerHTML = `${sp.styles[sp.style].label} — ${sp.styles[sp.style].muscles.toLowerCase()}, built for a lean V-taper and tuned to <strong>${cap(plan.effectiveMode)}</strong>. Each day weaves warm-up → power → strength → conditioning (cardio · agility · plyo), and every exercise <strong>auto-progresses from your logged sets</strong> — basic → advanced, never gated by your streak. Daily breathwork; Sunday is full rest.`;
 
   // routine-style selector (full-body vs splits) + recommendation
   const order = ['full-body', 'upper-lower', 'ppl'];
@@ -264,15 +320,21 @@ function renderWeek() {
     <p style="margin-top:14px;color:var(--ink-soft);font-size:.9rem">More training days favors a split; fewer days favors full-body. For <strong>${cap(plan.effectiveMode)}</strong> (${E.SPEED_DIAL[plan.effectiveMode].trainingDays} days) we recommend <strong>${sp.styles[sp.recommended].label}</strong> — but pick whichever you'll stick to.</p>`;
   $$('#split-select [data-split]').forEach(b => b.onclick = () => { profile.splitStyle = b.dataset.split; save(); renderAll(); });
 
+  const condIcon = (k) => k === 'intervals' ? '◇ HIIT' : k === 'agility' ? '⇄ Agility' : k === 'recovery' ? '◷ Recovery' : '◷ Zone-2';
   $('#week-grid').innerHTML = plan.week.map(d => {
     const rest = !d.strength;
+    const power = d.power ? `<div class="blk ex-tap blk-power" data-ex="${escAttr(d.power.exercise)}"><span>⚡ ${d.power.exercise}${d.power.advanced ? ' <span class="up-dot" title="leveled up">▲</span>' : ''}</span><span class="s">${d.power.sets}×</span></div>` : '';
     const blocks = d.strength && d.blocks.length
-      ? d.blocks.map(b => `<div class="blk ex-tap" data-ex="${escAttr(b.exercise)}"><span>${b.exercise}</span><span class="s">${b.sets}×${b.reps.replace(' reps', '')}</span></div>`).join('')
-      : `<div class="blk" style="border:none;color:var(--sky-deep)">${d.cardio}</div>`;
+      ? d.blocks.map(b => `<div class="blk ex-tap" data-ex="${escAttr(b.exercise)}"><span>${b.exercise}${b.advanced ? ' <span class="up-dot" title="leveled up">▲</span>' : ''}</span><span class="s">${b.sets}×${b.reps.replace(' reps', '')}</span></div>`).join('')
+      : `<div class="blk" style="border:none;color:var(--sky-deep)">${(d.conditioning && d.conditioning.label) || d.cardio}</div>`;
+    const cond = (d.strength && d.conditioning && d.conditioning.kind !== 'rest') ? `<div class="wk-cond">${condIcon(d.conditioning.kind)}</div>` : '';
+    const cornerTag = d.day === td ? '<span class="tag" style="background:var(--clay);color:#fff">today</span>'
+      : (d.emphasis ? `<span class="emph-tag emph-${d.emphasis}">${d.emphasis}</span>` : '');
     return `<div class="day-card ${rest ? 'rest' : ''} ${d.day === td ? 'today' : ''}">
-      <div class="dh"><span class="dn">${d.day}</span>${d.day === td ? '<span class="tag" style="background:var(--clay);color:#fff">today</span>' : ''}</div>
+      <div class="dh"><span class="dn">${d.day}</span>${cornerTag}</div>
       <div class="df">${d.focus}</div>
-      <div class="blocks">${blocks}</div>
+      <div class="blocks">${power}${blocks}</div>
+      ${cond}
       <div class="breath">◷ ${d.breathwork.join(' · ')}</div>
     </div>`;
   }).join('');
@@ -323,7 +385,7 @@ function renderTrainingProgress() {
 function renderLab() {
   const rec = plan.recovery;
   $('#lab-intro').textContent = `You're at ${rec}% of the way to a non-smoker's lungs. This isn't a metaphor — it's interpolated from real recovery physiology. Train the breath daily and watch it climb.`;
-  $('#lab-level').textContent = plan.level;
+  $('#lab-level').textContent = plan.lung.level;
   $('#lungs-mount').innerHTML = lungsSVG(rec);
 
   // timeline
@@ -556,7 +618,7 @@ function renderInsight() {
 }
 
 /* ---- Moves library + exercise detail ------------------------------------ */
-const FAMILY_LABELS = { push: 'Push', vpush: 'Vertical push', dip: 'Dips', pull: 'Pull', hrow: 'Rows', squat: 'Squat', hinge: 'Hinge', calf: 'Calves', core: 'Core', breathwork: 'Breathwork', mobility: 'Mobility & warm-up' };
+const FAMILY_LABELS = { push: 'Push', vpush: 'Vertical push', dip: 'Dips', pull: 'Pull', hrow: 'Rows', squat: 'Squat', hinge: 'Hinge', calf: 'Calves', core: 'Core', agility: 'Agility & footwork', plyometric: 'Plyometrics & power', conditioning: 'Conditioning & cardio', breathwork: 'Breathwork', mobility: 'Mobility & warm-up' };
 const escAttr = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 let moveFilter = 'all';
 

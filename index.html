@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=17" />
+  <link rel="stylesheet" href="css/styles.css?v=18" />
 </head>
 <body>
   <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
@@ -107,8 +107,8 @@
           <p class="lead">10–15 minutes of daily breathwork — diaphragmatic, pursed-lip, costal expansion — retrains the muscle smoking stiffened. Forceful pranayama stays locked until your lungs earn it.</p>
         </div>
         <div class="beat reveal">
-          <div><p class="num">02 — BUILD</p><h2 class="display">Lean mass,<br>floor-first.</h2></div>
-          <p class="lead">A Push / Pull / Legs / Full calisthenics week scaled to your speed dial. Start on the floor; unlock new progressions the day your pull-up bar arrives.</p>
+          <div><p class="num">02 — BUILD</p><h2 class="display">Lean V-taper,<br>floor-first.</h2></div>
+          <p class="lead">A pull-led calisthenics week that <em>auto-progresses from your own logged sets</em> — basic to advanced — with cardio, agility and plyometrics woven in. Tuned for a lean, athletic, model physique: broad shoulders, wide back, tight waist.</p>
         </div>
         <div class="beat reveal">
           <div><p class="num">03 — BECOME</p><h2 class="display">75 kilos<br>of you.</h2></div>
@@ -127,8 +127,45 @@
     <div class="app-pad section container">
       <p class="eyebrow reveal" id="greet">Good to see you</p>
 
+      <!-- ░░ TRAINING-FIRST: the program leads ░░ -->
+
+      <!-- aesthetic / looksmaxx index -->
+      <div class="card reveal" id="aesthetic-card" style="margin-top:24px"></div>
+
+      <!-- today's session -->
+      <div class="bento" style="margin-top:24px">
+        <div class="card col-8 reveal">
+          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
+            <h3 class="display">Today's session</h3>
+            <span class="tag" id="today-day">—</span>
+          </div>
+          <div class="checklist" id="today-checklist"></div>
+        </div>
+        <div class="card col-4 card--sky reveal">
+          <p class="eyebrow" style="color:var(--sky-deep)">Daily breathwork · non-negotiable</p>
+          <h3 class="display" style="margin:8px 0 12px">10–15 min</h3>
+          <div id="today-breath" style="display:flex; flex-direction:column; gap:8px"></div>
+          <button class="btn btn--ghost magnetic" style="margin-top:16px; width:100%; justify-content:center" data-view="lab">Open breath pacer →</button>
+        </div>
+      </div>
+
+      <!-- speed dial -->
+      <div class="reveal" style="margin-top:24px; display:flex; gap:20px; flex-wrap:wrap; align-items:center; justify-content:space-between">
+        <div>
+          <p class="eyebrow">Effort dial · auto-progresses with you</p>
+          <div class="dial" id="speed-dial" style="margin-top:10px"></div>
+        </div>
+        <p class="mono" style="color:var(--ink-faint); font-size:.8rem; max-width:300px" id="dial-note"></p>
+      </div>
+
+      <!-- safety banner -->
+      <div class="safety-banner reveal" style="margin-top:24px" id="safety-banner"></div>
+
+      <!-- ░░ WELLNESS LAYER: streak · recovery · sleep · fuel ░░ -->
+      <p class="eyebrow reveal" style="margin-top:56px; color:var(--ink-faint)">Recovery &amp; wellness · your foundation</p>
+
       <!-- hero streak + ring -->
-      <div class="cockpit-hero" style="margin-top:24px">
+      <div class="cockpit-hero" style="margin-top:18px">
         <div class="streak-block reveal">
           <p class="eyebrow">Smoke-free streak · north star</p>
           <div class="day-count"><span id="day-count">0</span><span class="unit" id="streak-noun">days</span></div>
@@ -153,18 +190,6 @@
         </div>
       </div>
 
-      <!-- safety banner -->
-      <div class="safety-banner reveal" style="margin-top:36px" id="safety-banner"></div>
-
-      <!-- speed dial -->
-      <div class="reveal" style="margin-top:40px; display:flex; gap:20px; flex-wrap:wrap; align-items:center; justify-content:space-between">
-        <div>
-          <p class="eyebrow">Speed dial · paces everything</p>
-          <div class="dial" id="speed-dial" style="margin-top:10px"></div>
-        </div>
-        <p class="mono" style="color:var(--ink-faint); font-size:.8rem; max-width:280px" id="dial-note"></p>
-      </div>
-
       <!-- sleep & readiness -->
       <div class="card card--lilac reveal" id="sleep-card" style="margin-top:24px"></div>
 
@@ -182,23 +207,6 @@
             <span class="mono" style="color:var(--ink-faint); font-size:.8rem" id="weight-trend-delta"></span>
           </div>
           <div id="weight-trend-svg"></div>
-        </div>
-      </div>
-
-      <!-- today's protocol -->
-      <div class="bento" style="margin-top:24px">
-        <div class="card col-8 reveal">
-          <div style="display:flex; justify-content:space-between; align-items:baseline; margin-bottom:8px">
-            <h3 class="display">Today's protocol</h3>
-            <span class="tag" id="today-day">—</span>
-          </div>
-          <div class="checklist" id="today-checklist"></div>
-        </div>
-        <div class="card col-4 card--sky reveal">
-          <p class="eyebrow" style="color:var(--sky-deep)">Daily breathwork · non-negotiable</p>
-          <h3 class="display" style="margin:8px 0 12px">10–15 min</h3>
-          <div id="today-breath" style="display:flex; flex-direction:column; gap:8px"></div>
-          <button class="btn btn--ghost magnetic" style="margin-top:16px; width:100%; justify-content:center" data-view="lab">Open breath pacer →</button>
         </div>
       </div>
     </div>
@@ -315,7 +323,7 @@
   <!-- ============================ MOVES LIBRARY ============================ -->
   <section class="view" id="view-moves" data-view="moves">
     <div class="app-pad section container">
-      <p class="eyebrow reveal">The library · 60 moves, fully described</p>
+      <p class="eyebrow reveal">The library · 73 moves, fully described</p>
       <h2 class="display reveal" style="margin:10px 0 6px">Moves</h2>
       <p class="lead reveal" id="moves-sub" style="max-width:660px">Every exercise in your protocol — with full form, cues, mistakes, muscles, breathing, tempo and progressions. Tap any card to open it.</p>
       <div class="reveal" id="moves-filter" style="display:flex;gap:8px;flex-wrap:wrap;margin:28px 0 8px"></div>
@@ -367,7 +375,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=17"></script>
+  <script type="module" src="js/app.js?v=18"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {

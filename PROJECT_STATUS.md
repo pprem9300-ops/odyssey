@@ -4,8 +4,8 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-22
-**Current phase:** `P12 — Cinematic-dark redesign + feature build-out ALL LIVE & verified smooth (HEAD 347e325). Remaining = optional queue (progress photos, plate calc, grocery, body measurements, reminders).`
-**Overall progress:** ▰▰▰▰▰▰▰ ~98% (auth · cinematic-dark redesign · subtle CSS/IO animations · native-scroll perf · 7 feature increments across Workout/Nutrition/Wellness — all live, confirmed smooth on device). Cache-bust now `?v=17`, `sw odyssey-v17`.
+**Current phase:** `P13 — TRAINING BRAIN v2 (D21): performance-driven progression (decoupled from the smoke-free streak), aesthetic/looksmaxx engine, + agility/cardio/plyo woven into a pro calisthenics week. Engine node-tested (26 asserts) + verified live. Remaining = optional queue (progress photos, plate calc, grocery, body measurements, reminders).`
+**Overall progress:** ▰▰▰▰▰▰▰ ~99% (auth · cinematic-dark redesign · subtle CSS/IO animations · native-scroll perf · feature increments + the performance-driven training brain — all live, verified). Cache-bust now `?v=18`, `sw odyssey-v18` (engine/exercises module imports at `?v=4`).
 **🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
@@ -18,6 +18,7 @@
 **Everything below is DONE, LIVE, and verified smooth on device (2026-06-22).** Auth (invite-only gate + Brevo), the **cinematic-dark redesign**, subtle CSS/IO animations, native-scroll perf, and **7 feature increments** (Workout/Nutrition/Wellness) are all shipped. Nothing is mid-flight; the tree is clean and pushed (HEAD `347e325`+docs). What remains is an **optional feature queue** (see "FEATURE BUILD-OUT" below) — pick up there only if the user asks. **First, read this block + DECISIONS D18–D20 to reload context.**
 
 **Key things a fresh session must know:**
+- **Training brain is PERFORMANCE-DRIVEN (D21), NOT streak-gated.** `engine.js` is pure + node-testable (`computePlan(profile, EXERCISE_DB, now?)`). Progression comes from `profile.workoutLog`: `trainingLevel()` (stage + score), `adaptiveRung()` (double-progression + ladder climb, deduped per session), `aestheticBalance()` (V-taper/posture/looksmaxx 0–100 + weakest-link nudge). Intervals/plyo/agility unlock from logged sessions. The streak/recovery% is now the **wellness layer only** (breath unlocks, milestones). Library = **73 moves** (added agility/plyometric/conditioning families). To re-test: `cp js/{engine,exercises}.js /tmp/x/*.mjs` and run an importing `.mjs` (see D21).
 - **Design = cinematic dark** (D20) — dark void + warm off-white + glowing pastel accents; Fraunces headlines + Space Grotesk eyebrows/marquee. Don't reintroduce light tokens.
 - **Animations are CSS/IO/rAF only** (no gsap-ticker dependency). **Scroll is native** (Lenis removed — it caused stalls). Keep both: never gate critical logic on gsap/IO callbacks.
 - **Feature pattern:** per-date data in `profile.{workoutLog,waterLog,moodLog,mealLog,journalLog}` (auto-syncs via Supabase); render a card once, then a `paint*()` toggles classes IN PLACE so CSS transitions animate (don't full-re-render on each tap).
@@ -65,6 +66,7 @@
 - ✅ **Wellness — weekly insight** (`96f8d6f`): Journey 'This week' card, adaptive sentence + chips from all daily logs (last 7 days).
 - ✅ **Workout — rest timer** (`5360fc1`): exercise-modal coral ring countdown, Start/Pause, ±15, vibrate at 0.
 - ✅ **Wellness — journaling + data export** (`347e325`): daily note on the mood card (`journalLog`); 'Export data' in account modal → JSON backup of all logs.
+- ✅ **TRAINING BRAIN v2 — performance-driven (D21)**: exercises auto-progress from `workoutLog` (basic→advanced); cockpit-lead **aesthetic/looksmaxx index** (V-taper/posture/consistency + weakest-link nudge); **agility · cardio · plyometrics** woven into a pro, undulating calisthenics week; **decoupled from the streak**; Today checklist now **persisted** (`checklistLog`); Today view reordered **training-first**. Library → **73 moves**.
 - 🔜 **Workout** — progress photos, plate calculator, macro/volume trend chart.
 - 🔜 **Nutrition** — saved meals / swap chips, grocery list, macro-history chart.
 - 🔜 **Wellness** — body measurements (waist + photos), **reminders/notifications** (⚠️ true push needs a push server + SW push handlers; a static PWA can only do local `Notification` while open — scope this honestly before building).

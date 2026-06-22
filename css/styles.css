@@ -477,6 +477,45 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .insight-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(78px, 1fr)); gap: 16px; }
 
 /* ============================================================================
+   TRAINING BRAIN — level-up chips · emphasis · recommendation · aesthetic card
+   ========================================================================== */
+.up-chip { display: inline-block; font-family: var(--font-mono); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; padding: 2px 7px; border-radius: 999px; background: var(--clay-soft); color: var(--clay-deep); vertical-align: 1px; }
+.up-chip.down { background: var(--sky-soft); color: var(--sky-deep); }
+.up-chip.hold { background: var(--sage-soft); color: var(--sage-deep); }
+.up-dot { color: var(--clay-deep); font-size: .7em; }
+.emph-tag { font-family: var(--font-mono); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
+.emph-strength { background: var(--clay-soft); color: var(--clay-deep); }
+.emph-hypertrophy { background: var(--sky-soft); color: var(--sky-deep); }
+.dial button .rec-dot { color: var(--sage-deep); font-size: .7em; vertical-align: 1px; }
+.dial button.is-on .rec-dot { color: #fff; }
+.wk-cond { font-family: var(--font-mono); font-size: .7rem; color: var(--sage-deep); margin-top: 4px; letter-spacing: .03em; }
+
+/* aesthetic / looksmaxx index card */
+.ab-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 14px; flex-wrap: wrap; }
+.ab-score { text-align: right; }
+.ab-score-n { font-size: clamp(2.6rem, 7vw, 3.4rem); line-height: 1; color: var(--clay); }
+.ab-score-n small { font-size: .3em; color: var(--ink-faint); font-family: var(--font-mono); }
+.ab-score-l { font-size: .68rem; color: var(--ink-faint); letter-spacing: .06em; }
+.ab-sub { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px; }
+.ab-ss { background: var(--sand); border: 1px solid var(--haze); border-radius: var(--r-sm); padding: 12px 14px; }
+.ab-ss-k { font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-faint); }
+.ab-ss-v { font-size: 1.6rem; margin-top: 2px; }
+.ab-target-key { font-family: var(--font-mono); font-size: 9px; color: var(--ink-faint); text-transform: none; letter-spacing: .02em; }
+.ab-bars { display: flex; flex-direction: column; gap: 9px; margin-top: 12px; }
+.ab-row { display: grid; grid-template-columns: 100px 1fr 42px; gap: 10px; align-items: center; }
+.ab-row .ab-k { font-size: .82rem; color: var(--ink-soft); }
+.ab-row.weak .ab-k { color: var(--clay-deep); }
+.ab-track { position: relative; height: 9px; border-radius: 999px; background: var(--haze); }
+.ab-track > i { display: block; height: 100%; border-radius: 999px; background: linear-gradient(90deg, var(--sky), var(--sage)); width: 0; transition: width 1s var(--ease); }
+.ab-row.weak .ab-track > i { background: linear-gradient(90deg, var(--clay), var(--clay-deep)); }
+.ab-track > b { position: absolute; top: -3px; width: 2px; height: 15px; background: var(--ink-soft); border-radius: 2px; transform: translateX(-1px); opacity: .7; }
+.ab-row .ab-v { font-size: .78rem; color: var(--ink-faint); text-align: right; }
+.ab-nudge { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 14px 16px; border-radius: var(--r-md); background: var(--clay-mist); border: 1px solid var(--clay-soft); font-size: .9rem; color: var(--ink-soft); line-height: 1.5; }
+.ab-nudge-ic { color: var(--clay-deep); font-size: 1.1rem; line-height: 1.3; }
+.ab-foot { font-size: .72rem; color: var(--ink-faint); margin-top: 12px; }
+@media (max-width: 520px) { .ab-sub { gap: 8px; } .ab-row { grid-template-columns: 82px 1fr 38px; } }
+
+/* ============================================================================
    RESPONSIVE
    ========================================================================== */
 .col-12{grid-column:span 12}.col-8{grid-column:span 8}.col-6{grid-column:span 6}.col-4{grid-column:span 4}.col-3{grid-column:span 3}

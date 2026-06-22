@@ -5,6 +5,25 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-22 — D21 · Training brain v2 → PERFORMANCE-DRIVEN (decoupled from streak) + aesthetic/looksmaxx engine + cardio/agility/plyo
+
+User direction (3 interrupts that sharpened the spec): make plans **smart & industry-grade**, **calisthenics + aesthetics + looksmaxxing** focused, exercises **dynamic** (auto-progressing basic→advanced), and **weave in agility + cardio** — with the explicit rule that **training intensity must NOT be gated by the smoke-free streak**; it progresses from *what your current state can handle*, read off the **workout logs**, and overloads steadily.
+
+**The re-architecture (engine.js, pure + node-tested — 26 asserts pass):**
+- **Decoupled training from streak.** Old `allowedMode`/`clampMode`/`lungLevel` streak-gating of *training* is gone. New `trainingLevel(profile)` derives a foundation/build/peak stage + 0–100 athlete score from the **demonstrated rungs in `workoutLog`** + session count. Proven by tests: 400-day streak + zero logs → stays foundation/basic, intervals locked; zero streak + rich logs → rises to build, auto-advances exercises, unlocks intervals. The streak/recovery% is now **purely the wellness layer** (`recoveryPct`, breath-technique unlocks, milestones) — kept, secondary.
+- **Dynamic exercises = `adaptiveRung()`** — double-progression + ladder climb: hit the top of the rep range across recent sessions → advance the calisthenics ladder rung (incline→knee→full→diamond→archer…); struggle below the bottom → ease back; else +1 rep. Per-session **dedupe** so two patterns never land on the same move. Equipment still caps reachable rungs (bar/bands).
+- **Aesthetic / looksmaxx engine = `aestheticBalance()`** — maps logged exercises→muscle groups, scores vs a **V-taper ideal** (back 22 / shoulders 18 / legs 20 / chest 15 / core 15 / arms 10), a **pull:push posture ratio**, a weakest-link nudge, and a 0–100 index blending balance (.45) + posture (.20) + consistency (.35). Surfaced as the cockpit's lead card.
+- **Pro weekly template** — PPL/Upper-Lower/Full by training-days, **undulating** strength vs hypertrophy days, each day = warm-up → (power/plyo when fresh on leg days) → aesthetic-biased strength (pull≥push, delts+lats+core for the frame) → conditioning finisher (Zone-2 base / agility / HIIT — **performance-unlocked**) → breath. Sunday rest, Wed active recovery.
+- **Speed dial fully unlocked** + new **`Auto`** mode that follows `recommendedMode` (level + readiness); no streak locks.
+
+**New content:** 13 moves authored to the encyclopedia schema (families **agility** ·4, **plyometric** ·5, **conditioning** ·4) → library now **73 moves**, with clean progression chains the engine climbs.
+
+**UI:** Today view **reordered training-first** (program + aesthetic index lead; streak/lungs/sleep demoted to a "Recovery & wellness" block). Level-up `▲` chips, emphasis tags, conditioning icons in the Week grid. **Audit fix:** the Today checklist (`doneToday`) was in-memory only → now persisted per-date in `profile.checklistLog` (the lone data-loss gap; everything else already saved to localStorage + Supabase).
+
+**Engine API change:** `computePlan(profile, EXERCISE_DB, now?)` now takes the exercise DB (for muscle mapping) — engine stays import-free + node-testable. Verified live in preview (no console errors). Cache-bust → `?v=18` (engine/exercises imports `?v=4`), `sw odyssey-v18`.
+
+---
+
 ## 2026-06-20 — D20 · Complete design refactor → CINEMATIC DARK (supersedes light/pastel)
 
 User: "completely refactor design of app with the 3 websites." Chose (via options) **Cinematic dark** (pacômepertant-style) + **Fraunces serif headlines with Space Grotesk grotesque accents** (eyebrows/labels/marquee). This **supersedes the light pastel direction (D19)** — but the multi-accent identity is KEPT: the coral/periwinkle/sage/lilac pastels are **retuned to glow on the void** rather than dropped (honors the earlier "not monotone" ask).

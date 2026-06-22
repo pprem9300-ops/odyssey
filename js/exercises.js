@@ -3289,6 +3289,708 @@ export const EXERCISE_LIST = [
   "restGuidance": "None needed; it is brief joint prep. Move straight into hand-loaded work.",
   "safety": "Wrists are small and easily aggravated — keep all stretches gentle and pain-free. If you have a wrist injury, reduce the load and range. Build up the fingers-backward tolerance slowly.",
   "benefitForUser": "Floor training (planks, push-ups, scap push-ups) loads the wrists in extension, and cold, unprepared wrists are a common reason beginners quit with hand pain. This quick prep builds the wrist tolerance you need so your hands aren't the limiting factor as you progress toward push-ups and eventually the pull-up bar."
+ },
+ {
+  "name": "A-march",
+  "family": "agility",
+  "level": "foundation",
+  "aka": "High-knee march, A-skip march, posture march",
+  "primaryMuscles": [
+   "hip flexors",
+   "gastrocnemius",
+   "soleus"
+  ],
+  "secondaryMuscles": [
+   "rectus abdominis",
+   "gluteus maximus",
+   "tibialis anterior"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand tall with feet hip-width, chest up, shoulders relaxed and arms bent to roughly 90 degrees. Imagine a string pulling the crown of your head to the ceiling so your spine is long before you start.",
+  "steps": [
+   "Stand tall, ribs stacked over hips, eyes forward and arms bent at 90 degrees.",
+   "Drive one knee up to about hip height while the opposite arm swings forward, mirror-image.",
+   "Place the foot down softly under your hips, landing on the ball of the foot, not out in front.",
+   "As that foot lands, drive the other knee up and switch the arm swing in the same beat.",
+   "Keep marching in place or travelling forward a few inches per step, staying tall the whole time.",
+   "Build a steady, crisp rhythm for the work interval, then walk it out to recover."
+  ],
+  "formCues": [
+   "tall spine, crown reaching up",
+   "knee to hip height, toe pulled up",
+   "punch the arms front-to-back, not across the body",
+   "quiet, light foot contacts under the hips"
+  ],
+  "commonMistakes": [
+   "Leaning back or slouching as knees rise — keep the chest tall and ribs down so the posture leads.",
+   "Swinging arms across the midline — drive them straight front-to-back to keep rotation out of it.",
+   "Stomping or landing heel-first — stay on the balls of the feet and land soft and quiet.",
+   "Letting the knee drift below hip height when tired — keep the drive crisp or slow the cadence to hold height.",
+   "Holding the breath while concentrating — keep an easy, rhythmic breath going throughout."
+  ],
+  "breathing": "Breathe in an easy, continuous rhythm in time with the march — never hold your breath. You should be able to talk in short phrases; if you can't, slow the cadence.",
+  "tempo": "Rhythmic and controlled — one knee drive per beat, steady cadence over speed.",
+  "rangeOfMotion": "Knee driven to hip height, hip fully extended on the support leg; full coordinated arm swing front-to-back.",
+  "regression": "",
+  "progression": "Lateral shuffle",
+  "repRange": {
+   "foundation": "3 rounds x 20s",
+   "build": "4 rounds x 30s",
+   "peak": "5 rounds x 30-40s, sharper knee drive"
+  },
+  "restGuidance": "30-45s easy walking between rounds — enough to keep the movement crisp without fully cooling down.",
+  "safety": "Low impact and breath-friendly, ideal early conditioning for a reducing smoker. Keep contacts soft to spare the knees, stay tall to protect the lower back, and if you feel lightheaded or dizzy, stop and breathe easy until it passes — progress by cadence and posture, not by gasping.",
+  "benefitForUser": "The foundation of athletic coordination — it grooves posture, knee drive and opposite-arm timing that underpin every sprint, jump and change of direction, sharpening the upright, athletic carriage that completes the V-taper look. Gentle enough to start rebuilding aerobic base and breath rhythm while smoke-free lung capacity returns."
+ },
+ {
+  "name": "Lateral shuffle",
+  "family": "agility",
+  "level": "foundation",
+  "aka": "Side shuffle, defensive slide, lateral skater shuffle",
+  "primaryMuscles": [
+   "gluteus medius",
+   "adductor magnus",
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "gastrocnemius",
+   "gluteus maximus",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Drop into an athletic stance: feet wider than shoulders, knees bent, hips back and down, chest up, weight on the balls of the feet. Hands up in front of you ready to react.",
+  "steps": [
+   "Set an athletic stance — knees bent, hips loaded, chest tall, weight on the balls of the feet.",
+   "Push hard off the trailing foot to drive yourself sideways toward the lead foot.",
+   "Step the lead foot out and catch your weight, staying low the whole time.",
+   "Let the trailing foot follow without clicking heels together, keeping a wide, stable base.",
+   "Shuffle several steps one way, then reverse and drive back the other way, staying low throughout.",
+   "Keep the head level — no bobbing up and down between steps."
+  ],
+  "formCues": [
+   "stay low, hips loaded the whole time",
+   "push off the back foot, don't reach with the front",
+   "keep feet wide — never click the heels together",
+   "level head, eyes forward"
+  ],
+  "commonMistakes": [
+   "Standing tall between steps — sink into the athletic stance and stay there the entire set.",
+   "Clicking the heels together — keep a wide base so you stay balanced and ready to change direction.",
+   "Crossing the feet — this is a shuffle, keep them parallel and let the trail foot follow.",
+   "Bobbing the head up and down — drive horizontally and keep the head level for control.",
+   "Letting the knees cave inward — push the knees out in line with the toes."
+  ],
+  "breathing": "Keep a steady, rhythmic breath in time with the shuffle. Aim to stay at a talk-test pace where you could speak a short sentence; ease off if you can't.",
+  "tempo": "Controlled and athletic — smooth push-off each direction, no rushing into sloppy steps.",
+  "rangeOfMotion": "Hips held in a loaded half-squat throughout; full lateral push-off and recovery without heels touching.",
+  "regression": "A-march",
+  "progression": "Fast feet",
+  "repRange": {
+   "foundation": "3 rounds x 20s each direction",
+   "build": "4 rounds x 30s",
+   "peak": "5 rounds x 30-40s, lower stance"
+  },
+  "restGuidance": "30-45s walking between rounds; the low stance taxes the legs, so rest enough to keep depth.",
+  "safety": "Low impact and easy on the lungs. Keep the stance low to protect the knees and push them out over the toes. On a slick floor wear grippy shoes or go barefoot to avoid slipping. If you feel dizzy or breathless beyond the talk test, stop and recover.",
+  "benefitForUser": "Builds the gluteus medius and adductors that stabilise the hips and carve the lean, athletic lower body, while training side-to-side power and balance that pure straight-line training misses. A steady aerobic burner that keeps conditioning breath-friendly as lung capacity rebuilds."
+ },
+ {
+  "name": "Fast feet",
+  "family": "agility",
+  "level": "build",
+  "aka": "Quick feet, stationary running, hot-feet drill",
+  "primaryMuscles": [
+   "gastrocnemius",
+   "soleus",
+   "hip flexors"
+  ],
+  "secondaryMuscles": [
+   "quadriceps",
+   "tibialis anterior",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand in a low athletic stance, feet about shoulder-width, knees soft, weight forward on the balls of the feet. Bend the arms and get ready to pump them quickly.",
+  "steps": [
+   "Set a low athletic stance with weight on the balls of the feet and arms bent, ready to pump.",
+   "Start chopping the feet up and down as fast as you can, taking tiny, rapid steps.",
+   "Keep the steps shallow — barely leaving the floor — to maximise how often the feet hit the ground.",
+   "Pump the arms quickly in sync with the legs to drive the cadence.",
+   "Stay low and light, fully on the balls of the feet, for the whole work burst.",
+   "Stop crisply at the end of the interval and shake the legs out."
+  ],
+  "formCues": [
+   "tiny, lightning-fast contacts on the balls of the feet",
+   "stay low — don't stand up as you speed up",
+   "pump the arms to set the rhythm",
+   "light and quiet, barely leaving the floor"
+  ],
+  "commonMistakes": [
+   "Taking big slow steps — make them tiny and rapid; frequency is the whole point.",
+   "Standing upright as fatigue hits — stay low in the athletic stance to keep the feet quick.",
+   "Landing flat or on the heels — stay on the balls of the feet for fast turnover.",
+   "Letting the arms go limp — pump them quickly; the legs follow the arms.",
+   "Going so long that form collapses — keep bursts short and sharp rather than long and sloppy."
+  ],
+  "breathing": "Breathe in quick, rhythmic bursts; this is higher intensity so expect to be working. Use the talk test between rounds — if you can't get a few words out on the rest, lengthen it.",
+  "tempo": "Maximal turnover — as many quick, light contacts as possible while staying low.",
+  "rangeOfMotion": "Short, shallow steps with rapid ground contact; stance stays low throughout the burst.",
+  "regression": "Lateral shuffle",
+  "progression": "Carioca footwork",
+  "repRange": {
+   "foundation": "3 rounds x 15s",
+   "build": "4 rounds x 20s",
+   "peak": "5 rounds x 20-25s, max cadence"
+  },
+  "restGuidance": "45-60s between rounds — this spikes the heart rate fast, so rest enough to keep the feet genuinely quick.",
+  "safety": "Higher-intensity conditioning: pace it and watch the breath. Keep contacts light to protect the calves and Achilles, and ease in if those are tight. As a reducing smoker, stop immediately if you feel dizzy, lightheaded or can't catch your breath, and let it settle before the next round — progress by cadence, never by pushing through breathlessness.",
+  "benefitForUser": "Trains explosive foot speed, calf reactivity and a fast aerobic-anaerobic kick that torches calories and sharpens the lean, springy athlete look. The high turnover builds the quick-twitch coordination that makes sprints and jumps snappier as conditioning improves."
+ },
+ {
+  "name": "Carioca footwork",
+  "family": "agility",
+  "level": "build",
+  "aka": "Karaoke drill, grapevine, braiding run",
+  "primaryMuscles": [
+   "obliques",
+   "gluteus maximus",
+   "adductor magnus"
+  ],
+  "secondaryMuscles": [
+   "hip flexors",
+   "gluteus medius",
+   "gastrocnemius"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand side-on to your direction of travel in an athletic stance, knees soft, chest tall, arms out wide for balance. You'll travel laterally while the feet cross over and behind.",
+  "steps": [
+   "Set an athletic stance side-on to your travel direction, arms out wide for balance.",
+   "Travelling sideways, cross the trailing leg over the FRONT of the lead leg and plant it.",
+   "Step the lead leg out to the side again to open the stance back up.",
+   "Now cross the trailing leg BEHIND the lead leg and plant it.",
+   "Let the hips rotate naturally with each cross-over and cross-behind, keeping the chest fairly tall.",
+   "Continue the over-front, open, behind pattern across the floor, then reverse direction for balance."
+  ],
+  "formCues": [
+   "let the hips swivel with each cross step",
+   "stay light on the balls of the feet",
+   "over the front, then behind — keep the pattern clean",
+   "arms wide and relaxed for balance"
+  ],
+  "commonMistakes": [
+   "Stiff, locked hips — let the pelvis rotate freely; the hip swivel is the point of the drill.",
+   "Looking down at the feet — keep the eyes up and trust the rhythm.",
+   "Standing too upright and tall — keep knees soft and stay athletic to move smoothly.",
+   "Tangling the feet by rushing — start slow, nail the over-front-then-behind sequence, then add speed.",
+   "Crossing only in front — make sure every cycle has both a cross-in-front and a cross-behind."
+  ],
+  "breathing": "Keep a steady, rhythmic breath as you travel. Stay near a talk-test pace; if you're gasping, slow the footwork down and smooth it out.",
+  "tempo": "Smooth and rhythmic first, then quicker — coordination before speed.",
+  "rangeOfMotion": "Full hip rotation with each cross step; feet cross fully in front and fully behind the lead leg.",
+  "regression": "Fast feet",
+  "progression": "",
+  "repRange": {
+   "foundation": "3 rounds x 20s each direction",
+   "build": "4 rounds x 25-30s",
+   "peak": "5 rounds x 30s, faster with bigger hip rotation"
+  },
+  "restGuidance": "45-60s between rounds; this is coordination-heavy, so rest enough to keep the pattern clean and unhurried.",
+  "safety": "Moderate impact and breath-friendly when smooth. The rotation loads the knees and ankles, so start slow and keep contacts light until the pattern is automatic. Give yourself space to avoid tripping. Stop and recover if you feel dizzy or lightheaded.",
+  "benefitForUser": "The most complete agility drill here — it links hip rotation, cross-step coordination and lateral power, building the rotational core and oblique definition that frame a tight, athletic midsection. Mastering it gives Anakin the fluid, coordinated movement quality that reads as genuine athleticism, not just muscle."
+ },
+ {
+  "name": "Pogo hops",
+  "family": "plyometric",
+  "level": "foundation",
+  "aka": "Ankle hops, pogos, stiff-leg bounces",
+  "primaryMuscles": [
+   "gastrocnemius",
+   "soleus",
+   "tibialis anterior"
+  ],
+  "secondaryMuscles": [
+   "quadriceps",
+   "gluteus maximus",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand tall, feet hip-width, arms relaxed at your sides or lightly bent. Stiffen the ankles and think of your legs as springy poles — most of the bounce comes from the ankles, not the knees.",
+  "steps": [
+   "Stand tall with feet hip-width and a slight, fixed bend in the knees.",
+   "Push off the balls of both feet to hop a few inches off the floor, keeping the legs stiff like springs.",
+   "Land on the balls of the feet and immediately rebound, spending as little time on the floor as possible.",
+   "Drive mostly from the ankles — let the knees stay nearly locked at a small angle.",
+   "Keep a continuous, quick, bouncy rhythm with the body tall and core braced.",
+   "Finish the set on a controlled landing and walk it off."
+  ],
+  "formCues": [
+   "bounce from the ankles, knees barely bend",
+   "minimal ground contact — get off the floor fast",
+   "stay tall and braced, no folding at the hips",
+   "quiet, springy landings on the balls of the feet"
+  ],
+  "commonMistakes": [
+   "Bending the knees deeply into mini-squats — keep them nearly straight so the ankles do the work.",
+   "Spending too long on the floor — rebound instantly; think hot pavement.",
+   "Landing flat-footed or heavy — stay on the balls of the feet and keep it quiet.",
+   "Collapsing forward at the hips — stay tall with the core braced.",
+   "Letting the rhythm sag when tired — keep contacts snappy or end the set; quality beats quantity in plyo."
+  ],
+  "breathing": "Breathe in a light, continuous rhythm with the bounces — don't hold your breath. These are short, so you should stay comfortably able to talk between sets.",
+  "tempo": "Fast and reactive — minimal ground-contact time, instant rebound.",
+  "rangeOfMotion": "Small amplitude: a few inches of hop with a nearly fixed knee; full, quick ankle extension and absorption.",
+  "regression": "",
+  "progression": "Squat jump",
+  "repRange": {
+   "foundation": "3 x 5 quality reps",
+   "build": "4 x 4-5 explosive reps",
+   "peak": "4-5 x 3-4 maximal reps, full rest"
+  },
+  "restGuidance": "60-90s between sets — plyometrics need full recovery so each contact stays snappy and reactive.",
+  "safety": "The lowest-impact entry to jumping and the place to build landing mechanics. Land on the balls of the feet on a forgiving surface and keep the volume low. Easy on the breath, but stop if dizzy. If the calves or Achilles feel strained, reduce reps — quality reps, not fatigue, drive plyo progress.",
+  "benefitForUser": "Builds the stiff, reactive ankles and calves that make every jump and sprint more powerful and give the lower legs a lean, defined pop. As the gentlest plyometric, it safely teaches the soft, quiet landings that protect the joints before bigger jumps — laying the power base under Anakin's athletic look."
+ },
+ {
+  "name": "Squat jump",
+  "family": "plyometric",
+  "level": "foundation",
+  "aka": "Countermovement jump, vertical jump, jump squat",
+  "primaryMuscles": [
+   "quadriceps",
+   "gluteus maximus",
+   "gastrocnemius"
+  ],
+  "secondaryMuscles": [
+   "hamstrings",
+   "soleus",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet shoulder-width, toes slightly out, chest tall and arms ready to swing. You'll dip into a quarter-to-half squat and explode straight up, then land soft and quiet.",
+  "steps": [
+   "Stand tall, feet shoulder-width, weight balanced over the mid-foot.",
+   "Dip quickly into a quarter-to-half squat, swinging the arms back as you load.",
+   "Explode straight up, driving through the whole foot and throwing the arms up to add height.",
+   "Reach full extension in the air — hips, knees and ankles long.",
+   "Land softly on the whole foot, immediately bending the hips and knees to absorb the impact.",
+   "Settle into a quiet, controlled landing position before resetting for the next rep."
+  ],
+  "formCues": [
+   "load with an arm swing, explode straight up",
+   "land soft and quiet — hips back, knees bend to absorb",
+   "full triple extension at the top",
+   "keep the chest up, don't fold forward"
+  ],
+  "commonMistakes": [
+   "Landing stiff-legged or loud — sit the hips back and bend the knees to soak up the landing.",
+   "Knees caving inward on take-off or landing — drive and track them over the toes.",
+   "Folding the chest down instead of jumping up — stay tall and direct the force vertically.",
+   "Rushing into the next rep — reset your stance and posture so every jump is a quality rep.",
+   "Going to failure — plyo is about power, so stop while the jumps are still high and crisp."
+  ],
+  "breathing": "Exhale sharply as you jump, inhale as you reset. Keep sets short so breathing stays comfortable; you should recover to a talking pace between sets.",
+  "tempo": "Explosive up, controlled landing — a quick load then maximal effort, with a soft catch.",
+  "rangeOfMotion": "Quarter-to-half squat dip, full triple extension at take-off, deep soft absorption on landing.",
+  "regression": "Pogo hops",
+  "progression": "Tuck jump",
+  "repRange": {
+   "foundation": "3 x 5 quality reps",
+   "build": "4 x 4-5 explosive reps",
+   "peak": "4-5 x 3-4 maximal reps, full rest"
+  },
+  "restGuidance": "60-120s between sets — rest fully so every jump is maximal; tired jumps are low and risk sloppy landings.",
+  "safety": "Moderate impact. Master the soft, quiet landing before chasing height, and keep knees tracking over toes. Land on a forgiving surface and keep volume low. If you feel dizzy or your form decays, stop. Progress by jumping higher with crisp landings, not by adding fatigue.",
+  "benefitForUser": "The core lower-body power builder — it trains the quads and glutes to fire explosively, adding athletic shape and strength to the legs and the spring that makes you look and move like an athlete. Teaching controlled landings here protects the knees as Anakin advances to harder jumps."
+ },
+ {
+  "name": "Tuck jump",
+  "family": "plyometric",
+  "level": "build",
+  "aka": "Knee tuck jump, knees-to-chest jump",
+  "primaryMuscles": [
+   "quadriceps",
+   "hip flexors",
+   "gluteus maximus"
+  ],
+  "secondaryMuscles": [
+   "gastrocnemius",
+   "hamstrings",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet hip- to shoulder-width, chest tall, arms ready. You'll jump straight up and pull both knees toward your chest at the top, then land soft and reset.",
+  "steps": [
+   "Stand tall, feet hip- to shoulder-width, core braced and arms ready to swing.",
+   "Dip into a quick quarter squat and explode straight up off both feet.",
+   "At the peak of the jump, drive both knees up toward your chest.",
+   "Lightly tap the thighs or just bring the knees high, then release them to extend the legs for landing.",
+   "Land softly on the balls of the feet rolling to the whole foot, hips and knees bending to absorb.",
+   "Stabilise the landing fully, then reset tall before the next rep."
+  ],
+  "formCues": [
+   "jump up first, then snap the knees to the chest",
+   "get the legs back down and extended before you land",
+   "soft, absorbed landing — hips back, knees bend",
+   "stay tall on take-off, don't pike forward"
+  ],
+  "commonMistakes": [
+   "Pulling the chest down to the knees instead of knees to chest — drive the knees up and stay tall.",
+   "Landing with the knees still tucked — extend the legs before touchdown so you land safely.",
+   "Crashing the landing — sink the hips and bend the knees to absorb quietly.",
+   "Stringing reps together while exhausted — reset each rep; quality and height matter more than count.",
+   "Letting the knees cave on landing — track them over the toes."
+  ],
+  "breathing": "Exhale forcefully on the jump, inhale on the reset. Keep reps low so breathing stays controlled; recover to a comfortable talking pace between sets.",
+  "tempo": "Explosive and quick — fast load, maximal knee drive, soft controlled landing, full reset.",
+  "rangeOfMotion": "Quarter-squat load, maximal vertical jump with knees driven to chest height, full soft absorption on landing.",
+  "regression": "Squat jump",
+  "progression": "Broad jump",
+  "repRange": {
+   "foundation": "3 x 5 quality reps",
+   "build": "4 x 4-5 explosive reps",
+   "peak": "4-5 x 3-4 maximal reps, full rest"
+  },
+  "restGuidance": "90-120s between sets — this is demanding; rest fully so knee drive and landings stay crisp.",
+  "safety": "Higher impact and more coordination than a squat jump — earn it with a solid squat jump and soft landings first. Always extend the legs before landing and absorb softly on a forgiving surface. Keep volume low and stop if dizzy or if landings get sloppy.",
+  "benefitForUser": "A high-output power and core move — exploding up while driving the knees hammers the quads and hip flexors and lights up the abs, building both vertical pop and a tighter midsection. The explosive demand sharpens the fast-twitch athleticism behind a lean, powerful physique."
+ },
+ {
+  "name": "Broad jump",
+  "family": "plyometric",
+  "level": "build",
+  "aka": "Standing long jump, horizontal jump",
+  "primaryMuscles": [
+   "gluteus maximus",
+   "hamstrings",
+   "quadriceps"
+  ],
+  "secondaryMuscles": [
+   "gastrocnemius",
+   "soleus",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet hip- to shoulder-width behind an imaginary line, chest tall, arms ready to swing. You'll jump as far forward as you can off both feet and stick the landing.",
+  "steps": [
+   "Stand tall behind your start line, feet hip- to shoulder-width, weight balanced.",
+   "Swing the arms back and hinge the hips back into a quick quarter squat to load.",
+   "Explode forward and slightly up, throwing both arms forward to drive horizontal distance.",
+   "Extend fully through the hips, knees and ankles as you launch.",
+   "Reach the legs forward for landing and touch down on both feet, hips back, knees bent.",
+   "Stick and hold the landing for a beat — fully balanced and quiet — before resetting."
+  ],
+  "formCues": [
+   "hinge and load the hips, big arm swing",
+   "drive forward and slightly up, not straight down",
+   "reach the feet out for the landing",
+   "stick it — absorb soft and hold the finish"
+  ],
+  "commonMistakes": [
+   "Jumping straight up instead of out — drive the hips forward to send the body horizontally.",
+   "Falling forward or stumbling on landing — reach the feet out and sit the hips back to stick it.",
+   "Stiff, jarring landings — bend the hips and knees to absorb the bigger horizontal forces.",
+   "Not using the arms — a full arm swing adds real distance.",
+   "Chaining reps without resetting — step back, reset posture, and make each jump a maximal quality effort."
+  ],
+  "breathing": "Exhale hard on the jump, inhale as you reset and walk back. Keep reps low and crisp so breathing stays in control between efforts.",
+  "tempo": "Maximal and explosive — load, launch for distance, then a controlled stuck landing.",
+  "rangeOfMotion": "Quarter-squat hip hinge to load, full triple extension forward on take-off, deep absorbed two-foot landing.",
+  "regression": "Tuck jump",
+  "progression": "Depth jump",
+  "repRange": {
+   "foundation": "3 x 5 quality reps",
+   "build": "4 x 3-4 maximal reps",
+   "peak": "4-5 x 3 maximal reps for distance, full rest"
+  },
+  "restGuidance": "90-120s between sets — maximal horizontal jumps are taxing; rest fully so distance and landings stay quality.",
+  "safety": "Moderate-to-high impact with strong landing forces. Build it on solid squat and tuck jumps, and prioritise sticking the landing over distance. Use a clear, non-slip path and a forgiving surface. Keep volume low; stop if dizzy or if landings stop being controlled.",
+  "benefitForUser": "The benchmark of horizontal power — driving the hips forward maximally builds explosive glutes and hamstrings, the engine behind sprint acceleration and a strong, athletic posterior. Learning to stick big landings develops the body control and lower-body strength that read as genuine athleticism."
+ },
+ {
+  "name": "Depth jump",
+  "family": "plyometric",
+  "level": "peak",
+  "aka": "Drop jump, reactive depth jump",
+  "primaryMuscles": [
+   "quadriceps",
+   "gluteus maximus",
+   "gastrocnemius"
+  ],
+  "secondaryMuscles": [
+   "soleus",
+   "hamstrings",
+   "rectus abdominis"
+  ],
+  "equipment": [
+   "a low stable step or platform (~20-30 cm)"
+  ],
+  "setup": "Stand on a low, stable step or platform (about 20-30 cm) with feet hip-width near the edge, chest tall. You'll step off, land on both feet, and rebound straight up as fast as possible — minimising ground-contact time.",
+  "steps": [
+   "Stand near the edge of a low stable platform, feet hip-width, chest tall and core braced.",
+   "Step off the edge (don't jump up first) and drop down to the floor.",
+   "Land on the balls of both feet rolling to mid-foot, hips and knees bent to absorb just enough.",
+   "The instant you land, explode straight back up as high as you can — spend minimal time on the floor.",
+   "Throw the arms up to drive the rebound and reach full extension at the top.",
+   "Land the rebound softly and under control, then step back up and fully reset before repeating."
+  ],
+  "formCues": [
+   "step off — don't jump up off the box",
+   "minimise ground contact: land and rebound in one beat",
+   "stay tall and stiff, absorb just enough to spring",
+   "big arm drive into the rebound"
+  ],
+  "commonMistakes": [
+   "Using a tall box — keep it low (20-30 cm) so contact stays fast and landing forces stay safe.",
+   "Sinking into a deep slow squat on landing — absorb just enough and rebound instantly; long contact kills the effect.",
+   "Jumping off the box instead of stepping off — step off so the drop height is controlled.",
+   "Soft, lazy rebounds — the goal is a maximal, lightning-fast bounce off the floor.",
+   "Adding reps when fatigued — contact time lengthens and risk rises; stop while reps are sharp."
+  ],
+  "breathing": "Take a breath before each rep and exhale sharply on the rebound. These are very short and maximal — recover fully to a comfortable talking pace between every rep.",
+  "tempo": "Reactive and maximal — minimal ground-contact time, instant explosive rebound.",
+  "rangeOfMotion": "Controlled drop from a low platform, shallow rapid absorption, full triple extension on the rebound.",
+  "regression": "Broad jump",
+  "progression": "",
+  "repRange": {
+   "foundation": "3 x 5 quality reps",
+   "build": "4 x 4-5 explosive reps",
+   "peak": "4-5 x 3-4 maximal reps, full rest"
+  },
+  "restGuidance": "Full rest, 2-3 minutes between sets — this is the most demanding plyometric; never let fatigue creep into the contacts.",
+  "safety": "HIGH impact — only attempt this once you have a solid strength and jumping base (comfortable, quiet broad jumps and squat jumps). Keep the platform low (20-30 cm) and stable, land on a forgiving surface, and stop the set the moment ground-contact time lengthens or landings get sloppy. Stop if dizzy or lightheaded. This is a low-volume, high-quality move — never a fatigue grinder.",
+  "benefitForUser": "The pinnacle reactive-power drill: training the stretch-shortening cycle so the muscles store and release elastic energy in a flash, which is the literal mechanism behind explosive jumps and sprints. It's the final layer of fast-twitch athleticism on top of a strong, lean physique — pure power expression, not size."
+ },
+ {
+  "name": "Mountain climbers",
+  "family": "conditioning",
+  "level": "foundation",
+  "aka": "Running plank, alternating knee drives",
+  "primaryMuscles": [
+   "rectus abdominis",
+   "hip flexors",
+   "anterior deltoid"
+  ],
+  "secondaryMuscles": [
+   "obliques",
+   "quadriceps",
+   "pectoralis major"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Set up in a high plank: hands under the shoulders, arms straight, body in a straight line from head to heels, core braced and glutes engaged. You'll drive the knees alternately toward the chest.",
+  "steps": [
+   "Get into a high plank, hands stacked under the shoulders, body straight from head to heels.",
+   "Brace the core and squeeze the glutes so the hips stay level — no sagging or piking.",
+   "Drive one knee toward your chest, keeping the foot off the floor.",
+   "Switch quickly, returning that leg as you drive the other knee in, at a controlled-to-fast pace.",
+   "Keep the shoulders stacked over the hands and the hips low and steady throughout.",
+   "Continue alternating for the work interval, then rest and shake out."
+  ],
+  "formCues": [
+   "shoulders stacked over hands, body flat",
+   "hips stay low and level — don't pike up",
+   "drive the knees in, keep the upper body still",
+   "brace the core the whole time"
+  ],
+  "commonMistakes": [
+   "Hips piking up toward the ceiling — keep them low and the body in a straight line.",
+   "Sagging the lower back — brace the abs and squeeze the glutes to hold the plank.",
+   "Bouncing the shoulders forward past the hands — keep them stacked over the wrists.",
+   "Letting the feet slap or only half-driving the knees — bring each knee toward the chest with intent.",
+   "Going so fast that the plank breaks down — control the pace so the core stays solid."
+  ],
+  "breathing": "Breathe in a steady, continuous rhythm — never hold your breath. Pace it with the talk test: if you can't speak a couple of words, slow the knee drives down.",
+  "tempo": "Controlled-to-fast alternating drive — steady cadence with a rock-solid plank.",
+  "rangeOfMotion": "Knee driven toward the chest each rep; hips held level in a straight-line plank throughout.",
+  "regression": "",
+  "progression": "Full burpee",
+  "repRange": {
+   "foundation": "3 rounds x 30s on / 30s off",
+   "build": "5 rounds x 40s on / 20s off",
+   "peak": "EMOM 10 min (e.g. 40s work each minute)"
+  },
+  "restGuidance": "Short intervals: rest equals or slightly less than work (e.g. 30s/30s building to 40s/20s) to train the conditioning engine.",
+  "safety": "Low impact and joint-friendly. As a reducing smoker, pace the breath and use the talk test — keep it controlled rather than frantic, and stop if you feel dizzy or lightheaded. Modify by slowing the cadence if the wrists or shoulders fatigue; progress by holding the pace longer, not by losing the plank.",
+  "benefitForUser": "A floor-only metabolic and core builder in one — the constant knee drive elevates the heart rate to burn fat and reveal the abs while the plank position chisels the deep core that anchors the V-taper. Controllable pace makes it ideal for rebuilding aerobic capacity and steady breath rhythm."
+ },
+ {
+  "name": "Squat thrust",
+  "family": "conditioning",
+  "level": "foundation",
+  "aka": "No-jump burpee, half burpee without the hop",
+  "primaryMuscles": [
+   "quadriceps",
+   "rectus abdominis",
+   "anterior deltoid"
+  ],
+  "secondaryMuscles": [
+   "gluteus maximus",
+   "hip flexors",
+   "pectoralis major"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet shoulder-width, chest tall. You'll squat down and place your hands on the floor, hop the feet back to a plank, then hop them back in — with no push-up and no jump at the top.",
+  "steps": [
+   "Stand tall with feet shoulder-width.",
+   "Hinge and squat down to plant both hands on the floor just inside or under the shoulders.",
+   "Hop both feet straight back to land in a strong high plank, body in a straight line.",
+   "Brace momentarily — no sag, no pike — then hop both feet back up toward the hands.",
+   "Return to a low squat with the chest up and hands still down or lifting.",
+   "Stand tall to finish the rep, then flow straight into the next at a steady pace."
+  ],
+  "formCues": [
+   "hands down, hop back to a flat, braced plank",
+   "keep the core tight when the feet land back",
+   "hop the feet all the way back to the hands",
+   "stand tall to finish each rep"
+  ],
+  "commonMistakes": [
+   "Sagging the hips when the feet land in plank — brace the core so the body stays in a line.",
+   "Piking the hips up in the plank — keep it flat and strong each rep.",
+   "Half-hopping the feet back so you can't stand cleanly — bring them up near the hands.",
+   "Rounding the back to reach the floor — bend the knees and hinge to get the hands down.",
+   "Racing so fast the positions get sloppy — keep a steady, repeatable rhythm."
+  ],
+  "breathing": "Find a breathing rhythm with the reps — often exhale on the hop-back, inhale standing. Keep it at a talk-test pace and slow down if you can't get a couple of words out.",
+  "tempo": "Steady and continuous — smooth squat-down, crisp hop-back and hop-in, controlled stand.",
+  "rangeOfMotion": "Full squat to hands-on-floor, full extension to plank, back to squat and full standing finish.",
+  "regression": "",
+  "progression": "Half burpee",
+  "repRange": {
+   "foundation": "3 rounds x 30s on / 30s off",
+   "build": "4 rounds x 40s on / 20s off",
+   "peak": "EMOM 8-10 min"
+  },
+  "restGuidance": "Short conditioning intervals, work-to-rest around 1:1 building toward 2:1; keep rest honest so each rep stays clean.",
+  "safety": "Low impact with no jumping, a gentle entry to burpee-family conditioning. Hinge to reach the floor rather than rounding the back. Pace the breath, use the talk test, and stop if dizzy or lightheaded — progress by sustaining the pace, not by rushing into ragged reps.",
+  "benefitForUser": "A full-body conditioning rep that gets the heart and lungs working without impact — perfect for rebuilding cardio as a reducing smoker. It links the legs, core and shoulders into one athletic movement and quietly builds the work capacity that keeps you lean, all before adding the harder burpee variations."
+ },
+ {
+  "name": "Half burpee",
+  "family": "conditioning",
+  "level": "build",
+  "aka": "Squat thrust with stand-up hop, no-push-up burpee",
+  "primaryMuscles": [
+   "quadriceps",
+   "gluteus maximus",
+   "rectus abdominis"
+  ],
+  "secondaryMuscles": [
+   "anterior deltoid",
+   "hip flexors",
+   "gastrocnemius"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet shoulder-width. This is a squat thrust finished with a small hop at the top — squat, hands down, feet back to plank, feet in, then a little jump. Still no push-up.",
+  "steps": [
+   "Stand tall, feet shoulder-width, ready to move.",
+   "Squat down and plant both hands on the floor under the shoulders.",
+   "Hop both feet back to a strong, braced high plank in a straight line.",
+   "Hop the feet back in toward the hands and rise into a low squat.",
+   "Drive up into a small jump at the top, landing soft on the balls of the feet.",
+   "Absorb the landing into the next squat and flow straight into the following rep."
+  ],
+  "formCues": [
+   "braced plank when the feet land — no sag",
+   "hop the feet back under you, chest up",
+   "small explosive hop at the top",
+   "land soft and flow into the next rep"
+  ],
+  "commonMistakes": [
+   "Skipping or barely doing the hop — add a real, if small, jump to drive the conditioning effect.",
+   "Sagging or piking the hips in the plank — keep it flat and braced every rep.",
+   "Landing the hop stiff and loud — absorb softly through the hips and knees.",
+   "Standing fully upright before hopping and stalling — flow the squat into the jump in one motion.",
+   "Letting the pace outrun your form — keep a rhythm you can repeat cleanly for the whole interval."
+  ],
+  "breathing": "Keep a steady breathing rhythm with the reps and don't hold your breath through the hop. Use the talk test and ease the pace if you're gasping.",
+  "tempo": "Continuous and rhythmic — smooth down, crisp plank, explosive hop, soft landing.",
+  "rangeOfMotion": "Full squat to floor, full plank extension, back to squat, full standing jump with soft landing.",
+  "regression": "Squat thrust",
+  "progression": "Full burpee",
+  "repRange": {
+   "foundation": "3 rounds x 30s on / 30s off",
+   "build": "5 rounds x 40s on / 20s off",
+   "peak": "EMOM 10 min"
+  },
+  "restGuidance": "Short conditioning intervals around 1:1 to 2:1 work-to-rest; keep rest enough to maintain a clean, repeatable rhythm.",
+  "safety": "Low-to-moderate impact from the hop. Land soft through the hips and knees, and keep the plank braced to protect the lower back. As a reducing smoker, pace the breath, use the talk test, and stop if dizzy or lightheaded — progress by sustaining intervals, not by sprinting into sloppy reps.",
+  "benefitForUser": "Bridges the gap to the full burpee by adding an explosive stand-up hop, raising both the cardio demand and the lower-body power. It's an efficient fat-burning, full-body conditioner that keeps you lean while building the engine and athleticism for the complete burpee."
+ },
+ {
+  "name": "Full burpee",
+  "family": "conditioning",
+  "level": "build",
+  "aka": "Burpee, chest-to-floor burpee, push-up burpee",
+  "primaryMuscles": [
+   "quadriceps",
+   "pectoralis major",
+   "gluteus maximus"
+  ],
+  "secondaryMuscles": [
+   "triceps brachii",
+   "rectus abdominis",
+   "anterior deltoid"
+  ],
+  "equipment": [
+   "a flat non-slip floor"
+  ],
+  "setup": "Stand with feet shoulder-width. The full burpee adds a chest-to-floor push-up at the bottom and an explosive jump with an overhead reach at the top — squat, hands down, feet back, chest to floor, feet in, jump and reach.",
+  "steps": [
+   "Stand tall, feet shoulder-width, ready to drop.",
+   "Squat down, plant the hands, and hop both feet back into a high plank.",
+   "Lower your chest all the way to the floor in a controlled push-up.",
+   "Press back up to the plank, then hop the feet back in toward the hands.",
+   "Drive up into an explosive jump, reaching both arms overhead at the top.",
+   "Land softly through the hips and knees and flow straight into the next rep."
+  ],
+  "formCues": [
+   "full chest-to-floor, then press to plank",
+   "hop the feet back under you, chest up",
+   "explode up with an overhead reach",
+   "land soft and controlled, then go again"
+  ],
+  "commonMistakes": [
+   "Skipping or shortening the push-up — get the chest to the floor and press cleanly for the full move.",
+   "Sagging or piking the hips in the plank and push-up — keep the body in one braced line.",
+   "Crashing the landing — absorb softly through the hips and knees every rep.",
+   "Letting the back round on the way down — hinge and bend the knees to plant the hands.",
+   "Going to ragged failure for speed — hold a pace where the push-up and landing stay clean."
+  ],
+  "breathing": "This is the most demanding move here — establish a breathing rhythm (often exhale on the push-up press and on the jump) and never hold your breath. Use the talk test and back off the pace if you can't speak a couple of words.",
+  "tempo": "Continuous and athletic — controlled push-up, crisp transitions, explosive jump, soft landing.",
+  "rangeOfMotion": "Full squat, full plank, full chest-to-floor push-up, explosive standing jump with overhead reach and soft landing.",
+  "regression": "Half burpee",
+  "progression": "",
+  "repRange": {
+   "foundation": "3 rounds x 30s on / 30s off",
+   "build": "5 rounds x 40s on / 20s off",
+   "peak": "EMOM 10 min"
+  },
+  "restGuidance": "Short conditioning intervals (around 1:1 building to 2:1); the full-body demand is high, so keep rest enough to hold clean push-ups and soft landings.",
+  "safety": "Moderate impact and high overall demand — the toughest conditioner here. Keep the push-up and landing clean rather than chasing speed, brace the core to protect the lower back, and land soft. As a reducing smoker, pace the breath, use the talk test, and stop immediately if dizzy or lightheaded — let it settle before continuing.",
+  "benefitForUser": "The ultimate floor-only, full-body conditioner — it trains the chest, legs, core and cardio system in one explosive rep, burning serious calories to strip fat and reveal the lean V-taper while building all-round athletic power. Master this and you have a complete equipment-free engine-and-power workout in a single movement."
  }
 ];
 
