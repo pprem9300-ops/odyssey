@@ -3,19 +3,27 @@
 > **Read this file first.** It is the living source of truth for the Odyssey build.
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
-**Last updated:** 2026-06-20
-**Current phase:** `P11 — AWWWARDS REFACTOR · all shipped (HEAD d605bed): auth, hero, exercise-tracker, scroll-Journey, perf pass, + COMPLETE CINEMATIC-DARK REDESIGN (D20). Next: confirm perf/feel live + chosen feature build-out`
-**Overall progress:** ▰▰▰▰▰▰▰ ~97% (everything live; design is now cinematic-dark — dark void + warm off-white + glowing pastel accents, Fraunces + Space Grotesk; remaining: confirm 60fps live, build Workout/Nutrition/Wellness depth incrementally)
+**Last updated:** 2026-06-22
+**Current phase:** `P12 — Cinematic-dark redesign + feature build-out ALL LIVE & verified smooth (HEAD 347e325). Remaining = optional queue (progress photos, plate calc, grocery, body measurements, reminders).`
+**Overall progress:** ▰▰▰▰▰▰▰ ~98% (auth · cinematic-dark redesign · subtle CSS/IO animations · native-scroll perf · 7 feature increments across Workout/Nutrition/Wellness — all live, confirmed smooth on device). Cache-bust now `?v=17`, `sw odyssey-v17`.
 **🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
-> **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=3` cache-bust. Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
+> **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=` cache-bust (now `?v=17`). Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
 
 ---
 
 ## ▶ RESUME HERE (next session)
 
-**Auth is DONE & LIVE** (invite-only gate, Brevo codes/password, verified on phone). Now in an **awwwards-grade refactor** — partly applied, several user asks still open. **READ THIS WHOLE BLOCK before continuing.**
+**Everything below is DONE, LIVE, and verified smooth on device (2026-06-22).** Auth (invite-only gate + Brevo), the **cinematic-dark redesign**, subtle CSS/IO animations, native-scroll perf, and **7 feature increments** (Workout/Nutrition/Wellness) are all shipped. Nothing is mid-flight; the tree is clean and pushed (HEAD `347e325`+docs). What remains is an **optional feature queue** (see "FEATURE BUILD-OUT" below) — pick up there only if the user asks. **First, read this block + DECISIONS D18–D20 to reload context.**
+
+**Key things a fresh session must know:**
+- **Design = cinematic dark** (D20) — dark void + warm off-white + glowing pastel accents; Fraunces headlines + Space Grotesk eyebrows/marquee. Don't reintroduce light tokens.
+- **Animations are CSS/IO/rAF only** (no gsap-ticker dependency). **Scroll is native** (Lenis removed — it caused stalls). Keep both: never gate critical logic on gsap/IO callbacks.
+- **Feature pattern:** per-date data in `profile.{workoutLog,waterLog,moodLog,mealLog,journalLog}` (auto-syncs via Supabase); render a card once, then a `paint*()` toggles classes IN PLACE so CSS transitions animate (don't full-re-render on each tap).
+- ⚠️ **The Claude preview FREEZES gsap.ticker + IntersectionObserver + timers** — motion/scroll/reveals/count-ups do NOT run there. Verify motion via: force end-state in eval (`.add('in')`) for screenshots, a `show_widget` demo (runs in the user's real browser), and live testing.
+- ⚠️ **ALWAYS bump `?v=` on any changed JS/CSS import + `sw.js` CACHE** or the browser serves a stale module (bit us repeatedly). Now at `?v=17` / `sw odyssey-v17`.
+- **DEV:** on localhost, `localStorage.setItem('odyssey.devbypass','1')` skips the login gate; seed `localStorage['odyssey.profile.v1']` to populate.
 
 ### ✅ Done this session (P11 so far)
 - **Global skills installed** (reuse these): `~/.claude/skills/frontend-design` (Anthropic, design-philosophy) + `~/.claude/skills/awwwards-web-motion` (authored: one-ticker Lenis/GSAP setup, scroll storytelling, transitions, **60fps anti-jank checklist**, reference ideology). Plus existing `ui-ux-pro-max`. **Invoke `awwwards-web-motion` + `frontend-design` for all of the below.**
@@ -55,9 +63,11 @@
 - ✅ **Workout — training progress + PRs** (`1f7cdf7`): Week view aggregates `workoutLog` → sessions/sets/volume + personal-records list.
 - ✅ **Nutrition — per-meal check-off** (`d2ac6d2`): tappable Fuel meal rows, logged-protein tally, `mealLog`.
 - ✅ **Wellness — weekly insight** (`96f8d6f`): Journey 'This week' card, adaptive sentence + chips from all daily logs (last 7 days).
-- 🔜 **Workout** — rest timer (in exercise modal; ⚠️ timer can't be verified in the frozen preview — build robust + test live), progress photos, plate calculator.
+- ✅ **Workout — rest timer** (`5360fc1`): exercise-modal coral ring countdown, Start/Pause, ±15, vibrate at 0.
+- ✅ **Wellness — journaling + data export** (`347e325`): daily note on the mood card (`journalLog`); 'Export data' in account modal → JSON backup of all logs.
+- 🔜 **Workout** — progress photos, plate calculator, macro/volume trend chart.
 - 🔜 **Nutrition** — saved meals / swap chips, grocery list, macro-history chart.
-- 🔜 **Wellness** — reminders/notifications (PWA push — needs permission flow), journaling/notes, body measurements (waist + photos), data export.
+- 🔜 **Wellness** — body measurements (waist + photos), **reminders/notifications** (⚠️ true push needs a push server + SW push handlers; a static PWA can only do local `Notification` while open — scope this honestly before building).
 
 ### 🔜 ALSO OPEN
 1. **Confirm perf live** (4× CPU throttle, real device). If still janky on low-end, native scroll is already in; next lever is trimming reveals.
