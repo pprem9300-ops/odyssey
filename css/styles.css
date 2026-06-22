@@ -452,6 +452,10 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .mood-pip { flex: 1; min-width: 60px; padding: 12px 8px; border-radius: var(--r-sm); border: 1.5px solid var(--haze); background: transparent; color: var(--ink-soft); font: inherit; font-size: .9rem; cursor: pointer; transition: transform .2s var(--ease), border-color .2s var(--ease), background .2s, color .2s; }
 .mood-pip:hover { border-color: var(--lilac); transform: translateY(-2px); }
 .mood-pip.on { background: var(--clay); border-color: var(--clay); color: #fff; transform: scale(1.05); }
+/* training progress — personal records list */
+.pr-list { margin-top: 12px; display: flex; flex-direction: column; }
+.pr-row { display: flex; justify-content: space-between; gap: 14px; padding: 11px 0; border-bottom: .5px solid var(--haze); font-size: .95rem; }
+.pr-row:last-child { border-bottom: none; }
 
 /* ============================================================================
    RESPONSIVE

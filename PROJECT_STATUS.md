@@ -48,9 +48,17 @@
 > ⚠️ **PREVIEW LIMITATION (critical for verifying motion):** the Claude headless preview **freezes both `gsap.ticker` AND IntersectionObserver** (no real rendering) — so gsap animations, IO scroll-reveals, count-ups, and timed transitions DON'T run there; reveals stay at opacity 0. **To verify motion: force end-state via eval** (`document.querySelectorAll('.reveal,.ln').forEach(e=>e.classList.add('in'))`) for screenshots, build a **show_widget demo** (renders in the user's REAL browser — true motion test), and test on the **live** site. Never gate critical logic on gsap/IO callbacks; keep fallbacks.
 > ⚠️ **STALE-MODULE TRAP:** editing a JS/CSS file but NOT bumping its `?v=` makes the browser run the OLD module/styles (even with serve.py no-cache). **ALWAYS bump `?v=` on changed imports + `sw.js` CACHE.** Currently `?v=10`, `sw` `odyssey-v10`.
 
-### 🔜 STILL OPEN (priority order)
-1. **Confirm perf live** (4× CPU throttle, real device) — the structural fixes are in; verify it feels smooth. If not, disable Lenis on low-end.
-2. **Optional polish:** per-day checklist persistence by date (extend the `workoutLog` pattern to breath/cardio/hydrate rows); richer plan-generator surface (volume/progression from `workoutLog`); water + breathwork-minutes logging; weekly insight; nutrition-regimes "Regimes" view. (Earlier the user picked **Workout depth, Nutrition depth, Wellness+reminders** to build next, incrementally — pick up there once perf is confirmed good.)
+### 🚧 FEATURE BUILD-OUT (user picked Workout + Nutrition + Wellness depth, shipping incrementally)
+**Pattern established** (reuse it): per-date data in `profile.{workoutLog,waterLog,moodLog}` (auto-syncs via cloud); render the card structure once, then a `paint*()` toggles classes IN PLACE so CSS transitions animate (don't full-re-render on each tap). Reflect in the Today checklist where relevant.
+- ✅ **Nutrition — water tracker** (`55ef9a0`): Fuel hydration card → fillable glass pips, target from bodyweight, `waterLog`.
+- ✅ **Wellness — mood check-in** (`88a81cb`): cockpit card, Rough→Great, `moodLog`.
+- 🔜 **Workout** — rest timer (in exercise modal; note: timer can't be verified in the frozen preview), a Progress/PR surface (aggregate `workoutLog`: volume, PRs, sessions — verifiable), progress photos.
+- 🔜 **Nutrition** — per-meal check-off/logging vs targets, saved meals, grocery list.
+- 🔜 **Wellness** — reminders/notifications (PWA push), journaling, weekly insight, body measurements.
+
+### 🔜 ALSO OPEN
+1. **Confirm perf live** (4× CPU throttle, real device). If still janky on low-end, native scroll is already in; next lever is trimming reveals.
+2. Nutrition-regimes "Regimes" view (proven lean-gain/cut protocols).
 
 ### Standing (unchanged)
 - Invite more people: add email to `ALLOWED_EMAILS` in `js/config.js`, `git push`. Optional server-side allowlist hardening in §10.

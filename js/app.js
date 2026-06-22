@@ -277,6 +277,46 @@ function renderWeek() {
     </div>`;
   }).join('');
   $$('#week-grid [data-ex]').forEach(el => el.onclick = () => openExerciseDetail(el.dataset.ex));
+  renderTrainingProgress();
+}
+
+/* ---- Training progress — aggregates the workout log (volume · PRs · sessions) -- */
+function trainStats() {
+  const log = wLog();
+  const recent = new Set(); for (let i = 0; i < 7; i++) recent.add(isoMinus(i));
+  let sessions = 0, sets = 0, volume = 0, weekSets = 0;
+  Object.keys(log).forEach((date) => {
+    let daySets = 0;
+    Object.values(log[date]).forEach((arr) => arr.forEach((s) => { sets++; daySets++; volume += (s.reps || 0) * Math.max(s.weight || 0, 0); }));
+    if (daySets) sessions++;
+    if (recent.has(date)) weekSets += daySets;
+  });
+  return { sessions, sets, volume: Math.round(volume), weekSets };
+}
+function allPRs() {
+  const names = new Set();
+  Object.values(wLog()).forEach((day) => Object.keys(day).forEach((n) => names.add(n)));
+  return [...names].map((n) => ({ name: n, pr: exPR(n) })).filter((x) => x.pr).slice(0, 6);
+}
+function renderTrainingProgress() {
+  const el = $('#train-progress'); if (!el) return;
+  const st = trainStats();
+  if (!st.sessions) {
+    el.innerHTML = `<div class="card"><p class="eyebrow">Your training</p><p class="lead" style="margin-top:8px;font-size:1rem">No sessions logged yet — open any move (in Today or Moves) and log your sets. Your sessions, volume and personal records will build here.</p></div>`;
+    return;
+  }
+  const prs = allPRs();
+  el.innerHTML = `
+    <p class="eyebrow">Your training so far</p>
+    <div class="bento" style="margin-top:14px">
+      <div class="stat card col-4"><div class="k">Sessions</div><div class="val" data-count="${st.sessions}">0</div></div>
+      <div class="stat card col-4"><div class="k">Sets logged</div><div class="val" data-count="${st.sets}">0</div></div>
+      <div class="stat card col-4"><div class="k">Volume · kg·reps</div><div class="val" data-count="${st.volume}">0</div></div>
+    </div>
+    ${prs.length ? `<div class="card" style="margin-top:18px"><p class="eyebrow">Personal records</p><div class="pr-list">${prs.map((p) => `<div class="pr-row"><span class="ex-link" data-ex="${escAttr(p.name)}">${p.name}</span><span class="mono" style="color:var(--clay-deep)">${setLabel(p.pr)}</span></div>`).join('')}</div></div>` : ''}
+    <p class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:14px">${st.weekSets} set${st.weekSets === 1 ? '' : 's'} in the last 7 days</p>`;
+  $$('#train-progress [data-count]').forEach((e) => M.countUp(e, e.getAttribute('data-count')));
+  $$('#train-progress [data-ex]').forEach((c) => c.onclick = () => openExerciseDetail(c.dataset.ex));
 }
 
 /* ---- Lung Lab ----------------------------------------------------------- */
