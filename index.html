@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=10" />
+  <link rel="stylesheet" href="css/styles.css?v=11" />
 </head>
 <body>
   <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
@@ -275,10 +275,7 @@
             <p class="eyebrow">Supplements (veg + recovery)</p>
             <div id="supp-list" style="margin-top:10px; display:flex; flex-direction:column; gap:10px"></div>
           </div>
-          <div class="card card--sky reveal">
-            <p class="eyebrow" style="color:var(--sky-deep)">Hydration</p>
-            <p class="lead" style="margin-top:6px; font-size:1rem">2.5–3 L/day + 500–750 ml per training hour. The upper end thins mucus — key while your lungs clear.</p>
-          </div>
+          <div class="card card--sky reveal" id="water-card"></div>
         </div>
       </div>
     </div>
@@ -365,7 +362,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=10"></script>
+  <script type="module" src="js/app.js?v=11"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {

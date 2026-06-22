@@ -146,7 +146,8 @@ function renderCockpit() {
     rows.push(row('recovery', today.focus, today.cardio, 'Recovery'));
   }
   rows.push(row('cardio', 'Zone-2 cardio', today.cardio + ' · keep the talk-test', 'Cardio'));
-  rows.push(row('hydrate', 'Hydration', '2.5–3 L today (+ per training hour)', 'Fuel'));
+  const _wt = waterTarget(), _wn = waterToday();
+  rows.push(row('hydrate', 'Hydration', _wn > 0 ? `${_wn}/${_wt} glasses logged · ${(_wn * 0.25).toFixed(2).replace(/\.?0+$/, '')} L` : '2.5–3 L today — log it in Fuel', 'Fuel', _wn >= _wt));
   rows.push(row('protein', `Hit ${m.protein_g}g protein`, `${m.proteinPerFeeding_g}g across ${m.feedings} meals`, 'Fuel'));
   rows.push(row('checkin', 'Smoke-free check-in', 'Log the streak · note mood & cravings', 'Mind'));
   $('#today-checklist').innerHTML = rows.join('');
@@ -342,6 +343,46 @@ function renderFuel() {
 
   $('#food-rail').innerHTML = E.LUNG_FOODS.map(f => `<span class="chip">${f}</span>`).join('');
   $('#supp-list').innerHTML = E.SUPPLEMENTS.map(s => `<div><strong style="font-size:.92rem">${s.n}</strong><div style="font-size:.8rem;color:var(--ink-soft)">${s.why}</div></div>`).join('');
+  renderWater();
+}
+
+/* ---- Water tracker (per-date glasses, persisted + synced) ---------------- */
+function waterStore() { profile.waterLog = profile.waterLog || {}; return profile.waterLog; }
+function waterTarget() { return Math.min(14, Math.max(8, Math.round(Math.max(2500, (profile.currentWeight || 56) * 35) / 250))); }
+function waterToday() { return waterStore()[todayISO()] || 0; }
+function renderWater() {
+  const card = $('#water-card'); if (!card) return;
+  const t = waterTarget();
+  const pips = Array.from({ length: t }, (_, i) => `<button class="wpip" data-w="${i + 1}" aria-label="${i + 1} glasses"></button>`).join('');
+  card.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px">
+      <p class="eyebrow" style="color:var(--sky-deep)">Hydration</p>
+      <span class="mono" style="font-size:.78rem;color:var(--ink-faint)"><span id="water-l">0</span> / ${(t * 0.25).toFixed(1)} L</span>
+    </div>
+    <div style="font-family:var(--font-display);font-size:clamp(2rem,5vw,2.8rem);line-height:1;margin-top:8px"><span id="water-n">0</span><span style="font-size:.32em;color:var(--ink-faint);font-family:var(--font-mono);letter-spacing:.08em"> / ${t} glasses</span></div>
+    <div class="wpips" style="margin-top:14px">${pips}</div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="btn btn--clay magnetic" id="water-add" style="padding:11px 20px;font-size:.92rem">+ Glass</button>
+      <button class="btn btn--ghost magnetic" id="water-sub" style="padding:11px 17px;font-size:.92rem" aria-label="Remove a glass">−</button>
+    </div>
+    <p style="font-size:.78rem;color:var(--ink-faint);margin-top:12px;line-height:1.5">250 ml each · tap a glass to set. The upper end thins mucus while your lungs clear.</p>`;
+  $('#water-add').onclick = () => setWater(waterToday() + 1);
+  $('#water-sub').onclick = () => setWater(waterToday() - 1);
+  $$('#water-card .wpip').forEach(p => p.onclick = () => { const v = +p.dataset.w; setWater(v === waterToday() ? v - 1 : v); });
+  paintWater(waterToday());
+}
+function paintWater(n) {
+  $$('#water-card .wpip').forEach((p, i) => p.classList.toggle('on', i < n));
+  const nEl = $('#water-n'), lEl = $('#water-l');
+  if (nEl) nEl.textContent = n;
+  if (lEl) lEl.textContent = (n * 0.25).toFixed(2).replace(/\.?0+$/, '') || '0';
+}
+function setWater(n) {
+  const t = waterTarget();
+  n = Math.max(0, Math.min(t + 6, n));
+  waterStore()[todayISO()] = n;
+  save();
+  paintWater(n);                              // toggle classes in place → pips animate via CSS
 }
 
 /* ---- Journey ------------------------------------------------------------ */

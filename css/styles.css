@@ -439,6 +439,14 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .ex-hist-row { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--haze); font-size: .9rem; }
 .ex-hist-row:last-child { border-bottom: none; }
 .ex-hist-row .mono { color: var(--ink-faint); font-size: .82rem; white-space: nowrap; }
+/* water tracker — little glasses that fill from the bottom */
+.wpips { display: flex; flex-wrap: wrap; gap: 7px; }
+.wpip { width: 21px; height: 29px; border-radius: 4px 4px 7px 7px; border: 1.5px solid var(--sky-soft); background: transparent; cursor: pointer; padding: 0; position: relative; overflow: hidden; transition: border-color .3s var(--ease), transform .15s var(--ease); }
+.wpip:hover { transform: translateY(-2px); }
+.wpip::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; top: 0; background: var(--sky); transform: translateY(100%); transition: transform .45s var(--ease); }
+.wpip.on { border-color: var(--sky); }
+.wpip.on::after { transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) { .wpip::after { transition: none; } }
 
 /* ============================================================================
    RESPONSIVE
