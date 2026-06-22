@@ -5,32 +5,32 @@
 
 /* ---- Tokens -------------------------------------------------------------- */
 :root {
-  /* canvas — soft, clean off-white; premium pastel with high-contrast dark text */
-  --cream:    #FAF8F4;
-  --paper:    #FFFFFF;
-  --sand:     #F1EEE6;
-  --sand-2:   #E9E5DB;
-  --haze:     #E2DDD2;
-  --ink:      #14130F;
-  --ink-soft: #514E46;
-  --ink-faint:#8B887D;
+  /* canvas — CINEMATIC DARK (void + warm off-white), pastels tuned to glow on it */
+  --cream:    #0B0B0C;   /* page void */
+  --paper:    #161618;   /* raised surfaces / cards */
+  --sand:     #1D1D20;   /* insets */
+  --sand-2:   #242429;
+  --haze:     #2C2C31;   /* borders / dividers */
+  --ink:      #F4F1EA;   /* warm off-white text (filmic, not pure white) */
+  --ink-soft: #AAA69D;
+  --ink-faint:#6F6B63;
 
-  /* refined PASTEL multi-accent — coral · periwinkle · sage · lilac (each + a deep for contrast) */
-  --clay:     #DD6A47;  --clay-deep: #BB5230;  --clay-soft: #F8DACE;  --clay-mist: #FDEEE8;  /* coral — streak/energy/CTA */
-  --sky:      #6E9AD4;  --sky-deep:  #43699F;  --sky-soft:  #D3E2F4;  --sky-mist:  #ECF3FB;  /* periwinkle — breath/lungs/cardio */
-  --sage:     #87A36C;  --sage-deep: #5C7844;  --sage-soft: #D6E2C8;  --sage-mist: #F0F5EA;  /* sage — nutrition/recovery */
-  --lilac:    #A695D6;  --lilac-deep:#7460AE;  --lilac-soft:#E3DBF4;  --lilac-mist:#F4F0FB;  /* lilac — sleep/readiness */
+  /* pastel accents that GLOW on dark — base=fill/icon, -deep=light text on tint, -soft=dark border/tag bg, -mist=darkest surface */
+  --clay:     #EA7C52;  --clay-deep: #F4A988;  --clay-soft: #402619;  --clay-mist: #1F140F;  /* coral — streak/energy/CTA */
+  --sky:      #82ABE0;  --sky-deep:  #B2CBEF;  --sky-soft:  #1F2B3B;  --sky-mist:  #121822;  /* periwinkle — breath/lungs */
+  --sage:     #9FC081;  --sage-deep: #C5DAAF;  --sage-soft: #26311D;  --sage-mist: #141A12;  /* sage — nutrition */
+  --lilac:    #B9AAE8;  --lilac-deep:#D5CBF3;  --lilac-soft:#2B2542;  --lilac-mist:#17141F;  /* lilac — sleep */
 
   /* semantic */
   --accent:   var(--clay);
   --accent-soft: var(--clay-soft);
 
-  /* elevation — soft, premium */
-  --e1: 0 1px 2px rgba(20,19,15,.05);
-  --e2: 0 6px 22px rgba(20,19,15,.07), 0 1px 3px rgba(20,19,15,.04);
-  --e3: 0 24px 58px rgba(20,19,15,.11), 0 6px 16px rgba(20,19,15,.05);
-  --glow-clay: 0 10px 30px rgba(221,106,71,.24);
-  --glow-sky:  0 10px 30px rgba(110,154,212,.24);
+  /* elevation — on dark, depth = surface lift + hairline + glow */
+  --e1: 0 1px 2px rgba(0,0,0,.4);
+  --e2: 0 8px 26px rgba(0,0,0,.45), 0 1px 2px rgba(0,0,0,.4);
+  --e3: 0 30px 70px rgba(0,0,0,.6), 0 8px 20px rgba(0,0,0,.45);
+  --glow-clay: 0 12px 42px rgba(234,124,82,.30);
+  --glow-sky:  0 12px 42px rgba(130,171,224,.28);
 
   /* radii + spacing */
   --r-chip: 999px; --r-sm: 10px; --r-md: 18px; --r-lg: 28px; --r-xl: 40px;
@@ -47,13 +47,13 @@
   --font-display: 'Fraunces', Georgia, serif;
   --font-body: 'Inter', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  --font-grotesk: 'Space Grotesk', 'Inter', system-ui, sans-serif;  /* eyebrows · labels · marquee */
 }
 
 /* celebration takeover — soft warm dusk, never harsh black */
 [data-takeover="on"] {
-  --cream: #2A211C; --paper: #34291F; --sand: #3A2E22;
-  --ink: #F6EFE6; --ink-soft: #D9C8B8; --ink-faint: #A98F78; --haze: #4A3A2C;
-  --accent: var(--clay); --accent-soft: rgba(217,119,87,.3);
+  --cream: #050506; --paper: #0E0E10; --sand: #141416;
+  --ink: #FBF8F2; --ink-soft: #C9C5BC; --ink-faint: #8A867D; --haze: #26262A;
 }
 
 /* ---- Reset -------------------------------------------------------------- */
@@ -76,8 +76,8 @@ a { color: inherit; text-decoration: none; }
 
 /* ---- Typography helpers ------------------------------------------------- */
 .eyebrow {
-  font-family: var(--font-mono); font-size: clamp(10px, 1.4vw, 12px);
-  letter-spacing: .18em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
+  font-family: var(--font-grotesk); font-size: clamp(10px, 1.4vw, 12px);
+  letter-spacing: .2em; text-transform: uppercase; color: var(--ink-faint); font-weight: 500;
 }
 .display { font-family: var(--font-display); font-weight: 400; line-height: .98; letter-spacing: -.02em; }
 .serif-italic { font-family: var(--font-display); font-style: italic; font-weight: 400; }
@@ -103,7 +103,7 @@ h3 { font-size: clamp(1.3rem, 2.4vw, 1.9rem); }
 
 /* ---- Cold-boot intro ---------------------------------------------------- */
 #intro { position: fixed; inset: 0; z-index: 10000; display: grid; place-items: center;
-  background: radial-gradient(120% 90% at 50% 32%, #fff, var(--cream) 52%, var(--sand)); cursor: pointer; }
+  background: radial-gradient(120% 90% at 50% 30%, var(--paper), var(--cream) 55%, #060607); cursor: pointer; }
 .intro-inner { display: flex; flex-direction: column; align-items: center; }
 .intro-omega { font-family: var(--font-display); font-weight: 400; font-size: clamp(5.5rem, 19vw, 12rem); line-height: 1; color: var(--clay); }
 .intro-word { font-family: var(--font-mono); font-size: 13px; letter-spacing: .52em; text-indent: .52em; color: var(--ink); margin-top: 14px; }
@@ -210,6 +210,17 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 /* manifesto */
 .manifesto { font-family: var(--font-display); font-size: clamp(1.8rem, 5vw, 4rem); line-height: 1.12; letter-spacing: -.02em; max-width: 16ch; }
 .manifesto em { font-style: italic; color: var(--clay); }
+
+/* marquee — tempo band */
+.marquee { overflow: hidden; border-block: 1px solid var(--haze); padding: 20px 0; margin: 72px 0;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent); }
+.marquee-track { display: inline-flex; align-items: center; gap: 30px; white-space: nowrap; will-change: transform; animation: marquee 26s linear infinite; }
+.marquee span { font-family: var(--font-grotesk); font-size: clamp(1.5rem, 4.5vw, 3rem); font-weight: 600; letter-spacing: -.01em; text-transform: uppercase; color: var(--ink); }
+.marquee span.dot { color: var(--clay); font-weight: 400; }
+.marquee:hover .marquee-track { animation-play-state: paused; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@media (prefers-reduced-motion: reduce) { .marquee-track { animation: none; } }
 .beats { display: grid; gap: clamp(40px, 8vw, 110px); }
 .beat { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; align-items: center; }
 .beat .num { font-family: var(--font-mono); color: var(--clay); font-size: .8rem; letter-spacing: .2em; }
@@ -456,7 +467,7 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 
 /* ---- invite-only login gate -------------------------------------------- */
 #gate { position: fixed; inset: 0; z-index: 10050; display: grid; place-items: center; padding: 24px;
-  background: radial-gradient(120% 90% at 50% 30%, #fff, var(--cream) 55%, var(--sand));
+  background: radial-gradient(120% 90% at 50% 28%, var(--paper), var(--cream) 55%, #060607);
   transition: opacity .6s var(--ease); }
 #gate.gate--out { opacity: 0; pointer-events: none; }
 #gate.gate--hidden { display: none; }

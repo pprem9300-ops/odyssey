@@ -4,8 +4,8 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-20
-**Current phase:** `P11 — AWWWARDS REFACTOR · auth LIVE · hero + pastel palette + streak-reset + exercise-tracker + scroll-Journey all DONE & pushed (HEAD 491813b). Next: perf profiling + polish`
-**Overall progress:** ▰▰▰▰▰▰▰ ~97% (auth live; hero, premium pastel palette, streak reset, exercise tracker, scroll-driven Journey all shipped; remaining: perf profiling at 4× CPU in a real browser, optional polish)
+**Current phase:** `P11 — AWWWARDS REFACTOR · all shipped (HEAD 1cd0b1a): auth, hero, pastel palette, streak-reset, exercise-tracker, scroll-Journey, PERF PASS. Next: confirm perf live + chosen feature build-out`
+**Overall progress:** ▰▰▰▰▰▰▰ ~97% (everything above live; remaining: confirm 60fps live, then build Workout/Nutrition/Wellness depth incrementally)
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
 > **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=3` cache-bust. Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
@@ -39,9 +39,13 @@
 
 > ⚠️ **PREVIEW-TESTING GOTCHA (important for next session):** the Claude preview/headless browser **freezes `gsap.ticker` at frame 0** (requestAnimationFrame + timers are throttled when it isn't actively rendering). So **gsap-driven transitions/scrubs/reveals do NOT animate in the preview, and gsap-callback-gated logic won't run** — making nav/transitions look "broken" in preview when they're fine live. Verify gsap motion by (a) forcing state via eval (toggle `.is-active`, add `.in`, set inline `transform`) for screenshots, and (b) trusting standard ScrollTrigger/IO code + testing on the **live** site. Don't gate critical logic (like view-swap) on gsap callbacks.
 
+- **PERF PASS done** (✅ pushed `1cd0b1a`) — user reported "stuttery/slow on each page". Fixes: **instant view transitions** (was an ~800ms gsap/timer wipe per nav → `transitionView` now just `swap()`, CSS `viewIn` .3s fade only); **deferred** magnetic-bind + `ScrollTrigger.refresh` + journey one `rAF` after swap (no nav hitch); **bindMagnetic caches the rect** on pointerenter (was reading `getBoundingClientRect` every pointermove = layout thrash); **lighter Lenis** (`lerp 0.1`, `syncTouch:false` → native momentum on mobile); **`content-visibility:auto`** on the 60 Moves cards. ⚠️ Couldn't measure FPS (preview freezes the ticker) — **profile live at 4× CPU throttle to confirm**; if still janky, next lever is disabling Lenis on coarse-pointer/low-`deviceMemory`.
+
+> ⚠️ **STALE-MODULE TRAP (bit me this session):** editing a JS module but NOT bumping its `?v=` makes the browser run the OLD parsed module (even with serve.py no-cache) → changes look like they "don't work". **ALWAYS bump `?v=` on every changed module import (+ `sw.js` CACHE) before testing/shipping.** Currently at `?v=8`, `sw` `odyssey-v7`.
+
 ### 🔜 STILL OPEN (priority order)
-1. **PERF profiling (real browser, 4× CPU throttle)** — the big lag cause (particle hero) is gone; transition is timer-based. Remaining quick wins: `content-visibility:auto`+`contain-intrinsic-size` on offscreen sections (esp. the 60-card Moves view), convert any `.meter`/`.bar` width-anims → `transform:scaleX`, batch reveals. Must be profiled in a real browser (preview freezes the ticker).
-2. **Optional polish:** per-day checklist persistence by date (extend the `workoutLog` pattern to breath/cardio/hydrate rows); richer plan-generator surface (volume/progression suggestions from `workoutLog`); water + breathwork-minutes logging; weekly insight; nutrition-regimes "Regimes" view (proven lean-gain/cut).
+1. **Confirm perf live** (4× CPU throttle, real device) — the structural fixes are in; verify it feels smooth. If not, disable Lenis on low-end.
+2. **Optional polish:** per-day checklist persistence by date (extend the `workoutLog` pattern to breath/cardio/hydrate rows); richer plan-generator surface (volume/progression from `workoutLog`); water + breathwork-minutes logging; weekly insight; nutrition-regimes "Regimes" view. (Earlier the user picked **Workout depth, Nutrition depth, Wellness+reminders** to build next, incrementally — pick up there once perf is confirmed good.)
 
 ### Standing (unchanged)
 - Invite more people: add email to `ALLOWED_EMAILS` in `js/config.js`, `git push`. Optional server-side allowlist hardening in §10.
