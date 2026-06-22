@@ -137,7 +137,11 @@ function renderCockpit() {
   const rows = [];
   rows.push(row('breath', `Breathwork — ${today.breathwork.join(' · ')}`, '10–15 min · non-negotiable', 'Breath'));
   if (today.strength && today.blocks.length) {
-    today.blocks.forEach(b => rows.push(row('s_' + b.exercise, b.exercise, `${b.sets} sets · ${b.reps} · rest ${b.rest}`, 'Strength', b.exercise)));
+    today.blocks.forEach(b => {
+      const logged = exSetsToday(b.exercise);
+      const sub = logged.length ? `✓ Logged ${logged.map(setLabel).join(', ')}` : `${b.sets} sets · ${b.reps} · rest ${b.rest}`;
+      rows.push(row('s_' + b.exercise, b.exercise, sub, 'Strength', b.exercise, logged.length > 0));
+    });
   } else {
     rows.push(row('recovery', today.focus, today.cardio, 'Recovery'));
   }
@@ -159,8 +163,8 @@ function renderCockpit() {
   }).join('');
 }
 
-function row(id, title, sub, tag, exName) {
-  const done = doneToday.has(id) ? ' done' : '';
+function row(id, title, sub, tag, exName, forceDone) {
+  const done = (forceDone || doneToday.has(id)) ? ' done' : '';
   const titleHtml = (exName && EXERCISE_DB[exName]) ? `<span class="ex-link" data-ex="${escAttr(exName)}">${title}</span>` : title;
   return `<div class="check-row${done}" data-id="${id}">
     <div class="check-box">${svg(ICON.check, '#fff')}</div>
@@ -390,6 +394,32 @@ function moveCard(e) {
     <span class="mc-musc">${musc}</span></button>`;
 }
 
+/* ---- Exercise tracker (per-date set/rep/weight log + history + PR) ------- */
+function wLog() { profile.workoutLog = profile.workoutLog || {}; return profile.workoutLog; }
+function fmtDate(iso) { const d = new Date(iso + 'T00:00'); return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }); }
+function exSetsToday(name) { return (wLog()[todayISO()] || {})[name] || []; }
+function exHistory(name) {           // [{date, sets}] newest first
+  const log = wLog();
+  return Object.keys(log).filter(d => (log[d][name] || []).length).sort().reverse().map(d => ({ date: d, sets: log[d][name] }));
+}
+function exLastSets(name) { const h = exHistory(name).filter(x => x.date !== todayISO()); return h.length ? h[0].sets : null; }
+function exPR(name) {                 // best set by estimated 1RM (Epley); bodyweight (wt 0) ranks by reps
+  let best = null;
+  exHistory(name).forEach(({ sets }) => sets.forEach(s => {
+    const score = (s.weight || 0) > 0 ? s.weight * (1 + (s.reps || 0) / 30) : (s.reps || 0) / 100;
+    if (!best || score > best.score) best = { reps: s.reps, weight: s.weight, score };
+  }));
+  return best;
+}
+const setLabel = (s) => `${s.reps}${s.weight ? '×' + s.weight + 'kg' : ' reps'}`;
+function saveExerciseLog(name, sets) {
+  const log = wLog(); const d = todayISO();
+  log[d] = log[d] || {};
+  if (sets && sets.length) log[d][name] = sets;
+  else { delete log[d][name]; if (!Object.keys(log[d]).length) delete log[d]; }
+  save();
+}
+
 function openExerciseDetail(name) {
   const e = EXERCISE_DB[name];
   if (!e) return;
@@ -401,6 +431,9 @@ function openExerciseDetail(name) {
   const sec = (h, body) => body ? `<div class="ex-sec"><h4>${h}</h4>${body}</div>` : '';
   const muscChips = [...(e.primaryMuscles || []).map(m => `<span class="chip">${m}</span>`), ...(e.secondaryMuscles || []).map(m => `<span class="chip" style="opacity:.65">${m}</span>`)].join('');
   const link = (n) => n && EXERCISE_DB[n] ? `<span class="ex-link" data-go="${escAttr(n)}">${n}</span>` : (n || '—');
+  const _today = exSetsToday(name).map(s => ({ reps: s.reps, weight: s.weight }));
+  const _last = exLastSets(name); const _pr = exPR(name); const _hist = exHistory(name).slice(0, 6);
+  let working = _today.length ? _today : [{ reps: _last && _last[0] ? _last[0].reps : '', weight: _last && _last[0] ? _last[0].weight : '' }];
   $('#ex-detail').innerHTML = `
     <div class="ex-head">
       <div>
@@ -416,6 +449,17 @@ function openExerciseDetail(name) {
         <div class="ex-pres"><div class="k">Tempo</div><div class="v">${e.tempo || '—'}</div></div>
         <div class="ex-pres"><div class="k">Rest</div><div class="v" style="font-size:.95rem">${rest}</div></div>
       </div></div>
+    <div class="ex-sec ex-track">
+      <h4>Track this session${_pr ? ` · <span style="color:var(--clay-deep)">PR ${setLabel(_pr)}</span>` : ''}</h4>
+      <div id="ex-setrows"></div>
+      <div class="ex-track-actions">
+        <button class="btn btn--ghost" id="ex-add-set" type="button">+ Add set</button>
+        <button class="btn btn--clay" id="ex-save-log" type="button">Save session</button>
+      </div>
+      ${_last ? `<p class="ex-last">Last session: ${_last.map(setLabel).join(', ')}</p>` : ''}
+      <p id="ex-log-status" class="ex-log-status"></p>
+    </div>
+    <div class="ex-sec"><h4>History</h4>${_hist.length ? `<div class="ex-hist">${_hist.map(h => `<div class="ex-hist-row"><span class="mono">${fmtDate(h.date)}${h.date === todayISO() ? ' · today' : ''}</span><span>${h.sets.map(setLabel).join(' · ')}</span></div>`).join('')}</div>` : `<p style="color:var(--ink-faint)">No sessions logged yet — log your sets above and they'll appear here.</p>`}</div>
     ${e.benefitForUser ? `<div class="ex-sec"><h4>Why it matters for you</h4><p class="lead" style="font-size:1rem">${e.benefitForUser}</p></div>` : ''}
     ${sec('Muscles worked', `<div class="ex-musc">${muscChips}</div>`)}
     ${e.setup ? sec('Setup', `<p style="color:var(--ink-soft);line-height:1.55">${e.setup}</p>`) : ''}
@@ -427,6 +471,24 @@ function openExerciseDetail(name) {
     ${sec('Progression path', `<p style="color:var(--ink-soft)">⟵ Easier: ${link(e.regression)} &nbsp;&nbsp;·&nbsp;&nbsp; Harder: ${link(e.progression)} ⟶</p>`)}
     ${e.safety ? `<div class="safety-banner" style="margin-top:22px"><span style="font-size:1.1rem">⚕</span><div>${e.safety}</div></div>` : ''}`;
   $$('#ex-detail [data-go]').forEach(l => l.onclick = () => openExerciseDetail(l.dataset.go));
+  // ---- tracker wiring ----
+  const drawSets = () => {
+    $('#ex-setrows').innerHTML = working.map((s, i) => `<div class="set-row" data-i="${i}"><span class="set-n mono">${i + 1}</span><input class="set-reps" type="number" inputmode="numeric" min="0" placeholder="reps" value="${s.reps ?? ''}"><span class="set-x">reps</span><input class="set-wt" type="number" inputmode="decimal" min="0" placeholder="0" value="${s.weight ?? ''}"><span class="set-x">kg</span><button class="set-del" type="button" aria-label="remove set">×</button></div>`).join('');
+    $$('#ex-setrows .set-row').forEach(rowEl => {
+      const i = +rowEl.dataset.i;
+      rowEl.querySelector('.set-reps').oninput = (ev) => { working[i].reps = ev.target.value === '' ? '' : +ev.target.value; };
+      rowEl.querySelector('.set-wt').oninput = (ev) => { working[i].weight = ev.target.value === '' ? '' : +ev.target.value; };
+      rowEl.querySelector('.set-del').onclick = () => { working.splice(i, 1); if (!working.length) working.push({ reps: '', weight: '' }); drawSets(); };
+    });
+  };
+  drawSets();
+  $('#ex-add-set').onclick = () => { const l = working[working.length - 1] || {}; working.push({ reps: l.reps ?? '', weight: l.weight ?? '' }); drawSets(); };
+  $('#ex-save-log').onclick = () => {
+    const clean = working.filter(s => s.reps !== '' && s.reps != null).map(s => ({ reps: +s.reps, weight: (s.weight === '' || s.weight == null) ? 0 : +s.weight }));
+    saveExerciseLog(name, clean);
+    const st = $('#ex-log-status'); if (st) st.textContent = clean.length ? `✓ Saved ${clean.length} set${clean.length > 1 ? 's' : ''} for today` : 'Cleared today’s log';
+    renderAll();
+  };
   M.bindMagnetic($('#ex-modal'));
   $('#ex-modal').classList.add('on');
 }

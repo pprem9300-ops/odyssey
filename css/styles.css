@@ -405,6 +405,22 @@ button.nav-link { background: none; border: none; font: inherit; cursor: pointer
 .ex-link:hover { border-color: var(--clay); }
 .ex-tap { cursor: pointer; transition: color var(--fast) var(--ease); }
 .ex-tap:hover { color: var(--clay); }
+/* exercise tracker */
+.ex-track .set-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.ex-track .set-n { width: 18px; color: var(--ink-faint); font-size: .8rem; flex: none; }
+.ex-track input { width: 70px; padding: 9px 11px; border: 1.5px solid var(--haze); border-radius: 10px; font: inherit; background: var(--cream); color: var(--ink); }
+.ex-track input:focus { outline: none; border-color: var(--clay); }
+.ex-track .set-x { color: var(--ink-faint); font-size: .8rem; }
+.ex-track .set-del { margin-left: auto; background: none; border: none; color: var(--ink-faint); font-size: 1.3rem; line-height: 1; cursor: pointer; padding: 0 6px; }
+.ex-track .set-del:hover { color: var(--clay); }
+.ex-track-actions { display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.ex-track-actions .btn { padding: 10px 18px; font-size: .9rem; }
+.ex-last { color: var(--ink-faint); font-size: .8rem; margin-top: 12px; }
+.ex-log-status { font-family: var(--font-mono); font-size: .78rem; color: var(--sage-deep); min-height: 1em; margin-top: 6px; }
+.ex-hist { display: flex; flex-direction: column; }
+.ex-hist-row { display: flex; justify-content: space-between; gap: 14px; padding: 9px 0; border-bottom: 1px solid var(--haze); font-size: .9rem; }
+.ex-hist-row:last-child { border-bottom: none; }
+.ex-hist-row .mono { color: var(--ink-faint); font-size: .82rem; white-space: nowrap; }
 
 /* ============================================================================
    RESPONSIVE
