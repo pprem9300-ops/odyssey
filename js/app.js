@@ -374,13 +374,15 @@ function renderFuel() {
   setTimeout(() => $$('#macro-band .meter > i').forEach(i => i.style.width = '100%'), 60);
 
   $('#meal-list').innerHTML = diet.meals.map(meal => `
-    <div class="meal-row">
-      <span class="mtime">${meal.meal}</span>
+    <div class="meal-row meal-check" data-meal="${escAttr(meal.meal)}" data-protein="${meal.protein}">
+      <div class="check-box">${svg(ICON.check, '#fff')}</div>
       <div><div class="mname">${meal.meal}</div><div style="color:var(--ink-soft);font-size:.9rem;margin-top:4px">${meal.items}</div></div>
       <div class="mmacros">${meal.kcal} kcal<br>${meal.protein}g P</div>
     </div>`).join('') +
     `<div style="display:flex;justify-content:space-between;padding-top:16px;font-family:var(--font-mono);font-size:.86rem">
-      <span style="color:var(--ink-faint)">DAY TOTAL</span><span>${diet.totalKcal} kcal · ${diet.totalProtein}g protein</span></div>`;
+      <span style="color:var(--ink-faint)">DAY TOTAL <span id="meal-logged" style="color:var(--sage-deep)"></span></span><span>${diet.totalKcal} kcal · ${diet.totalProtein}g protein</span></div>`;
+  $$('#meal-list .meal-check').forEach(r => r.onclick = () => toggleMeal(r.dataset.meal));
+  paintMeals();
 
   $('#food-rail').innerHTML = E.LUNG_FOODS.map(f => `<span class="chip">${f}</span>`).join('');
   $('#supp-list').innerHTML = E.SUPPLEMENTS.map(s => `<div><strong style="font-size:.92rem">${s.n}</strong><div style="font-size:.8rem;color:var(--ink-soft)">${s.why}</div></div>`).join('');
@@ -424,6 +426,26 @@ function setWater(n) {
   waterStore()[todayISO()] = n;
   save();
   paintWater(n);                              // toggle classes in place → pips animate via CSS
+}
+
+/* ---- Per-meal check-off (per-date, persisted + synced) ------------------ */
+function mealStore() { profile.mealLog = profile.mealLog || {}; return profile.mealLog; }
+function paintMeals() {
+  const eaten = new Set(mealStore()[todayISO()] || []);
+  let count = 0, loggedP = 0;
+  $$('#meal-list .meal-row').forEach((r) => {
+    const on = eaten.has(r.dataset.meal);
+    r.classList.toggle('eaten', on);
+    if (on) { count++; loggedP += +r.dataset.protein || 0; }
+  });
+  const s = $('#meal-logged'); if (s) s.textContent = count ? `· ${count} eaten, ${loggedP}g in` : '';
+}
+function toggleMeal(name) {
+  const d = todayISO(); const arr = mealStore()[d] || [];
+  const i = arr.indexOf(name); if (i >= 0) arr.splice(i, 1); else arr.push(name);
+  if (arr.length) mealStore()[d] = arr; else delete mealStore()[d];
+  save();
+  paintMeals();                               // toggle .eaten in place → check fills via CSS
 }
 
 /* ---- Daily mood check-in (per-date, persisted + synced) ----------------- */
