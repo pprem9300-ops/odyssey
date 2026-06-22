@@ -459,9 +459,28 @@ function renderMood() {
       <span class="mono" id="mood-status" style="font-size:.76rem"></span>
     </div>
     <h3 class="display" style="margin:8px 0 16px;font-size:1.4rem">How's today feeling?</h3>
-    <div class="mood-row">${MOODS.map((m, i) => `<button class="mood-pip" data-m="${i}">${m}</button>`).join('')}</div>`;
+    <div class="mood-row">${MOODS.map((m, i) => `<button class="mood-pip" data-m="${i}">${m}</button>`).join('')}</div>
+    <textarea id="mood-note" class="mood-note" rows="2" placeholder="A line about today — wins, cravings, anything (optional)…"></textarea>`;
   $$('#mood-card .mood-pip').forEach((b) => b.onclick = () => pickMood(+b.dataset.m));
+  const note = $('#mood-note');
+  if (note) {
+    note.value = journalStore()[todayISO()] || '';
+    note.oninput = () => { const v = note.value.trim(); if (v) journalStore()[todayISO()] = v; else delete journalStore()[todayISO()]; save(); };
+  }
   paintMood(moodStore()[todayISO()]);
+}
+function journalStore() { profile.journalLog = profile.journalLog || {}; return profile.journalLog; }
+/* ---- Data export (full profile + all logs → JSON download) -------------- */
+function exportData() {
+  try {
+    const blob = new Blob([JSON.stringify(profile, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = `odyssey-backup-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+    const s = $('#sync-status'); if (s) s.textContent = '✓ Downloaded your data backup.';
+  } catch (e) { const s = $('#sync-status'); if (s) s.textContent = 'Export failed: ' + e.message; }
 }
 function paintMood(sel) {
   $$('#mood-card .mood-pip').forEach((b, i) => b.classList.toggle('on', sel === i));
@@ -863,6 +882,7 @@ function updateSyncUI() {
       <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
         <button class="btn btn--clay magnetic" id="sync-now">Sync now</button>
         <button class="btn btn--ghost magnetic" id="sync-pass">Set / change password</button>
+        <button class="btn btn--ghost magnetic" id="sync-export">Export data</button>
         <button class="btn btn--ghost magnetic" id="sync-out">Sign out</button>
       </div>
       <div id="sync-pass-wrap" style="display:none; margin-top:12px">
@@ -886,6 +906,7 @@ function updateSyncUI() {
       try { await Cloud.updatePassword(pw); $('#sync-status').textContent = '✓ Password saved — you can now sign in with it.'; $('#sync-pass-wrap').style.display = 'none'; }
       catch (e) { $('#sync-status').textContent = 'Error: ' + e.message; }
     };
+    const exp = $('#sync-export'); if (exp) exp.onclick = exportData;
     const out = $('#sync-out'); if (out) out.onclick = async () => { await Cloud.signOut(); location.reload(); };
   } else {
     // Within the app the user is always signed in; landing here means the
