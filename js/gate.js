@@ -205,6 +205,11 @@ export function initGate(onEnter) {
   /* ---- boot the gate -------------------------------------------------- */
   async function boot() {
     renderChecking();
+    // Local-dev convenience ONLY: on localhost, `localStorage.odyssey.devbypass='1'`
+    // skips the gate so the app can be worked on without an email round-trip. This
+    // can NEVER fire on the live site — GitHub Pages is never localhost/127.0.0.1.
+    const isLocal = ['localhost', '127.0.0.1'].includes(location.hostname);
+    if (isLocal && localStorage.getItem('odyssey.devbypass') === '1') { enter(); return; }
     if (!Cloud.cloudEnabled()) {
       renderError('Sign-in unavailable',
         'This build has no Supabase keys, so the invite-only gate can’t run. Add keys in js/config.js.', false);

@@ -2,9 +2,9 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=3';
-import * as M from './motion.js?v=3';
+import * as M from './motion.js?v=5';
 import * as Cloud from './cloud.js?v=4';
-import { initGate } from './gate.js?v=4';
+import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
 import { weightTrendSVG, weightDeltaLabel } from './chart.js?v=3';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=3';
@@ -203,7 +203,7 @@ function renderSleep() {
   const band = r.band, color = band === 'high' ? 'sage' : band === 'low' ? 'clay' : 'sky';
   const score = r.score == null ? '—' : r.score;
   $('#sleep-card').innerHTML = `
-    <div style="display:grid;grid-template-columns:1.05fr .95fr;gap:28px;align-items:center" class="sleep-grid">
+    <div class="sleep-grid">
       <div>
         <p class="eyebrow" style="color:var(--${color}-deep)">Sleep &amp; readiness</p>
         <div style="display:flex;align-items:baseline;gap:10px;margin:8px 0 6px">
@@ -455,29 +455,61 @@ function adjustWeight(delta) {
   save(); renderAll();
 }
 function lungsSVG(rec) {
-  const fill = 0.18 + (rec / 100) * 0.62;
-  return `<svg class="lungs-svg" viewBox="0 0 200 200" fill="none">
-    <defs><linearGradient id="lg" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#6A9BCC" stop-opacity="${fill}"/><stop offset="1" stop-color="#788C5D" stop-opacity="${Math.min(0.85, fill + 0.1)}"/></linearGradient></defs>
-    <path d="M100 40 V95" stroke="#8A887E" stroke-width="3" stroke-linecap="round"/>
-    <path d="M100 60 C70 58 62 90 60 120 C58 150 70 168 84 162 C96 157 96 120 96 96 C96 78 96 62 100 60Z" fill="url(#lg)" stroke="#6A9BCC" stroke-opacity=".5" stroke-width="1.5"/>
-    <path d="M100 60 C130 58 138 90 140 120 C142 150 130 168 116 162 C104 157 104 120 104 96 C104 78 104 62 100 60Z" fill="url(#lg)" stroke="#6A9BCC" stroke-opacity=".5" stroke-width="1.5"/>
-    <circle cx="100" cy="40" r="6" fill="#D97757"/>
-    <text x="100" y="190" text-anchor="middle" font-family="JetBrains Mono" font-size="11" fill="#8A887E">${rec}% RESTORED</text>
+  const f = 0.18 + (rec / 100) * 0.60;            // recovery → fill opacity
+  const f2 = Math.min(0.9, f + 0.12);
+  return `<svg class="lungs-svg" viewBox="0 0 320 372" fill="none" role="img" aria-label="${rec}% lung recovery">
+    <defs>
+      <linearGradient id="lobeFill" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stop-color="var(--sky)" stop-opacity="${f}"/>
+        <stop offset="1" stop-color="var(--sage)" stop-opacity="${f2}"/>
+      </linearGradient>
+      <radialGradient id="aura" cx="50%" cy="46%" r="58%">
+        <stop offset="0" stop-color="var(--sky)" stop-opacity="${(0.08 + f * 0.12).toFixed(3)}"/>
+        <stop offset="1" stop-color="var(--sky)" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="160" cy="196" rx="150" ry="152" fill="url(#aura)"/>
+    <!-- trachea -->
+    <path class="lung-airway" d="M160 30 L160 100" stroke="var(--ink-soft)" stroke-width="9" stroke-linecap="round"/>
+    <!-- bronchial tree: carina → main → lobar → segmental -->
+    <path class="lung-airway" d="M160 100 C150 114 132 120 120 130 C108 138 102 150 100 162 M120 130 C124 144 122 156 118 168
+                                 M160 100 C170 114 188 120 200 130 C212 138 218 150 220 162 M200 130 C196 144 198 156 202 168"
+          stroke="var(--ink-faint)" stroke-width="4.5" stroke-linecap="round" fill="none"/>
+    <!-- RIGHT lung (viewer-left): 3 lobes, horizontal + oblique fissures -->
+    <g class="lung lung-right">
+      <path d="M150 108 C112 104 84 132 76 182 C68 230 78 290 106 312 C126 328 148 318 149 286 C150 244 150 152 150 108Z"
+            fill="url(#lobeFill)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
+      <path d="M149 156 C120 156 96 162 80 178" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
+      <path d="M148 222 C120 230 98 244 86 266" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
+    </g>
+    <!-- LEFT lung (viewer-right): 2 lobes, cardiac notch + lingula -->
+    <g class="lung lung-left">
+      <path d="M170 108 C208 104 236 132 244 182 C252 230 242 290 214 312 C194 328 173 318 172 286
+               C171 262 179 252 173 242 C167 232 173 220 173 206 C173 152 170 126 170 108Z"
+            fill="url(#lobeFill)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
+      <path d="M173 214 C200 222 222 238 234 262" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
+    </g>
+    <circle cx="160" cy="25" r="6" fill="var(--clay)"/>
+    <text x="160" y="360" text-anchor="middle" font-family="JetBrains Mono" font-size="12" letter-spacing="1.5" fill="var(--ink-faint)">${rec}% RESTORED</text>
   </svg>`;
 }
 
 /* ============================================================================
    ROUTING
    ========================================================================== */
+function initJourneyScroll() { /* built in Phase 4 — scroll-driven journey timeline */ }
+
 function switchView(name) {
-  $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.view === name));
-  $$('.nav-link').forEach(l => l.classList.toggle('is-active', l.dataset.view === name));
-  M.scrollToTop();
-  const view = $(`#view-${name}`);
-  M.initReveals(view); M.bindMagnetic(view); M.refreshScrollTriggers();
-  // stop pacers when leaving lab
-  if (name !== 'lab' && pacer) { pacer.stop(); pacer = null; }
+  M.transitionView(() => {
+    $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.view === name));
+    $$('.nav-link').forEach(l => l.classList.toggle('is-active', l.dataset.view === name));
+    M.scrollToTop();
+    const view = $(`#view-${name}`);
+    M.initReveals(view); M.bindMagnetic(view); M.revealHeadline(view); M.refreshScrollTriggers();
+    if (name === 'journey') initJourneyScroll();
+    // stop pacers when leaving lab
+    if (name !== 'lab' && pacer) { pacer.stop(); pacer = null; }
+  });
 }
 
 /* ============================================================================
@@ -503,6 +535,13 @@ function unlogCleanDay() {
   save(); recompute(); renderAll();
 }
 function toggleCleanDay() { todayLogged() ? unlogCleanDay() : logCleanDay(); }
+function resetStreak() {
+  if (!confirm('Reset your smoke-free streak to 0?\n\nThis clears every logged clean day. Your weight, plan and settings stay. A reset is a fresh start — not a failure.')) return;
+  profile.cleanDates = [];
+  profile.streakDays = 0;
+  profile.weeksElapsed = 0;
+  save(); recompute(); renderAll();
+}
 function titleFx(label) {
   return label.replace(/(\w+)$/, '<em>$1</em>');
 }
@@ -602,6 +641,7 @@ function enterApp() {
   M.initSmoothScroll();
   M.initCursor();                       // removes the old custom-cursor nodes
   M.initReveals();
+  M.revealHeadline();
   M.bindMagnetic();
   M.breathField($('#breath-field'), () => plan.recovery);
   M.intro(() => M.initHero());          // cold-boot intro → then animate the hero in
@@ -627,6 +667,7 @@ function enterApp() {
 
   // buttons
   $('#log-day').onclick = toggleCleanDay;
+  $('#reset-streak').onclick = resetStreak;
   $('#sos').onclick = openSOS;
   $('#sos-close').onclick = closeSOS;
   $('#sos-modal').onclick = (e) => { if (e.target.id === 'sos-modal') closeSOS(); };
@@ -635,8 +676,15 @@ function enterApp() {
     const n = plan.milestones.next;
     M.celebrate({ eyebrow: 'Milestone preview', title: titleFx(n.label), note: n.note });
   };
-  $('#burger').onclick = () => $('#nav-links').style.display = ($('#nav-links').style.display === 'flex' ? '' : 'flex');
+  const navLinks = $('#nav-links');
+  $('#burger').onclick = (e) => { e.stopPropagation(); navLinks.classList.toggle('open'); };
+  navLinks.addEventListener('click', () => navLinks.classList.remove('open'));   // close after choosing
+  document.addEventListener('click', (e) => {                                     // close on outside tap
+    if (navLinks.classList.contains('open') && !e.target.closest('#nav-links, #burger')) navLinks.classList.remove('open');
+  });
   $('#profile-btn').onclick = () => openProfileEditor(false);
+  $('#nav-m-profile').onclick = () => openProfileEditor(false);
+  $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
 
   // exercise detail modal
   $('#ex-close').onclick = () => $('#ex-modal').classList.remove('on');

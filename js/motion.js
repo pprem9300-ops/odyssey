@@ -7,6 +7,11 @@ const gsap = window.gsap;
 const ScrollTrigger = window.ScrollTrigger;
 if (gsap && ScrollTrigger) gsap.registerPlugin(ScrollTrigger);
 
+/* ---- Unified motion tokens (out-enter / in-exit ~65% / none-scrub) ------ */
+export const EASE = { out: 'power4.out', in: 'power3.in', io: 'power3.inOut', scrub: 'none', spring: 'back.out(1.4)' };
+export const DUR  = { micro: 0.18, fast: 0.32, base: 0.5, slow: 0.8, exit: 0.32 };
+const isMobile = () => matchMedia('(max-width: 768px)').matches;
+
 /* ---- Smooth scroll (Lenis drives one rAF loop) -------------------------- */
 let lenisInstance = null;
 export function initSmoothScroll() {
@@ -86,6 +91,35 @@ export function initHero() {
   }, 2600);
 }
 
+/* ---- View transition — clip-path wipe (desktop), instant on mobile/RM ---- */
+export function transitionView(swap) {
+  const w = document.getElementById('view-wipe');
+  if (RM || !gsap || !w || isMobile()) { swap(); return; }   // mobile/RM: instant swap + CSS viewIn fade
+  // Reliable opacity fade (autoAlpha) through the canvas color — covers the DOM swap, never collapses.
+  gsap.timeline()
+    .to(w, { autoAlpha: 1, duration: DUR.fast, ease: EASE.io })
+    .add(() => swap())                                        // DOM swap fully covered
+    .to(w, { autoAlpha: 0, duration: DUR.base, ease: EASE.io });
+}
+
+/* ---- Masked split-line headline reveals (vanilla, no paid SplitText) ----- */
+export function revealHeadline(scope = document) {
+  if (RM || !gsap) return;
+  scope.querySelectorAll('h2.display:not([data-split])').forEach((h) => {
+    h.dataset.split = '1';
+    const complex = [...h.children].some((c) => c.tagName !== 'BR');   // has inline markup → don't line-split
+    if (complex) {
+      gsap.from(h, { yPercent: 24, autoAlpha: 0, duration: DUR.slow, ease: EASE.out,
+        scrollTrigger: { trigger: h, start: 'top 88%' } });
+      return;
+    }
+    const lines = h.innerHTML.split(/<br\s*\/?>/i).map((s) => s.trim()).filter(Boolean);
+    h.innerHTML = lines.map((l) => `<span class="ln"><i>${l}</i></span>`).join('');
+    gsap.from(h.querySelectorAll('.ln i'), { yPercent: 115, duration: DUR.slow, ease: EASE.out, stagger: 0.08,
+      scrollTrigger: { trigger: h, start: 'top 86%' } });
+  });
+}
+
 /* ---- Cold-boot intro sequence ------------------------------------------- */
 export function intro(onDone) {
   const el = document.getElementById('intro');
@@ -123,7 +157,7 @@ export function breathField(canvas, getRecovery) {
     c.fillStyle = g; c.beginPath(); c.arc(20, 20, 20, 0, Math.PI * 2); c.fill();
     return s;
   }
-  sprites = { grey: makeSprite('150,146,136'), clay: makeSprite('217,119,87'), sky: makeSprite('106,155,204'), sage: makeSprite('120,140,93') };
+  sprites = { grey: makeSprite('150,148,138'), clay: makeSprite('217,84,43'), sky: makeSprite('62,111,168'), sage: makeSprite('94,115,71') };
 
   const inLungs = (nx, ny) => {
     const lobe = (cx, cy, rx, ry) => ((nx - cx) ** 2) / (rx * rx) + ((ny - cy) ** 2) / (ry * ry) <= 1;
@@ -205,7 +239,7 @@ export function runPacer(coreEl, cycle, { onPhase } = {}) {
 /* ============================================================================
    CELEBRATIONS
    ========================================================================== */
-const COLORS = ['#D97757', '#6A9BCC', '#788C5D', '#F0D6CB'];
+const COLORS = ['#DD6A47', '#6E9AD4', '#87A36C', '#A695D6'];
 export function burst() {
   if (RM || !window.confetti) return;
   const c = window.confetti;

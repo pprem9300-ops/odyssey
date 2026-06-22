@@ -5,6 +5,27 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-20 — D19 · Awwwards-grade refactor (research-grounded) + palette pivot to premium pastel
+
+User wants the app to feel **awwwards-grade**, modeled on **digitalists.at** (light/bold duotone, electric accent, oversized kinetic type, scroll-wired WebGL), **aircenter.space** (mono-white architectural restraint, Onest grotesque, Locomotive virtual scroll on Expo easing, Barba page transitions, split-text + clip-path reveals), **pacomepertant.com** (two-value cinematic `#0a0a0a`/`#fafafa`, one signature scrubbed WebGL interaction, marquee tempo). **Thesis: restraint is expensive — craft lives in timing, easing, spacing, transition continuity; one signature interaction; high contrast; whitespace.** A 6-agent research workflow produced the full plan; key parts preserved here (the `/tmp` raw file is ephemeral).
+
+**Skills installed globally** (`~/.claude/skills/`): `frontend-design` (Anthropic, safe markdown) + authored `awwwards-web-motion` (the motion+perf playbook). Skipped script-executing skills (Impeccable/claudedesignskills/ui-ux-pro-max engine) for safety.
+
+**Motion + perf rules (the `awwwards-web-motion` skill has full code):** ONE ticker (Lenis driven by `gsap.ticker`, `lagSmoothing(0)`, `lenis.on('scroll',ScrollTrigger.update)`, no 2nd rAF); animate **transform/opacity/clip-path only** (no width/height/box-shadow); `scrub` numeric not `true`; `anticipatePin:1`; reveals via `ScrollTrigger.batch`/`toggleActions` not N timelines; `will-change` on-start/off-complete; gate offscreen canvas/marquees w/ IntersectionObserver; `content-visibility:auto`+`contain-intrinsic-size` on long sections; `gsap.matchMedia` reduced-motion path + Lenis off; **drop pins on mobile**; profile at 4× CPU throttle (no >16ms frames, no "Forced reflow"). Easing tokens: out-enter(`power4.out`/`expo`) / in-exit ~65% (`power3.in`) / none-scrub; 150–600ms; stagger .05–.12.
+
+**Palette candidates** (all light/high-contrast/premium; kept var names so swapping `:root` needs no JS change). **A "Restored Clinic" was APPLIED** then user reversed it (wants multi-accent pastel, see below):
+- **A (applied):** `--cream:#FCFCFB --paper:#FFFFFF --sand:#F4F3EF --haze:#E2E0D9 --ink:#0E0E0C --ink-soft:#4A4945 --ink-faint:#86847C`; `--clay:#D9542B/-deep#B23E1C/-soft#F6D9CD/-mist#FCEFE9 --sky:#3E6FA8/… --sage:#5E7347/…`. Mono-white, single hot-clay accent.
+- **B "Acid Restoration" (digitalists):** warm-white `#F7F6F1`, ink `#0A0A08`, ONE electric lime-chartreuse `#C8E000` (needs dark text on accent fills); dark celebration takeover `#0A0A08`/`#F4F4EC`.
+- **C "Frozen Wave" (aircenter):** cool-white `#FBFCFD`, ink `#0B0E11`, ice-blue HERO `#1E73C8` (accent flips to `--sky`), clay `#E0613A` demoted to streak/SOS.
+
+**PALETTE PIVOT (latest user direction, NOT yet built):** user now wants **NOT monotone** — "change clay to other colors, use the **best pastel palette**, refactor all colors, clean and premium." So A/B/C (single-accent) are superseded → design a **refined premium MULTI-ACCENT PASTEL** system (use `ui-ux-pro-max` color search + `frontend-design`), refactor every color source.
+
+**Also pivoted:** user **dislikes the hero particle breath-field** (remove it — also the main scroll-lag source) and the **"Smoke becomes breath/muscle/you"** copy (remove the kinetic word-swap). Redesign the hero clean/premium/calm with real data, no particles.
+
+**Built & keep:** anatomical **lungs SVG** (trachea/carina/bronchial-tree/3+2 lobes, palette-var-driven, recovery fill + CSS breathing) replacing the old two-blob; unified **motion tokens**; `transitionView` (clip-path wipe — **verify; GSAP `inset()` tween is unreliable, prefer `autoAlpha` crossfade**) + `revealHeadline` (masked split-line). The scroll-driven **Journey** (pinned progress rail filling to real streak fraction + scrubbed milestone reveals) is **designed but NOT built** — `initJourneyScroll()` is a stub in app.js. **New asks queued:** full streak reset (UI), detailed exercise tracker + plan generator (per-exercise set/rep/weight logging + history/PRs). See PROJECT_STATUS "RESUME HERE".
+
+---
+
 ## 2026-06-20 — Invite-only auth (email/password + emailed code via Brevo); Streamlit re-rejected
 
 ### D18 · Access → **invite-only login gate**, two ways in, on GitHub Pages (Streamlit rejected again)

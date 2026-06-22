@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css" />
+  <link rel="stylesheet" href="css/styles.css?v=5" />
 </head>
 <body>
   <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
@@ -34,6 +34,9 @@
       <div id="gate-body"><p class="gate-checking mono">Checking access…</p></div>
     </div>
   </div>
+
+  <!-- view-transition wipe overlay (clip-path) -->
+  <div class="view-wipe" id="view-wipe" aria-hidden="true"></div>
 
   <!-- cold-boot intro -->
   <div id="intro">
@@ -55,6 +58,9 @@
       <a class="nav-link" data-view="lab" href="#">Lung Lab</a>
       <a class="nav-link" data-view="fuel" href="#">Fuel</a>
       <a class="nav-link" data-view="journey" href="#">Journey</a>
+      <span class="nav-divider nav-only-mobile" aria-hidden="true"></span>
+      <button class="nav-link nav-only-mobile" id="nav-m-profile">Profile</button>
+      <button class="nav-link nav-only-mobile" id="nav-m-account">Account &amp; sync</button>
     </div>
     <div class="nav-right">
       <button class="chip magnetic" id="profile-btn" aria-label="Edit profile">Profile</button>
@@ -67,16 +73,12 @@
   <!-- ============================ LANDING ============================ -->
   <section class="view is-active" id="view-landing" data-view="landing">
     <header class="hero">
-      <canvas id="breath-field"></canvas>
       <div class="hero-inner container">
-        <p class="eyebrow reveal" data-d="0">Pulmonology · Calisthenics · Pure-veg fuel — for Anakin</p>
-        <h1 class="display" style="margin-top:18px">
-          <span class="kinetic"><span data-split>Smoke</span></span>
-          <span class="kinetic"><span class="swap-word" id="swap">becomes breath</span></span>
-        </h1>
-        <p class="lead hero-sub reveal" data-d="1">A living protocol that heals your lungs, rebuilds your body toward a lean 75&nbsp;kg, and turns every smoke-free day into measurable progress. Built to repeat — indefinitely.</p>
-        <div class="hero-cta reveal" data-d="2">
-          <button class="btn btn--clay magnetic" data-view="today">Begin the odyssey <span class="arrow">→</span></button>
+        <p class="eyebrow reveal" data-d="0">Pulmonology · Calisthenics · Pure-veg fuel</p>
+        <h1 class="display hero-title reveal" data-d="1">Rebuild your&nbsp;lungs.<br>Rebuild&nbsp;yourself.</h1>
+        <p class="lead hero-sub reveal" data-d="2">A living daily protocol that heals your breath, rebuilds your body toward a lean 75&nbsp;kg, and turns every smoke-free day into measurable progress — built to repeat, indefinitely.</p>
+        <div class="hero-cta reveal" data-d="3">
+          <button class="btn btn--clay magnetic" data-view="today">Enter your cockpit <span class="arrow">→</span></button>
           <button class="btn btn--ghost magnetic" data-view="lab">Explore the Lung Lab</button>
         </div>
       </div>
@@ -127,6 +129,7 @@
             <button class="btn btn--clay magnetic" id="log-day">+ Log a clean day</button>
             <button class="btn btn--ghost magnetic" id="sos">Craving SOS</button>
           </div>
+          <button class="streak-reset" id="reset-streak" aria-label="Reset streak">↺ Reset streak</button>
         </div>
         <div class="reveal">
           <div class="ring-wrap">
@@ -354,7 +357,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=4"></script>
+  <script type="module" src="js/app.js?v=5"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {
