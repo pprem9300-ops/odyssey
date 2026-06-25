@@ -5,6 +5,21 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D22 · Four feature increments (deload/equipment · measurements/photos · analytics/plate · grocery/swaps)
+
+User picked **all four** queued features in one go. Built as four verified increments on top of the training brain (D21); engine logic node-tested (**39 asserts**), UI verified live.
+
+- **Periodization (engine):** `deloadState(p)` — a manual deload toggle (`profile.deloadActive`) that halves strength volume in `generateWeek`, auto-**suggested** every ~6 training-weeks; surfaced as a card in the Week view with an equipment-toggle row (`bar`/`bands`/`weights` → the existing `equipCap` unlocks pull-up/dip/band rungs). Added an `hrow` equip cap (Band row needs bands).
+- **Wellness:** body measurements (`profile.measureLog{date:{waist,chest,arm,thigh,weight}}`, synced) → latest + colour-coded deltas (waist-down = good, the rest up = good) tied to the V-taper; logging weight also updates `currentWeight`/`weightHistory`. **Progress photos** stored **local-only** (`localStorage['odyssey.photos.v1']`, NOT in the synced profile — avoids bloating Supabase), canvas-compressed to 720px JPEG q0.7, capped at 30, with a tap-two before/after compare.
+- **Workout analytics:** `chart.js` HEX palette **fixed to cinematic-dark** (the weight chart was near-invisible on dark since D20) + two new pure-SVG charts (`barChartSVG`, `lineChartSVG`); the Week "training so far" now shows **weekly rep×load volume** bars + the most-logged movement's **progression curve** (est-1RM if weighted, else top reps). Fixed `trainStats` volume to count bodyweight reps (was 0). **Plate calculator** (`platePlan()` in engine) card for weighted progressions.
+- **Nutrition:** per-slot **meal swaps** — `mealOptions()` gives 3 alternatives per slot, `generateDietDay` honours `profile.mealSwaps`; numbered swap chips in each meal row. Auto **grocery list** (`groceryList()`, categorised + keyed, checkable → `profile.groceryChecked`). **Macro history** mini-chart = protein logged (from checked meals) over 10 days vs target.
+
+**Two bugs caught in preview + fixed:** (1) `.col-7`/`.col-5` grid classes didn't exist (only 12/8/6/4/3) → charts/cards squished → added them + responsive collapse; (2) `barChartSVG` reads `b.value` but `weeklyVolume` returned `{volume}` → flat bars → renamed to `{value}`. **Lesson:** the fresh Claude-preview server boots at a **2px viewport** — `preview_resize` to 1440×900 before screenshots, and the screenshot tool needs a real scroll (smooth-scroll off + `scrollIntoView`) to capture below-the-fold.
+
+Cache-bust → `?v=20` (engine import `?v=6`, chart `?v=4`), `sw odyssey-v20`.
+
+---
+
 ## 2026-06-22 — D21 · Training brain v2 → PERFORMANCE-DRIVEN (decoupled from streak) + aesthetic/looksmaxx engine + cardio/agility/plyo
 
 User direction (3 interrupts that sharpened the spec): make plans **smart & industry-grade**, **calisthenics + aesthetics + looksmaxxing** focused, exercises **dynamic** (auto-progressing basic→advanced), and **weave in agility + cardio** — with the explicit rule that **training intensity must NOT be gated by the smoke-free streak**; it progresses from *what your current state can handle*, read off the **workout logs**, and overloads steadily.

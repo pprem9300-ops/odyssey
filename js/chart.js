@@ -10,12 +10,15 @@
    Fonts: --font-display 'Fraunces' serif · --font-mono 'JetBrains Mono'.
    ========================================================================== */
 
+/* CINEMATIC DARK palette (matches css :root) — light text/lines glow on dark cards.
+   -deep values are the LIGHT tints (text on dark); base values are the glowing fills. */
 const HEX = {
-  cream: '#FAF9F5', paper: '#FFFFFF', haze: '#E4E0D4', ink: '#1A1916',
-  inkSoft: '#57564F', inkFaint: '#8A887E',
-  clay: '#D97757', clayDeep: '#C25A3B', claySoft: '#F0D6CB',
-  sky: '#6A9BCC', skyDeep: '#4E7CAA', skySoft: '#CFE0EF',
-  sage: '#788C5D', sageDeep: '#5E7045', sageSoft: '#D6DEC8',
+  cream: '#0B0B0C', paper: '#161618', haze: '#2C2C31', ink: '#F4F1EA',
+  inkSoft: '#AAA69D', inkFaint: '#6F6B63',
+  clay: '#EA7C52', clayDeep: '#F4A988', claySoft: '#402619',
+  sky: '#82ABE0', skyDeep: '#B2CBEF', skySoft: '#1F2B3B',
+  sage: '#9FC081', sageDeep: '#C5DAAF', sageSoft: '#26311D',
+  lilac: '#B9AAE8', lilacDeep: '#D5CBF3',
 };
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 const SERIF = "'Fraunces', Georgia, serif";
@@ -237,4 +240,54 @@ function emptyState(W, H, target) {
   <text x="${cx}" y="${r1(H * 0.62)}" text-anchor="middle"
         font-family="${SERIF}" font-size="17" font-style="italic" fill="${HEX.inkSoft}">Log your weight to see the climb to ${fmtKg(target)}kg</text>
 </svg>`;
+}
+
+/* ============================================================================
+   barChartSVG(bars, opts) — generic mini bar chart (dark). bars = [{label,value}]
+   ========================================================================== */
+export function barChartSVG(bars, { accent = 'sage', width = 520, height = 150 } = {}) {
+  const W = Math.max(240, width), H = Math.max(110, height);
+  if (!bars || !bars.length) return '';
+  const pad = { t: 16, r: 8, b: 22, l: 8 };
+  const plotH = H - pad.t - pad.b, plotW = W - pad.l - pad.r;
+  const max = Math.max(...bars.map(b => +b.value || 0), 1);
+  const bw = plotW / bars.length;
+  const col = HEX[accent] || HEX.sage;
+  let out = '';
+  bars.forEach((b, i) => {
+    const val = +b.value || 0;
+    const bh = Math.max(2, (val / max) * plotH);
+    const x = pad.l + i * bw + bw * 0.18, w = bw * 0.64, yTop = pad.t + plotH - bh;
+    out += `<rect x="${r1(x)}" y="${r1(yTop)}" width="${r1(w)}" height="${r1(bh)}" rx="3" fill="${col}" opacity="${(0.45 + 0.55 * (val / max)).toFixed(2)}"/>`;
+    out += `<text x="${r1(x + w / 2)}" y="${H - 8}" text-anchor="middle" font-family="${MONO}" font-size="9" fill="${HEX.inkFaint}">${esc(b.label)}</text>`;
+    if (val) out += `<text x="${r1(x + w / 2)}" y="${r1(yTop - 4)}" text-anchor="middle" font-family="${MONO}" font-size="9" fill="${HEX.inkSoft}">${val >= 1000 ? (val / 1000).toFixed(1) + 'k' : val}</text>`;
+  });
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="bar chart" xmlns="http://www.w3.org/2000/svg">${out}</svg>`;
+}
+
+/* ============================================================================
+   lineChartSVG(values, opts) — generic trend line (dark). values = [number]
+   ========================================================================== */
+export function lineChartSVG(values, { accent = 'clay', width = 520, height = 150, labels = [] } = {}) {
+  const W = Math.max(220, width), H = Math.max(100, height);
+  const pts = (values || []).map(Number).filter(Number.isFinite);
+  if (pts.length < 2) return '';
+  const pad = { t: 16, r: 14, b: 22, l: 34 };
+  const plotW = W - pad.l - pad.r, plotH = H - pad.t - pad.b;
+  let lo = Math.min(...pts), hi = Math.max(...pts);
+  if (lo === hi) { lo -= 1; hi += 1; }
+  const padY = (hi - lo) * 0.15 || 1; lo -= padY; hi += padY;
+  const span = hi - lo || 1, n = pts.length;
+  const x = (i) => pad.l + plotW * (i / (n - 1));
+  const y = (v) => pad.t + plotH * (1 - (v - lo) / span);
+  const col = HEX[accent] || HEX.clay, colDeep = HEX[accent + 'Deep'] || col;
+  const line = pts.map((v, i) => `${i ? 'L' : 'M'}${r1(x(i))} ${r1(y(v))}`).join(' ');
+  const area = `${line} L${r1(x(n - 1))} ${r1(pad.t + plotH)} L${r1(x(0))} ${r1(pad.t + plotH)} Z`;
+  const gid = `ln-${accent}-${W}x${H}`;
+  const dots = pts.map((v, i) => `<circle cx="${r1(x(i))}" cy="${r1(y(v))}" r="${i === n - 1 ? 3.6 : 2}" fill="${i === n - 1 ? col : HEX.paper}" stroke="${col}" stroke-width="1.4"/>`).join('');
+  const yL = `<text x="${pad.l - 6}" y="${r1(y(hi - padY) + 3)}" text-anchor="end" font-family="${MONO}" font-size="9" fill="${HEX.inkFaint}">${fmtKg(hi - padY)}</text><text x="${pad.l - 6}" y="${r1(y(lo + padY) + 3)}" text-anchor="end" font-family="${MONO}" font-size="9" fill="${HEX.inkFaint}">${fmtKg(lo + padY)}</text>`;
+  const xL = labels.length ? `<text x="${r1(x(0))}" y="${H - 7}" text-anchor="start" font-family="${MONO}" font-size="9" fill="${HEX.inkFaint}">${esc(labels[0])}</text><text x="${r1(x(n - 1))}" y="${H - 7}" text-anchor="end" font-family="${MONO}" font-size="9" fill="${HEX.inkFaint}">${esc(labels[labels.length - 1])}</text>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="trend line" xmlns="http://www.w3.org/2000/svg">
+    <defs><linearGradient id="${gid}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity=".22"/><stop offset="1" stop-color="${col}" stop-opacity="0"/></linearGradient></defs>
+    <path d="${area}" fill="url(#${gid})"/><path d="${line}" fill="none" stroke="${colDeep}" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>${dots}${yL}${xL}</svg>`;
 }

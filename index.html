@@ -24,7 +24,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,400;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="css/styles.css?v=19" />
+  <link rel="stylesheet" href="css/styles.css?v=20" />
 </head>
 <body>
   <!-- invite-only login gate — covers everything until authenticated (gate.js) -->
@@ -225,6 +225,8 @@
       <div class="reveal" id="train-progress" style="margin-top:28px"></div>
       <div class="reveal" id="split-select" style="margin-top:28px"></div>
       <div class="week-grid reveal" id="week-grid" style="margin-top:28px"></div>
+      <div class="reveal" id="periodize" style="margin-top:28px"></div>
+      <div class="reveal" id="plate-card" style="margin-top:28px"></div>
       <div class="card reveal" style="margin-top:24px">
         <p class="eyebrow">Monthly rhythm</p>
         <p class="lead" style="margin-top:8px">Every 4 weeks: progress photos, waist + strength numbers (not scale alone — recomp moves the mirror more than the scale). Deload every 4th–6th week at ~50% volume. The engine re-runs your BMR/TDEE on a fresh 7-day weigh-in average.</p>
@@ -293,6 +295,12 @@
           <div class="card card--sky reveal" id="water-card"></div>
         </div>
       </div>
+
+      <!-- grocery list + macro history -->
+      <div class="bento" style="margin-top:24px">
+        <div class="card col-6 reveal" id="grocery-card"></div>
+        <div class="card col-6 reveal" id="macro-history-card"></div>
+      </div>
     </div>
   </section>
 
@@ -302,6 +310,13 @@
       <p class="eyebrow reveal">The journey</p>
       <h2 class="display reveal" style="margin:10px 0 24px">Milestones</h2>
       <div id="weekly-insight" class="reveal" style="margin:0 0 28px"></div>
+
+      <!-- body measurements + progress photos -->
+      <div class="bento" style="margin:0 0 28px">
+        <div class="card col-7 reveal" id="measure-card"></div>
+        <div class="card col-5 reveal" id="photos-card"></div>
+      </div>
+
       <div class="bento">
         <div class="col-8">
           <div class="journey-rail reveal" id="journey-rail"></div>
@@ -378,7 +393,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=19"></script>
+  <script type="module" src="js/app.js?v=20"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {

@@ -47,6 +47,10 @@ export const DEFAULT_PROFILE = {
   moodLog: {},                // { 'YYYY-MM-DD': moodIndex }
   journalLog: {},             // { 'YYYY-MM-DD': note }
   checklistLog: {},           // { 'YYYY-MM-DD': [checkId] } — persisted Today checklist ticks
+  measureLog: {},             // { 'YYYY-MM-DD': { waist, chest, arm, thigh, weight } } cm/kg — body measurements
+  mealSwaps: {},              // { slot: altIndex } — chosen meal alternative per slot
+  groceryChecked: {},         // { itemKey: true } — ticked grocery items
+  deloadActive: false,        // manual deload week → ~half volume for recovery
 };
 
 /* ============================================================================
@@ -249,6 +253,14 @@ function skillFor(focus) {
   return { ladder: LADDERS.core, base: LADDERS.core.length - 2, range: [5, 12], tag: 'L-sit', timed: true };
 }
 
+// Periodic deload (recovery week) — suggested every ~6 training-weeks; user-toggled.
+export function deloadState(p) {
+  const weeks = trainingWeeks(p);
+  const suggested = weeks > 0 && weeks % 6 === 0;
+  const active = !!(p && p.deloadActive);
+  return { active, suggested, weeks, volumeMod: active ? 0.5 : 1 };
+}
+
 // Lung/breath level — WELLNESS layer; governs forceful-pranayama safety only.
 export function lungLevel(weeksElapsed, streakDays) {
   if (weeksElapsed >= 12 && streakDays >= 30) return 'peak';
@@ -419,6 +431,7 @@ export function generateWeek(p, now = Date.now()) {
   const grad = graduation(p);
   const baseIdx = grad.baseFloor;                  // graduation raises the rung floor (retires easy moves)
   const minIdx = grad.advanced ? 3 : 0;
+  const deload = deloadState(p);                   // recovery week → ~half volume
   const u = conditioningUnlocks(p, now);
   const splitStyle = resolveSplit(p);
   const focuses = SPLITS[splitStyle].focuses;
@@ -485,7 +498,7 @@ export function generateWeek(p, now = Date.now()) {
         : r.target;                                                  // hypertrophy day → the progression target
       return {
         pattern: k, exercise: r.exercise,
-        sets: Math.max(2, Math.round(sets * dial.volumeMod)),
+        sets: Math.max(2, Math.round(sets * dial.volumeMod * deload.volumeMod)),
         reps: k === 'core' ? `${repTarget}s` : `${repTarget} reps`,
         target: repTarget, range: r.range, rest: dial.rest,
         advanced: r.advanced, held: r.held, regressed: r.regressed, reason: r.reason,
@@ -576,22 +589,68 @@ export const BREATH_DETAIL = {
 /* ============================================================================
    §11  DIET DAY (pure lacto-veg, eggless default)   (unchanged)
    ========================================================================== */
-export function generateDietDay(p, m = macros(p)) {
+// Per-slot meal options (the swap pool) — pure lacto-veg, eggless by default.
+function mealOptions(p) {
   const veg = p.diet.vegan, egg = p.diet.allowEgg;
-  const meals = [
-    { meal: 'Breakfast', kcal: 560, protein: 32, accent: 'sky',
-      items: veg ? '2 besan chillas (spinach/onion); 150g soy yogurt; 250ml soy milk + 1 scoop pea protein'
-                 : '2 besan chillas (spinach/onion); 150g hung curd / Greek yogurt; 250ml milk' + (egg ? ' + 2 egg whites in batter' : '') },
-    { meal: 'Lunch', kcal: 720, protein: 45, accent: 'sage',
-      items: '1 bowl rajma / mixed dal (200g) + 30g soy chunks; 2 roti or 1 cup rice; salad' + (veg ? '' : ' + curd') },
-    { meal: 'Snack', kcal: 480, protein: 38, accent: 'clay',
-      items: `1 scoop ${veg ? 'pea+rice' : 'whey'} protein; 40g roasted chana; ${veg ? 'soy yogurt' : 'hung curd'} + veg sticks; 1 orange or guava (vitamin C)` },
-    { meal: 'Dinner', kcal: 640, protein: 40, accent: 'sky',
-      items: `150g ${veg ? 'tofu' : 'paneer / tofu'} sabzi; 1 bowl moong dal; 2 roti or millet; sautéed greens` },
-  ];
+  return {
+    Breakfast: [
+      { kcal: 560, protein: 32, accent: 'sky', items: veg ? '2 besan chillas (spinach/onion); 150g soy yogurt; 250ml soy milk + 1 scoop pea protein' : '2 besan chillas (spinach/onion); 150g hung curd / Greek yogurt; 250ml milk' + (egg ? ' + 2 egg whites' : '') },
+      { kcal: 540, protein: 34, accent: 'sky', items: `80g oats + 250ml ${veg ? 'soy ' : ''}milk + 1 scoop ${veg ? 'pea' : 'whey'} protein; 15g peanut butter; 1 banana` },
+      { kcal: 520, protein: 33, accent: 'sky', items: veg ? '200g tofu bhurji (onion/tomato/turmeric); 2 multigrain toast; 1 orange' : '200g paneer bhurji; 2 multigrain toast; 1 orange' },
+    ],
+    Lunch: [
+      { kcal: 720, protein: 45, accent: 'sage', items: '1 bowl rajma / mixed dal (200g) + 30g soy chunks; 2 roti or 1 cup rice; salad' + (veg ? '' : ' + curd') },
+      { kcal: 700, protein: 44, accent: 'sage', items: 'Chole (200g chickpeas) + 40g soy granules; 1 cup rice; cucumber-tomato salad' },
+      { kcal: 730, protein: 46, accent: 'sage', items: `150g ${veg ? 'tofu' : 'paneer'} + mixed-veg curry; 2 roti; 1 bowl dal; salad` },
+    ],
+    Snack: [
+      { kcal: 480, protein: 38, accent: 'clay', items: `1 scoop ${veg ? 'pea+rice' : 'whey'} protein; 40g roasted chana; ${veg ? 'soy yogurt' : 'hung curd'} + veg sticks; 1 orange or guava` },
+      { kcal: 460, protein: 36, accent: 'clay', items: `1 scoop ${veg ? 'pea' : 'whey'} shake; 2 multigrain toast + 20g peanut butter; handful almonds` },
+      { kcal: 470, protein: 34, accent: 'clay', items: 'Sprouts chaat (150g moong) + 1 boiled potato; 30g pumpkin seeds; green tea' },
+    ],
+    Dinner: [
+      { kcal: 640, protein: 40, accent: 'sky', items: `150g ${veg ? 'tofu' : 'paneer / tofu'} sabzi; 1 bowl moong dal; 2 roti or millet; sautéed greens` },
+      { kcal: 620, protein: 41, accent: 'sky', items: '40g soya-chunk curry; 1 bowl dal; 2 roti; stir-fried broccoli & beans' },
+      { kcal: 650, protein: 39, accent: 'sky', items: `${veg ? 'Tofu' : 'Paneer'} tikka (180g) + grilled veg; 1 bowl rajma; 1 roti` },
+    ],
+  };
+}
+export function generateDietDay(p, m = macros(p)) {
+  const opts = mealOptions(p);
+  const swaps = (p && p.mealSwaps) || {};
+  const meals = Object.keys(opts).map(slot => {
+    const list = opts[slot];
+    const idx = Math.min(Math.max(0, swaps[slot] || 0), list.length - 1);
+    return { meal: slot, slot, altIndex: idx, altCount: list.length, alternatives: list, ...list[idx] };
+  });
   const totalP = meals.reduce((s, x) => s + x.protein, 0);
   const totalK = meals.reduce((s, x) => s + x.kcal, 0);
   return { meals, totalProtein: totalP, totalKcal: totalK, target: m };
+}
+
+// Curated weekly grocery list (pure-veg / eggless aware), categorised + keyed.
+export function groceryList(p) {
+  const veg = p && p.diet && p.diet.vegan;
+  const cats = [
+    { cat: 'Protein', items: [veg ? 'Tofu (1 kg)' : 'Paneer + tofu (1 kg)', 'Soy chunks / granules (250g)', 'Rajma + chickpeas (500g ea)', 'Moong + mixed dal (1 kg)', `${veg ? 'Pea/rice' : 'Whey'} protein (tub)`, 'Roasted chana (250g)'] },
+    { cat: 'Grains', items: ['Atta / multigrain flour', 'Rice (1 kg)', 'Oats (500g)', 'Millet (500g)', 'Multigrain bread'] },
+    { cat: 'Veg & fruit', items: ['Spinach & leafy greens', 'Onion · tomato · cucumber', 'Broccoli + beans', 'Oranges / guava', 'Bananas'] },
+    { cat: veg ? 'Dairy-free' : 'Dairy', items: veg ? ['Soy milk (2 L)', 'Soy yogurt'] : ['Milk (2 L)', 'Hung curd / Greek yogurt'] },
+    { cat: 'Pantry & seeds', items: ['Peanut butter', 'Almonds + pumpkin/flax seeds', 'Ginger · garlic · turmeric', 'Green tea', 'Cooking oil'] },
+  ];
+  return cats.map(c => ({ cat: c.cat, items: c.items.map(label => ({ label, key: (c.cat + ':' + label).replace(/[^a-z0-9]+/gi, '_').toLowerCase() })) }));
+}
+
+// Plate calculator — greedy plates per side for a target total load, given bar + plate set.
+export function platePlan(total, barKg = 20, plates = [20, 15, 10, 5, 2.5, 1.25]) {
+  total = +total || 0; barKg = +barKg || 0;
+  if (total <= barKg) return { barKg, total, perSide: [], remainder: 0, belowBar: total < barKg };
+  let perSideKg = (total - barKg) / 2;
+  const perSide = [];
+  for (const pl of plates) {
+    while (perSideKg >= pl - 1e-9) { perSide.push(pl); perSideKg -= pl; }
+  }
+  return { barKg, total, perSide, remainder: +(perSideKg * 2).toFixed(2) };
 }
 export const LUNG_FOODS = ['Oranges & guava (vitamin C)', 'Spinach & leafy greens', 'Ginger & turmeric', 'Garlic & onion', 'Tomatoes (lycopene)', 'Green tea', 'Pumpkin & flax seeds (omega-3)', 'Berries (antioxidants)'];
 export const SUPPLEMENTS = [
@@ -787,6 +846,7 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
     level: tl.stage,                             // TRAINING level (performance-based)
     training: tl,
     graduation: graduation(p),                   // time/readiness phase → retires easy moves + adds skills
+    deload: deloadState(p),                      // recovery-week state
     aesthetic: aestheticBalance(p, exDb, now),
     milestones: { next: nextMilestone(p), achieved: achievedMilestones(p), all: MILESTONES },
     readiness: computeReadiness(p),

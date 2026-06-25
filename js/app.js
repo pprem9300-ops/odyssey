@@ -1,12 +1,12 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=5';
+import * as E from './engine.js?v=6';
 import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
-import { weightTrendSVG, weightDeltaLabel } from './chart.js?v=3';
+import { weightTrendSVG, weightDeltaLabel, barChartSVG, lineChartSVG } from './chart.js?v=4';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=4';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -70,10 +70,16 @@ function renderAll() {
   renderSleep();
   renderMood();
   renderWeek();
+  renderPeriodize();
+  renderPlate();
   renderMoves();
   renderLab();
   renderFuel();
+  renderGrocery();
+  renderMacroHistory();
   renderJourney();
+  renderMeasure();
+  renderPhotos();
   renderDisclaimers();
 }
 
@@ -358,11 +364,35 @@ function trainStats() {
   let sessions = 0, sets = 0, volume = 0, weekSets = 0;
   Object.keys(log).forEach((date) => {
     let daySets = 0;
-    Object.values(log[date]).forEach((arr) => arr.forEach((s) => { sets++; daySets++; volume += (s.reps || 0) * Math.max(s.weight || 0, 0); }));
+    Object.values(log[date]).forEach((arr) => arr.forEach((s) => { sets++; daySets++; volume += (s.reps || 0) * Math.max(s.weight || 0, 1); }));
     if (daySets) sessions++;
     if (recent.has(date)) weekSets += daySets;
   });
   return { sessions, sets, volume: Math.round(volume), weekSets };
+}
+/* weekly rep×load volume, last N 7-day buckets ending today */
+function weeklyVolume(weeksBack = 6) {
+  const log = wLog(), buckets = {};
+  Object.keys(log).forEach((date) => {
+    const ms = Date.parse(date + 'T00:00:00'); if (Number.isNaN(ms)) return;
+    const wk = Math.floor(ms / (7 * 864e5));
+    let vol = 0; Object.values(log[date]).forEach((arr) => arr.forEach((s) => { vol += (s.reps || 0) * Math.max(s.weight || 0, 1); }));
+    buckets[wk] = (buckets[wk] || 0) + vol;
+  });
+  const nowWk = Math.floor(Date.parse(todayISO() + 'T00:00:00') / (7 * 864e5));
+  const out = [];
+  for (let i = weeksBack - 1; i >= 0; i--) { const wk = nowWk - i; out.push({ label: i === 0 ? 'now' : i + 'w', value: Math.round(buckets[wk] || 0) }); }
+  return out;
+}
+/* the most-logged movement's performance curve (est-1RM if weighted, else top reps) */
+function topMovementSeries() {
+  const log = wLog(), counts = {};
+  Object.values(log).forEach((day) => Object.keys(day).forEach((n) => counts[n] = (counts[n] || 0) + 1));
+  const name = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  if (!name) return { name: null, values: [], labels: [] };
+  const sessions = exHistory(name).slice().reverse();   // oldest → newest
+  const values = sessions.map((s) => { let best = 0; s.sets.forEach((x) => { const v = (x.weight || 0) > 0 ? x.weight * (1 + (x.reps || 0) / 30) : (x.reps || 0); if (v > best) best = v; }); return Math.round(best * 10) / 10; });
+  return { name, values, labels: sessions.map((s) => fmtDate(s.date)) };
 }
 function allPRs() {
   const names = new Set();
@@ -377,12 +407,18 @@ function renderTrainingProgress() {
     return;
   }
   const prs = allPRs();
+  const vol = weeklyVolume(6);
+  const series = topMovementSeries();
   el.innerHTML = `
     <p class="eyebrow">Your training so far</p>
     <div class="bento" style="margin-top:14px">
       <div class="stat card col-4"><div class="k">Sessions</div><div class="val" data-count="${st.sessions}">0</div></div>
       <div class="stat card col-4"><div class="k">Sets logged</div><div class="val" data-count="${st.sets}">0</div></div>
-      <div class="stat card col-4"><div class="k">Volume · kg·reps</div><div class="val" data-count="${st.volume}">0</div></div>
+      <div class="stat card col-4"><div class="k">Volume · reps×load</div><div class="val" data-count="${st.volume}">0</div></div>
+    </div>
+    <div class="bento" style="margin-top:18px">
+      <div class="card col-7"><p class="eyebrow">Weekly volume · last 6 weeks</p><div style="margin-top:10px">${barChartSVG(vol, { accent: 'sage' })}</div></div>
+      <div class="card col-5"><p class="eyebrow">${series.name ? 'Progression · ' + series.name : 'Strength progression'}</p><div style="margin-top:10px">${series.values.length >= 2 ? lineChartSVG(series.values, { accent: 'clay', labels: series.labels }) : `<p style="color:var(--ink-faint);font-size:.85rem;margin-top:8px">Log a move across 2+ sessions to watch its curve climb.</p>`}</div></div>
     </div>
     ${prs.length ? `<div class="card" style="margin-top:18px"><p class="eyebrow">Personal records</p><div class="pr-list">${prs.map((p) => `<div class="pr-row"><span class="ex-link" data-ex="${escAttr(p.name)}">${p.name}</span><span class="mono" style="color:var(--clay-deep)">${setLabel(p.pr)}</span></div>`).join('')}</div></div>` : ''}
     <p class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:14px">${st.weekSets} set${st.weekSets === 1 ? '' : 's'} in the last 7 days</p>`;
@@ -447,13 +483,16 @@ function renderFuel() {
   $('#meal-list').innerHTML = diet.meals.map(meal => `
     <div class="meal-row meal-check" data-meal="${escAttr(meal.meal)}" data-protein="${meal.protein}">
       <div class="check-box">${svg(ICON.check, '#fff')}</div>
-      <div><div class="mname">${meal.meal}</div><div style="color:var(--ink-soft);font-size:.9rem;margin-top:4px">${meal.items}</div></div>
+      <div><div class="mname">${meal.meal}</div><div style="color:var(--ink-soft);font-size:.9rem;margin-top:4px">${meal.items}</div>
+        ${meal.altCount > 1 ? `<div class="meal-swaps">${meal.alternatives.map((alt, i) => `<button class="swap-chip${i === meal.altIndex ? ' on' : ''}" data-slot="${escAttr(meal.slot)}" data-i="${i}" title="${escAttr(alt.items)}">${i + 1}</button>`).join('')}<span class="swap-label mono">swap</span></div>` : ''}
+      </div>
       <div class="mmacros">${meal.kcal} kcal<br>${meal.protein}g P</div>
     </div>`).join('') +
     `<div style="display:flex;justify-content:space-between;padding-top:16px;font-family:var(--font-mono);font-size:.86rem">
       <span style="color:var(--ink-faint)">DAY TOTAL <span id="meal-logged" style="color:var(--sage-deep)"></span></span><span>${diet.totalKcal} kcal · ${diet.totalProtein}g protein</span></div>` +
     `<div style="margin-top:12px"><button class="mini-reset" id="meals-reset">↺ Reset today's meals</button></div>`;
   $$('#meal-list .meal-check').forEach(r => r.onclick = () => toggleMeal(r.dataset.meal));
+  $$('#meal-list .swap-chip').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); swapStore()[b.dataset.slot] = +b.dataset.i; save(); renderAll(); });
   const mr = $('#meals-reset'); if (mr) mr.onclick = () => { delete mealStore()[todayISO()]; save(); paintMeals(); };
   paintMeals();
 
@@ -628,6 +667,204 @@ function renderInsight() {
     <p class="lead" style="margin:8px 0 18px;font-size:1.05rem">${line.join(' ')}</p>
     <div class="insight-stats">${stats.map(s => `<div><div class="mono" style="font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-faint)">${s.k}</div><div style="font-family:var(--font-display);font-size:1.5rem;margin-top:3px">${s.v}</div></div>`).join('')}</div>
   </div>`;
+}
+
+/* ============================================================================
+   PERIODIZATION — equipment unlocks + deload week
+   ========================================================================== */
+function renderPeriodize() {
+  const el = $('#periodize'); if (!el) return;
+  const eq = profile.equipment || {};
+  const d = plan.deload;
+  const eqs = [['bar', 'Pull-up bar'], ['bands', 'Resistance bands'], ['weights', 'Weights / vest']];
+  el.innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap">
+      <p class="eyebrow">Equipment · unlocks harder progressions</p>
+      <span class="mono" style="font-size:.72rem;color:var(--ink-faint)">tap to toggle</span>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px">
+      ${eqs.map(([k, label]) => `<button class="chip eq-chip${eq[k] ? ' is-on' : ''}" data-eq="${k}">${eq[k] ? '✓ ' : ''}${label}</button>`).join('')}
+    </div>
+    <div class="deload-row">
+      <div><p class="eyebrow">Deload week · planned recovery</p>
+        <p style="font-size:.86rem;color:var(--ink-soft);margin-top:6px;max-width:440px">${d.active ? 'Deload ON — volume cut ~50% this week. Same moves, fewer sets, full recovery; come back stronger.' : (d.suggested ? `You've trained ${d.weeks} weeks — a deload is due. Take a week at half volume to recover and supercompensate.` : `Auto-suggested every ~6 training weeks${d.weeks ? ` (you're at ${d.weeks})` : ''}. Use it when joints or energy feel beat up.`)}</p></div>
+      <button class="btn ${d.active ? 'btn--clay' : 'btn--ghost'} magnetic" id="deload-toggle" style="padding:11px 18px;white-space:nowrap">${d.active ? 'End deload' : 'Start deload'}</button>
+    </div>
+  </div>`;
+  $$('#periodize .eq-chip').forEach(b => b.onclick = () => { const k = b.dataset.eq; profile.equipment = { ...(profile.equipment || {}), [k]: !(profile.equipment || {})[k] }; save(); renderAll(); });
+  $('#deload-toggle').onclick = () => { profile.deloadActive = !profile.deloadActive; save(); renderAll(); };
+}
+
+/* ---- Plate calculator --------------------------------------------------- */
+let plateTarget = 40;
+function renderPlate() {
+  const el = $('#plate-card'); if (!el) return;
+  el.innerHTML = `<div class="card">
+    <p class="eyebrow">Plate calculator · for weighted progressions</p>
+    <div class="plate-in">
+      <label>Target load <input id="plate-total" type="number" inputmode="decimal" min="0" step="1.25" value="${plateTarget}"> kg</label>
+      <label>Bar <input id="plate-bar" type="number" inputmode="decimal" min="0" step="1" value="20"> kg</label>
+    </div>
+    <div id="plate-out" style="margin-top:16px"></div>
+  </div>`;
+  const draw = () => {
+    const total = +$('#plate-total').value || 0, bar = +$('#plate-bar').value || 0;
+    plateTarget = total;
+    const r = E.platePlan(total, bar);
+    const out = $('#plate-out');
+    if (r.belowBar) { out.innerHTML = `<p style="color:var(--ink-faint);font-size:.9rem">Target is below the bar weight.</p>`; return; }
+    const sideKg = r.perSide.reduce((a, b) => a + b, 0);
+    const chips = r.perSide.length ? r.perSide.map(p => `<span class="plate-chip">${p}</span>`).join('') : '<span style="color:var(--ink-faint)">just the bar</span>';
+    out.innerHTML = `<div class="plate-side"><span class="mono" style="color:var(--ink-faint);font-size:.74rem">PER SIDE</span><div class="plate-chips">${chips}</div></div>
+      <p class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:10px">${bar} + ${sideKg}×2 = <strong style="color:var(--ink)">${bar + sideKg * 2} kg</strong>${r.remainder ? ` · ${r.remainder} kg short with standard plates` : ''}</p>`;
+  };
+  $('#plate-total').oninput = draw; $('#plate-bar').oninput = draw; draw();
+}
+
+/* ============================================================================
+   NUTRITION — grocery list + macro history (meal swaps are in renderFuel)
+   ========================================================================== */
+function swapStore() { profile.mealSwaps = profile.mealSwaps || {}; return profile.mealSwaps; }
+function groceryCheckStore() { profile.groceryChecked = profile.groceryChecked || {}; return profile.groceryChecked; }
+function groceryDone(list) { const c = groceryCheckStore(); return list.reduce((s, cat) => s + cat.items.filter(i => c[i.key]).length, 0); }
+function renderGrocery() {
+  const el = $('#grocery-card'); if (!el) return;
+  const list = E.groceryList(profile);
+  const checked = groceryCheckStore();
+  const total = list.reduce((s, c) => s + c.items.length, 0);
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <p class="eyebrow" style="color:var(--sage-deep)">Grocery list · this week's plan</p>
+      <span class="mono" style="font-size:.74rem;color:var(--ink-faint)"><span id="groc-done">${groceryDone(list)}</span>/${total}</span>
+    </div>
+    <div class="groc-cats">${list.map(c => `
+      <div class="groc-cat"><div class="groc-h mono">${c.cat}</div>
+        ${c.items.map(i => `<button class="groc-item${checked[i.key] ? ' on' : ''}" data-k="${i.key}"><span class="groc-box">${svg(ICON.check, '#fff')}</span><span>${i.label}</span></button>`).join('')}
+      </div>`).join('')}</div>
+    <button class="mini-reset" id="groc-reset" style="margin-top:14px">↺ Uncheck all</button>`;
+  $$('#grocery-card .groc-item').forEach(b => b.onclick = () => {
+    const k = b.dataset.k; const c = groceryCheckStore(); if (c[k]) delete c[k]; else c[k] = true; save();
+    b.classList.toggle('on'); $('#groc-done').textContent = groceryDone(list);
+  });
+  $('#groc-reset').onclick = () => { profile.groceryChecked = {}; save(); renderGrocery(); };
+}
+function renderMacroHistory() {
+  const el = $('#macro-history-card'); if (!el) return;
+  const target = plan.macros.protein_g;
+  const days = []; for (let i = 9; i >= 0; i--) days.push(isoMinus(i));
+  const diet = plan.diet;
+  const proteinFor = (date) => { const eaten = new Set(mealStore()[date] || []); return diet.meals.reduce((s, m) => s + (eaten.has(m.meal) ? m.protein : 0), 0); };
+  const vals = days.map(proteinFor);
+  const max = Math.max(target, ...vals, 1);
+  const bars = days.map((d, i) => { const v = vals[i]; const h = Math.max(3, (v / max) * 100); return `<div class="mh-col" title="${d}: ${v}g protein"><div class="mh-bar ${v >= target * 0.9 ? 'hit' : ''}" style="height:${h}%"></div><span class="mh-x mono">${d.slice(8)}</span></div>`; }).join('');
+  const loggedVals = vals.filter(v => v > 0);
+  const avg = loggedVals.length ? Math.round(loggedVals.reduce((a, b) => a + b, 0) / loggedVals.length) : 0;
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <p class="eyebrow">Protein logged · last 10 days</p>
+      <span class="mono" style="font-size:.74rem;color:var(--ink-faint)">target ${target}g</span>
+    </div>
+    <div class="mh-chart" style="--mh-target:${100 - (target / max) * 100}%">${bars}</div>
+    <p class="mono" style="font-size:.78rem;color:var(--ink-faint);margin-top:10px">Avg on logged days: <strong style="color:var(--ink)">${avg}g</strong> · tick meals in the list to log intake</p>`;
+}
+
+/* ============================================================================
+   WELLNESS — body measurements + progress photos (photos local-only)
+   ========================================================================== */
+const MEASURES = [['waist', 'Waist', 'cm'], ['chest', 'Chest', 'cm'], ['arm', 'Arm', 'cm'], ['thigh', 'Thigh', 'cm'], ['weight', 'Weight', 'kg']];
+function measureStore() { profile.measureLog = profile.measureLog || {}; return profile.measureLog; }
+function latestMeasure() {
+  const log = measureStore(); const dates = Object.keys(log).sort();
+  if (!dates.length) return null;
+  return { date: dates[dates.length - 1], v: log[dates[dates.length - 1]], prev: dates.length > 1 ? log[dates[dates.length - 2]] : null };
+}
+function renderMeasure() {
+  const el = $('#measure-card'); if (!el) return;
+  const latest = latestMeasure();
+  const v = (latest && latest.v) || {}, prev = (latest && latest.prev) || {};
+  const rows = MEASURES.map(([k, label, unit]) => {
+    const cur = v[k], pv = prev[k];
+    const delta = (cur != null && pv != null) ? +(cur - pv).toFixed(1) : null;
+    // for waist, down is good; for everything else, up is good
+    const good = delta == null ? '' : (k === 'waist' ? (delta <= 0 ? 'good' : 'bad') : (delta >= 0 ? 'good' : 'bad'));
+    const dStr = delta == null ? '' : `<span class="m-delta ${good}">${delta > 0 ? '+' : ''}${delta}</span>`;
+    return `<div class="m-row"><span class="m-k">${label}</span><input class="m-in" type="number" inputmode="decimal" data-k="${k}" placeholder="—" value="${cur != null ? cur : ''}"><span class="m-u mono">${unit}</span>${dStr}</div>`;
+  }).join('');
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <p class="eyebrow" style="color:var(--lilac-deep)">Body measurements · the mirror, not the scale</p>
+      ${latest ? `<span class="mono" style="font-size:.72rem;color:var(--ink-faint)">last ${fmtDate(latest.date)}</span>` : ''}
+    </div>
+    <div class="m-grid">${rows}</div>
+    <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn--clay magnetic" id="measure-save" style="padding:11px 18px">Log today</button>
+      ${latest ? `<button class="mini-reset" id="measure-del">↺ Delete last entry</button>` : ''}
+    </div>
+    <p style="font-size:.78rem;color:var(--ink-faint);margin-top:12px;line-height:1.5">Waist down + chest/arms up = the V-taper sharpening. The shoulder-to-waist ratio is the aesthetic anchor — track it monthly.</p>`;
+  $('#measure-save').onclick = () => {
+    const entry = {}; $$('#measure-card .m-in').forEach(i => { if (i.value !== '') entry[i.dataset.k] = +i.value; });
+    if (!Object.keys(entry).length) return;
+    measureStore()[todayISO()] = entry;
+    if (entry.weight) { adjustWeightTo(entry.weight); }
+    save(); recompute(); renderAll();
+  };
+  const del = $('#measure-del'); if (del) del.onclick = () => { const log = measureStore(); const dates = Object.keys(log).sort(); if (dates.length) { delete log[dates[dates.length - 1]]; save(); recompute(); renderAll(); } };
+}
+function adjustWeightTo(kg) {
+  profile.currentWeight = Math.max(40, Math.min(110, +kg));
+  const t = todayISO();
+  profile.weightHistory = (profile.weightHistory || []).filter(e => e.date !== t);
+  profile.weightHistory.push({ date: t, kg: profile.currentWeight });
+}
+
+const PHOTO_KEY = 'odyssey.photos.v1';
+function loadPhotos() { try { return JSON.parse(localStorage.getItem(PHOTO_KEY)) || []; } catch (_) { return []; } }
+function savePhotos(arr) { try { localStorage.setItem(PHOTO_KEY, JSON.stringify(arr)); return true; } catch (e) { alert('Photo storage is full — delete some older photos first.'); return false; } }
+let photoSel = [];
+function renderPhotos() {
+  const el = $('#photos-card'); if (!el) return;
+  const photos = loadPhotos();
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+      <p class="eyebrow">Progress photos · on-device only</p>
+      <span class="mono" style="font-size:.72rem;color:var(--ink-faint)">${photos.length}</span>
+    </div>
+    <label class="photo-add" for="photo-input">+ Add photo</label>
+    <input id="photo-input" type="file" accept="image/*" style="display:none">
+    <div class="photo-grid" id="photo-grid">${photos.length ? photos.map((p, i) => `<div class="photo-cell${photoSel.includes(i) ? ' sel' : ''}" data-i="${i}"><img src="${p.data}" alt="${p.date}" loading="lazy"><span class="photo-date mono">${fmtDate(p.date)}</span><button class="photo-del" data-del="${i}" aria-label="Delete photo">×</button></div>`).join('') : `<p style="color:var(--ink-faint);font-size:.86rem;grid-column:1/-1;line-height:1.5">No photos yet. Same pose · same light · monthly. Stored only on this device (not synced).</p>`}</div>
+    ${photos.length >= 2 ? `<p class="mono" style="font-size:.72rem;color:var(--ink-faint);margin-top:10px">Tap two to compare ${photoSel.length === 2 ? '· <button class="mini-reset" id="photo-clear">clear</button>' : ''}</p>` : ''}
+    <div id="photo-compare"></div>`;
+  $('#photo-input').onchange = (e) => { const f = e.target.files && e.target.files[0]; if (f) addPhoto(f); };
+  $$('#photos-card .photo-cell').forEach(c => c.onclick = (ev) => {
+    if (ev.target.dataset.del != null) return;
+    const i = +c.dataset.i;
+    photoSel = photoSel.includes(i) ? photoSel.filter(x => x !== i) : [...photoSel, i].slice(-2);
+    renderPhotos();
+  });
+  $$('#photos-card .photo-del').forEach(b => b.onclick = (ev) => { ev.stopPropagation(); const i = +b.dataset.del; const arr = loadPhotos(); arr.splice(i, 1); savePhotos(arr); photoSel = []; renderPhotos(); });
+  const clear = $('#photo-clear'); if (clear) clear.onclick = () => { photoSel = []; renderPhotos(); };
+  if (photoSel.length === 2) {
+    const a = photos[photoSel[0]], b = photos[photoSel[1]];
+    if (a && b) $('#photo-compare').innerHTML = `<div class="photo-cmp"><figure><img src="${a.data}"><figcaption class="mono">${fmtDate(a.date)}</figcaption></figure><figure><img src="${b.data}"><figcaption class="mono">${fmtDate(b.date)}</figcaption></figure></div>`;
+  }
+}
+function addPhoto(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    const img = new Image();
+    img.onload = () => {
+      const max = 720; let w = img.width, h = img.height;
+      if (w > h && w > max) { h = h * max / w; w = max; } else if (h > max) { w = w * max / h; h = max; }
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(img, 0, 0, w, h);
+      const data = c.toDataURL('image/jpeg', 0.7);
+      const arr = loadPhotos(); arr.push({ date: todayISO(), data });
+      while (arr.length > 30) arr.shift();          // cap local storage
+      if (savePhotos(arr)) renderPhotos();
+    };
+    img.src = reader.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 /* ---- Moves library + exercise detail ------------------------------------ */
