@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v28';  // bumped: D29 — bug-scan fixes (scroll-trigger lifecycle · engine guards · new-device data-loss · ACWR/eta/lung-id)
+const CACHE = 'odyssey-v29';  // bumped: D30 — cloud-sync merge (union dated logs + recency for settings; equipment/mealSwaps union) → no more last-writer-wins data loss
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

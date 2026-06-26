@@ -55,6 +55,70 @@ export const DEFAULT_PROFILE = {
 };
 
 /* ============================================================================
+   §0b  CLOUD MERGE — converge two devices instead of last-writer-wins.
+   Pure + node-testable. UNION the dated logs (so per-date entries from BOTH
+   devices survive) + RECENCY (profile.updatedAt) for the scalar settings.
+   Used by app.syncPull. Commutative/idempotent on the log data → devices
+   converge after a round-trip. (streakDays/weeksElapsed are re-derived from the
+   merged cleanDates by the caller, since computeStreak lives in app.js.)
+   ========================================================================== */
+const _ts = (p) => (p && p.updatedAt) || '';
+const _arr = (x) => (Array.isArray(x) ? x : []);
+const _byDate = (x, y) => ((x.date || '') < (y.date || '') ? -1 : (x.date || '') > (y.date || '') ? 1 : 0);
+function _unionArr(a, b) {                          // de-duped union of two plain arrays (e.g. cleanDates, meal names)
+  const out = [..._arr(a)], seen = new Set(out.map(String));
+  _arr(b).forEach((x) => { const k = String(x); if (!seen.has(k)) { seen.add(k); out.push(x); } });
+  return out;
+}
+function _unionByDate(olderArr, newerArr) {         // [{date,…}] → one entry per date; newer side wins a same-date clash
+  const m = new Map();
+  _arr(olderArr).forEach((e) => { if (e && e.date) m.set(e.date, e); });
+  _arr(newerArr).forEach((e) => { if (e && e.date) m.set(e.date, e); });
+  return [...m.values()].sort(_byDate);
+}
+// date-keyed object logs and how a same-date collision resolves
+const _DATE_OBJ = { workoutLog: 'deep', waterLog: 'newer', mealLog: 'arrayUnion', moodLog: 'newer', journalLog: 'newer', checklistLog: 'arrayUnion', measureLog: 'newer' };
+
+export function mergeState(local, remote) {
+  if (!remote || typeof remote !== 'object') return local;
+  if (!local || typeof local !== 'object') return remote;
+  const localNewer = _ts(local) >= _ts(remote);
+  const newer = localNewer ? local : remote;       // scalar settings come from here
+  const older = localNewer ? remote : local;
+  const out = { ...older, ...newer };               // settings/scalars: newer side wins
+
+  // date-keyed OBJECT logs → union dates so neither device's entries are lost
+  for (const key in _DATE_OBJ) {
+    const a = (older && older[key]) || {}, b = (newer && newer[key]) || {};
+    const mode = _DATE_OBJ[key], merged = { ...a };
+    for (const date in b) {
+      if (!(date in merged)) { merged[date] = b[date]; continue; }   // only on the newer side → keep
+      if (mode === 'arrayUnion') merged[date] = _unionArr(a[date], b[date]);
+      else if (mode === 'deep') merged[date] = { ...(a[date] || {}), ...(b[date] || {}) };  // union exercises; same ex+date → newer
+      else merged[date] = b[date];                                   // 'newer' scalar/object per date
+    }
+    out[key] = merged;
+  }
+  out.groceryChecked = { ...(local.groceryChecked || {}), ...(remote.groceryChecked || {}) };  // OR-union (ticked on either = ticked)
+  out.mealSwaps = { ...(older.mealSwaps || {}), ...(newer.mealSwaps || {}) };                    // per-slot map — a swap picked on either device survives (newer wins a same-slot clash)
+  { const le = local.equipment || {}, re = remote.equipment || {}, eq = {};                      // equipment = gear you own → OR-union (toggling a piece ON always survives a cross-device sync)
+    new Set([...Object.keys(le), ...Object.keys(re)]).forEach((k) => { eq[k] = !!(le[k] || re[k]); }); out.equipment = eq; }
+
+  // dated ARRAYS → union by date
+  out.cleanDates = _unionArr(local.cleanDates, remote.cleanDates).sort();
+  out.weightHistory = _unionByDate(older.weightHistory, newer.weightHistory);
+  out.sleepLog = _unionByDate(older.sleepLog, newer.sleepLog);
+  // photoLog: concat + dedup by image data, keep the last 12 by date
+  const seen = new Set(), photos = [];
+  [..._arr(local.photoLog), ..._arr(remote.photoLog)].forEach((p) => { if (p && p.data && !seen.has(p.data)) { seen.add(p.data); photos.push(p); } });
+  out.photoLog = photos.sort(_byDate).slice(-12);
+
+  if (out.weightHistory.length) out.currentWeight = out.weightHistory[out.weightHistory.length - 1].kg;  // latest weigh-in beats the scalar
+  out.updatedAt = _ts(newer) || _ts(older) || '';
+  return out;
+}
+
+/* ============================================================================
    §1  BMR → TDEE → GOAL → CALORIES & MACROS   (unchanged nutrition brain)
    ========================================================================== */
 export function bmr(p) {

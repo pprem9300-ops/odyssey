@@ -1,7 +1,7 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=9';
+import * as E from './engine.js?v=10';
 import * as M from './motion.js?v=14';
 import * as Cloud from './cloud.js?v=5';
 import { initGate } from './gate.js?v=7';
@@ -33,13 +33,13 @@ let profile = load();
 let plan = E.computePlan(profile, EXERCISE_DB);
 let doneToday = new Set();
 let selectedBreath = 'Diaphragmatic';
-let pacer = null, sosPacer = null, restInterval = null;
+let pacer = null, sosPacer = null, restInterval = null, openExName = null;
 
 function load() {
   try { const s = JSON.parse(localStorage.getItem(STORE)); if (s) return { ...E.DEFAULT_PROFILE, ...s }; } catch (_) {}
   return { ...E.DEFAULT_PROFILE };
 }
-function save() { localStorage.setItem(STORE, JSON.stringify(profile)); Cloud.pushDebounced(profile); }
+function save() { profile.updatedAt = new Date().toISOString(); localStorage.setItem(STORE, JSON.stringify(profile)); Cloud.pushDebounced(profile); }
 function recompute() { plan = E.computePlan(profile, EXERCISE_DB); }
 
 /* ---- Today checklist persistence (per-date, persisted + synced) --------- */
@@ -952,6 +952,7 @@ function saveExerciseLog(name, sets) {
 function openExerciseDetail(name) {
   const e = EXERCISE_DB[name];
   if (!e) return;
+  openExName = name;            // track the open move so a syncPull can refresh this modal (no stale-Save clobber)
   const level = plan.level;
   const reps = (e.repRange && e.repRange[level]) || (e.repRange && (e.repRange.foundation || e.repRange.build || e.repRange.peak)) || '—';
   const rest = e.restGuidance ? e.restGuidance.split('.')[0] : (E.SPEED_DIAL[plan.effectiveMode] || {}).rest || '—';
@@ -1230,8 +1231,12 @@ async function syncPull() {
   const remote = await Cloud.pull();
   const hadRemote = !!(remote && typeof remote === 'object');
   if (hadRemote) {
-    profile = { ...E.DEFAULT_PROFILE, ...remote };
-    save(); recompute(); renderAll();
+    const merged = E.mergeState(profile, remote);             // union dated logs + recency for settings → no last-writer-wins loss
+    profile = { ...E.DEFAULT_PROFILE, ...merged };
+    profile.streakDays = computeStreak(profile.cleanDates);   // re-derive the streak from the unioned clean days
+    profile.weeksElapsed = Math.floor(profile.streakDays / 7);
+    save(); recompute(); renderAll();                         // save() pushes the merged result so both devices converge
+    if (openExName && $('#ex-modal').classList.contains('on')) openExerciseDetail(openExName);  // refresh an open move modal so a stale Save can't clobber just-merged sets
   } else {
     Cloud.pushDebounced(profile);            // first device seeds the cloud
   }
@@ -1347,7 +1352,7 @@ function enterApp() {
   $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); M.lenisStop(); };
 
   // exercise detail modal
-  const closeEx = () => { $('#ex-modal').classList.remove('on'); M.lenisStart(); M.refreshScrollTriggers(); clearInterval(restInterval); restInterval = null; };
+  const closeEx = () => { $('#ex-modal').classList.remove('on'); openExName = null; M.lenisStart(); M.refreshScrollTriggers(); clearInterval(restInterval); restInterval = null; };
   $('#ex-close').onclick = closeEx;
   $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') closeEx(); };
 
