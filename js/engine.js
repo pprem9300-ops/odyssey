@@ -702,7 +702,7 @@ export function achievedMilestones(p) {
    §13  SLEEP → READINESS  (autoregulates today's intensity)
    ========================================================================== */
 export function computeReadiness(profile, now = Date.now()) {
-  const log = (profile.sleepLog || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+  const log = (profile.sleepLog || []).filter((e) => e && e.date).slice().sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first; skip null/dateless
   const last = log[0];
   if (!last) return { score: null, band: 'unknown', advice: 'Log last night’s sleep to get today’s readiness — it tunes how hard to push.', lastNight: null, factors: {} };
 
@@ -852,12 +852,14 @@ export function trainingLoad(p, now = Date.now()) {
   const dayVol = (date) => { const d = log[date]; if (!d) return 0; let v = 0; Object.values(d).forEach(arr => arr.forEach(s => v += (s.reps || 0) * Math.max(s.weight || 0, 1))); return v; };
   const sumWindow = (days) => { let v = 0; for (let i = 0; i < days; i++) v += dayVol(isoFromMs(now - i * DAY_MS)); return v; };
   const acute = sumWindow(7);
-  const chronicWeekly = sumWindow(28) / 4;
+  const chronic28 = sumWindow(28);
+  const chronicWeekly = chronic28 / 4;
   const acwr = chronicWeekly > 0 ? +(acute / chronicWeekly).toFixed(2) : (acute > 0 ? null : 0);
+  const hasBase = (chronic28 - acute) > 0;   // training older than the acute week exists → ACWR is meaningful (no cold-start "spiking" on session one)
   let band = 'none', flag = '';
   if (acute || chronicWeekly) {
-    if (acwr != null && acwr > 1.5) { band = 'high'; flag = 'Training load is spiking — you’re ramping volume fast. Watch the joints; a lighter day or a deload cuts injury risk.'; }
-    else if (acwr != null && acwr < 0.8 && chronicWeekly > 0) { band = 'low'; flag = 'Training load is dropping — detraining creeps in. Add a session to hold your gains.'; }
+    if (hasBase && acwr != null && acwr > 1.5) { band = 'high'; flag = 'Training load is spiking — you’re ramping volume fast. Watch the joints; a lighter day or a deload cuts injury risk.'; }
+    else if (hasBase && acwr != null && acwr < 0.8 && chronicWeekly > 0) { band = 'low'; flag = 'Training load is dropping — detraining creeps in. Add a session to hold your gains.'; }
     else { band = 'optimal'; flag = 'Training load is in the sweet spot — progressing without overreaching.'; }
   }
   return { acute: Math.round(acute), chronicWeekly: Math.round(chronicWeekly), acwr, band, flag };
@@ -972,12 +974,14 @@ function dailyFocus(p, x, now) {
    ========================================================================== */
 export function computePlan(profile, exDb = {}, now = Date.now()) {
   const p = { ...DEFAULT_PROFILE, ...profile };
+  p.smoking = { ...DEFAULT_PROFILE.smoking, ...(p.smoking || {}) };   // fill nested defaults so a partial/old synced profile can't NaN or throw
+  p.diet = { ...DEFAULT_PROFILE.diet, ...(p.diet || {}) };
   const effMode = resolveMode(p);
   const m = macros(p, effMode);
   const cigsAvoided = Math.round(p.streakDays * p.smoking.baselineCigsPerDay);
   const moneySaved = Math.round(cigsAvoided * p.smoking.costPerCig);
   const weightToGo = +(targetOf(p) - p.currentWeight).toFixed(1);
-  const weeksToTarget = weightToGo > 0 ? Math.ceil(weightToGo / 0.35) : 0;
+  const weeksToTarget = Math.abs(weightToGo) > 0 ? Math.ceil(Math.abs(weightToGo) / 0.35) : 0;   // abs → cutters (target < weight) don't show "0 weeks"
   const tl = trainingLevel(p);
   // intelligence layer (assemble once, share across the plan + the coach)
   const aesthetic = aestheticBalance(p, exDb, now);

@@ -123,7 +123,7 @@ export function initGate(onEnter) {
     code.focus();
     const submit = async () => {
       const token = code.value.replace(/\D/g, '');
-      if (token.length < 8) { setStatus('Enter the 8-digit code.', 'err'); return; }
+      if (token.length !== 8) { setStatus('Enter the 8-digit code.', 'err'); return; }
       setStatus('Verifying…');
       $('#gate-verify').disabled = true;
       try {

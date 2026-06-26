@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v27';  // bumped: D27.2 — login gate accepts the 8-digit Supabase OTP (was capped at 6)
+const CACHE = 'odyssey-v28';  // bumped: D29 — bug-scan fixes (scroll-trigger lifecycle · engine guards · new-device data-loss · ACWR/eta/lung-id)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

@@ -159,16 +159,7 @@ export function initHero() {
   if (RM) { items.forEach((e) => e.classList.add('in')); if (h1) h1.querySelectorAll('.ln').forEach((l) => l.classList.add('in')); return; }
   items.forEach((e) => { const d = parseInt(e.dataset.d || 0, 10); setTimeout(() => e.classList.add('in'), 90 + d * 110); });
   if (h1) requestAnimationFrame(() => h1.querySelectorAll('.ln').forEach((l) => l.classList.add('in')));
-  heroParallax(hero);
-}
-function heroParallax(hero) {
-  if (!gsap || !ScrollTrigger || RM || isMobile() || coarse()) return;
-  const inner = hero.querySelector('.hero-inner');
-  const aura  = hero.querySelector('.hero-aura');
-  const hint  = hero.querySelector('.scroll-hint');
-  if (inner) gsap.to(inner, { yPercent: 14, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });
-  if (aura)  gsap.to(aura,  { yPercent: -30, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 1 } });
-  if (hint)  gsap.to(hint,  { autoAlpha: 0, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: '32% top', scrub: true } });
+  // hero parallax lives in initViewScroll('landing') now, so it reverts + resets when you leave the landing view
 }
 
 /* ============================================================================
@@ -276,15 +267,23 @@ let viewMM = null;
 const DESKTOP = '(min-width: 769px)';
 export function initViewScroll(name) {
   if (!gsap || !ScrollTrigger || RM) return;
-  if (viewMM) { viewMM.revert(); viewMM = null; }     // tear down the previous view's triggers
+  if (viewMM) { viewMM.revert(); viewMM = null; }     // tear down the previous view's pins/parallax (revert also resets inline transforms)
+  if (name !== 'journey') ScrollTrigger.getAll().forEach((t) => { if (t.vars && t.vars.id === 'journey') t.kill(); });  // drop the journey spine on leave
   const view = document.getElementById('view-' + name);
-  if (!view) return;
+  if (!view) { ScrollTrigger.refresh(); return; }
   const q = (sel) => view.querySelector(sel);
   const parallax = (el, amt) => { if (el) gsap.fromTo(el, { yPercent: amt }, { yPercent: -amt, ease: 'none',
     scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.8 } }); };
   viewMM = gsap.matchMedia();
 
-  if (name === 'lab') {
+  if (name === 'landing') {                            // hero parallax — desktop only, in viewMM so it reverts + resets on leave
+    viewMM.add(DESKTOP, () => {
+      const hero = q('.hero'), inner = q('.hero-inner'), aura = q('.hero-aura'), hint = q('.scroll-hint');
+      if (inner) gsap.to(inner, { yPercent: 14, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 0.6 } });
+      if (aura)  gsap.to(aura,  { yPercent: -30, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: 1 } });
+      if (hint)  gsap.to(hint,  { autoAlpha: 0, ease: 'none', scrollTrigger: { trigger: hero, start: 'top top', end: '32% top', scrub: true } });
+    });
+  } else if (name === 'lab') {
     const hero = q('.lab-hero'), lungs = q('#lungs-mount');
     if (hero && lungs) {
       viewMM.add(DESKTOP, () => {                       // pin the hero, scrub the lungs alive (grey→oxygenated scale)

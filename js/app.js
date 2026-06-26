@@ -1,10 +1,10 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=8';
-import * as M from './motion.js?v=13';
+import * as E from './engine.js?v=9';
+import * as M from './motion.js?v=14';
 import * as Cloud from './cloud.js?v=5';
-import { initGate } from './gate.js?v=6';
+import { initGate } from './gate.js?v=7';
 import { openCalibration } from './onboard.js?v=3';
 import { weightTrendSVG, weightDeltaLabel, barChartSVG, lineChartSVG } from './chart.js?v=5';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=4';
@@ -82,9 +82,6 @@ function renderAll() {
   renderMeasure();
   renderPhotos();
   renderDisclaimers();
-  // rebuild the active view's bespoke scroll moments on fresh DOM (re-render-safe)
-  const _av = document.querySelector('.view.is-active');
-  if (_av && ['lab', 'week', 'fuel'].includes(_av.dataset.view)) M.initViewScroll(_av.dataset.view);
 }
 
 function renderNav() {
@@ -120,7 +117,7 @@ function renderCockpit() {
     { ic: 'protein', c: 'sage', k: 'Protein', v: m.protein_g, sm: 'g', sub: `${m.proteinPerFeeding_g}g × ${m.feedings} feeds` },
     { ic: 'target', c: 'sage', k: `Weight → ${p.target}kg`, v: s.weightToGo, sm: 'kg', sub: `~${s.etaWeeks} wks ${s.etaFromTrend ? 'at your current pace' : 'at a healthy pace'}`, weight: true },
     { ic: 'cig', c: 'sky', k: 'Cigarettes avoided', v: s.cigsAvoided, sm: '', sub: 'since day one' },
-    { ic: 'coin', c: 'clay', k: 'Money saved', v: s.moneySaved, sm: '₹', sub: `~₹${profile.smoking.baselineCigsPerDay * profile.smoking.costPerCig}/day`, money: true },
+    { ic: 'coin', c: 'clay', k: 'Money saved', v: s.moneySaved, sm: '₹', sub: `~₹${p.profile.smoking.baselineCigsPerDay * p.profile.smoking.costPerCig}/day`, money: true },
     { ic: 'level', c: 'sky', k: 'Lung level', v: cap(p.lung.level), sm: '', sub: `${p.lung.techniques.length} techniques unlocked`, txt: true },
   ];
   $('#stat-cards').innerHTML = cards.map(c => `
@@ -1093,21 +1090,23 @@ function adjustTarget(delta) {
   profile.targetWeight = Math.max(45, Math.min(120, Math.round(cur + delta)));
   save(); recompute(); renderAll();
 }
+let lungUid = 0;
 function lungsSVG(rec) {
   const f = 0.18 + (rec / 100) * 0.60;            // recovery → fill opacity
   const f2 = Math.min(0.9, f + 0.12);
+  const gid = 'lung' + (++lungUid);               // unique gradient ids — no collision if two lung SVGs ever co-exist
   return `<svg class="lungs-svg" viewBox="0 0 320 372" fill="none" role="img" aria-label="${rec}% lung recovery">
     <defs>
-      <linearGradient id="lobeFill" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="${gid}-lobe" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0" stop-color="var(--sky)" stop-opacity="${f}"/>
         <stop offset="1" stop-color="var(--sage)" stop-opacity="${f2}"/>
       </linearGradient>
-      <radialGradient id="aura" cx="50%" cy="46%" r="58%">
+      <radialGradient id="${gid}-aura" cx="50%" cy="46%" r="58%">
         <stop offset="0" stop-color="var(--sky)" stop-opacity="${(0.08 + f * 0.12).toFixed(3)}"/>
         <stop offset="1" stop-color="var(--sky)" stop-opacity="0"/>
       </radialGradient>
     </defs>
-    <ellipse cx="160" cy="196" rx="150" ry="152" fill="url(#aura)"/>
+    <ellipse cx="160" cy="196" rx="150" ry="152" fill="url(#${gid}-aura)"/>
     <!-- trachea -->
     <path class="lung-airway" d="M160 30 L160 100" stroke="var(--ink-soft)" stroke-width="9" stroke-linecap="round"/>
     <!-- bronchial tree: carina → main → lobar → segmental -->
@@ -1117,7 +1116,7 @@ function lungsSVG(rec) {
     <!-- RIGHT lung (viewer-left): 3 lobes, horizontal + oblique fissures -->
     <g class="lung lung-right">
       <path d="M150 108 C112 104 84 132 76 182 C68 230 78 290 106 312 C126 328 148 318 149 286 C150 244 150 152 150 108Z"
-            fill="url(#lobeFill)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
+            fill="url(#${gid}-lobe)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
       <path d="M149 156 C120 156 96 162 80 178" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
       <path d="M148 222 C120 230 98 244 86 266" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
     </g>
@@ -1125,7 +1124,7 @@ function lungsSVG(rec) {
     <g class="lung lung-left">
       <path d="M170 108 C208 104 236 132 244 182 C252 230 242 290 214 312 C194 328 173 318 172 286
                C171 262 179 252 173 242 C167 232 173 220 173 206 C173 152 170 126 170 108Z"
-            fill="url(#lobeFill)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
+            fill="url(#${gid}-lobe)" stroke="var(--sky)" stroke-opacity=".5" stroke-width="2"/>
       <path d="M173 214 C200 222 222 238 234 262" stroke="var(--paper)" stroke-width="2.5" opacity=".65"/>
     </g>
     <circle cx="160" cy="25" r="6" fill="var(--clay)"/>
@@ -1154,9 +1153,9 @@ function switchView(name) {
     // defer the heavy work (magnetic bind, ScrollTrigger.refresh, journey) one frame
     // so the new view paints instantly — no per-navigation hitch
     requestAnimationFrame(() => {
-      M.revealHeadline(view); M.bindMagnetic(view); M.refreshScrollTriggers();
+      M.initViewScroll(name);                 // reverts the prior view's pins/hero, builds this view's, then refreshes
+      M.revealHeadline(view); M.bindMagnetic(view);
       if (name === 'journey') initJourneyScroll();
-      else if (name === 'lab' || name === 'week' || name === 'fuel') M.initViewScroll(name);
     });
   });
 }
@@ -1229,13 +1228,15 @@ function openProfileEditor(firstRun = false) {
 /* ---- Cloud sync UI ------------------------------------------------------ */
 async function syncPull() {
   const remote = await Cloud.pull();
-  if (remote && typeof remote === 'object') {
+  const hadRemote = !!(remote && typeof remote === 'object');
+  if (hadRemote) {
     profile = { ...E.DEFAULT_PROFILE, ...remote };
     save(); recompute(); renderAll();
   } else {
     Cloud.pushDebounced(profile);            // first device seeds the cloud
   }
   updateSyncUI();
+  return hadRemote;
 }
 
 function updateSyncUI() {
@@ -1346,7 +1347,7 @@ function enterApp() {
   $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); M.lenisStop(); };
 
   // exercise detail modal
-  const closeEx = () => { $('#ex-modal').classList.remove('on'); M.lenisStart(); clearInterval(restInterval); restInterval = null; };
+  const closeEx = () => { $('#ex-modal').classList.remove('on'); M.lenisStart(); M.refreshScrollTriggers(); clearInterval(restInterval); restInterval = null; };
   $('#ex-close').onclick = closeEx;
   $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') closeEx(); };
 
@@ -1357,17 +1358,33 @@ function enterApp() {
   $('#sync-close').onclick = closeSync;
   $('#sync-modal').onclick = (e) => { if (e.target.id === 'sync-modal') closeSync(); };
   updateSyncUI();
-  if (Cloud.currentUser()) syncPull();                         // pull this user's cloud state on entry
-  Cloud.onAuth(() => { updateSyncUI(); if (Cloud.currentUser()) syncPull(); });
-
-  // first-run welcome → calibration (only when nothing has ever been saved)
-  if (!localStorage.getItem(STORE)) openProfileEditor(true);
+  // pull cloud state on entry; only show first-run calibration when the user is TRULY new — no local
+  // profile AND (when signed in) no remote profile — so a returning user on a fresh device never sees
+  // onboarding seeded from defaults that would then overwrite their real cloud data.
+  const hadLocal = !!localStorage.getItem(STORE);
+  if (Cloud.currentUser()) {
+    syncPull().then((hadRemote) => { if (!hadLocal && !hadRemote) openProfileEditor(true); });
+  } else if (!hadLocal) {
+    openProfileEditor(true);
+  }
+  // only re-pull on an actual sign-in transition — NOT on every hourly token auto-refresh (which would
+  // otherwise blow away unsynced local edits made during the session).
+  let lastUid = Cloud.currentUser()?.id || null;
+  Cloud.onAuth(() => {
+    updateSyncUI();
+    const uid = Cloud.currentUser()?.id || null;
+    if (uid && uid !== lastUid) syncPull();
+    lastUid = uid;
+  });
 
   // restore the last open view (device-local UX state) — reopens where you left off
   try {
     const lv = localStorage.getItem('odyssey.lastView');
     if (lv && lv !== 'landing' && $(`#view-${lv}`)) switchView(lv);
   } catch (_) {}
+  // boot landing gets its hero parallax here (switchView handles every other view's choreography)
+  const _bv = $('.view.is-active');
+  if (_bv && _bv.dataset.view === 'landing') M.initViewScroll('landing');
 
   console.log('%cODYSSEY','color:#D97757;font:600 16px sans-serif','— engine online. Signed in:', Cloud.currentUser()?.email || '—', '· Plan:', plan);
 }
