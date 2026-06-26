@@ -26,6 +26,7 @@ export const DEFAULT_PROFILE = {
   age: 22,
   heightCm: 175,
   currentWeight: 56,          // kg (range 55–57)
+  targetWeight: 75,           // kg — EDITABLE goal weight (the lean physique anchor)
   activity: 'very',           // trains 7 days/week
   mode: 'auto',               // speed dial — 'auto' follows your performance; or pick gentle/balanced/relentless
   splitStyle: 'auto',         // 'auto' | 'full-body' | 'upper-lower' | 'ppl'
@@ -56,17 +57,23 @@ export const DEFAULT_PROFILE = {
 /* ============================================================================
    §1  BMR → TDEE → GOAL → CALORIES & MACROS   (unchanged nutrition brain)
    ========================================================================== */
-export function bmr({ sex, currentWeight, heightCm, age }) {
-  const base = 10 * currentWeight + 6.25 * heightCm - 5 * age;
-  return sex === 'male' ? base + 5 : base - 161;
+export function bmr(p) {
+  const bc = bodyComposition(p);
+  if (bc && bc.leanMass) return 370 + 21.6 * bc.leanMass;            // Katch-McArdle — from your measured composition
+  const base = 10 * p.currentWeight + 6.25 * p.heightCm - 5 * p.age; // Mifflin-St Jeor fallback (no measurements yet)
+  return p.sex === 'male' ? base + 5 : base - 161;
 }
 export function tdee(p) { return bmr(p) * ACTIVITY[p.activity]; }
 
-export function selectGoal(currentWeight) {
-  const delta = currentWeight - TARGET_WEIGHT;
+// Editable goal weight — per-profile, falls back to the 75 kg default.
+export function targetOf(p) { return (p && Number.isFinite(+p.targetWeight)) ? +p.targetWeight : TARGET_WEIGHT; }
+
+// Goal direction — now BODY-FAT-AWARE: carrying fat under target → recomp (don't bulk into fat).
+export function selectGoal(currentWeight, target = TARGET_WEIGHT, bodyFat = null) {
+  const delta = currentWeight - target;
   if (delta > 3) return 'cut';
-  if (delta < -3) return 'leanGain';
-  return 'recomp';
+  if (delta < -3) return (bodyFat != null && bodyFat >= 20) ? 'recomp' : 'leanGain';
+  return (bodyFat != null && bodyFat >= 22) ? 'cut' : 'recomp';
 }
 const GOAL_ADJ = {
   recomp:   { gentle: -0.05, balanced: -0.075, relentless: -0.10 },
@@ -75,7 +82,7 @@ const GOAL_ADJ = {
 };
 export function calorieTarget(p, mode = resolveMode(p)) {
   const maint = tdee(p);
-  const goal = selectGoal(p.currentWeight);
+  const goal = selectGoal(p.currentWeight, targetOf(p), bodyComposition(p).bodyFat);
   let target = maint * (1 + GOAL_ADJ[goal][mode]);
   if (p.streakDays <= 7) target += 125;                       // early buffer
   const floor = Math.max(bmr(p), p.sex === 'male' ? KCAL_FLOOR_MALE : KCAL_FLOOR_FEMALE);
@@ -84,8 +91,8 @@ export function calorieTarget(p, mode = resolveMode(p)) {
 export function macros(p, mode = resolveMode(p)) {
   const { goal, kcal, maintenance } = calorieTarget(p, mode);
   const proteinPerKg = goal === 'cut' ? 2.2 : goal === 'leanGain' ? 1.8 : 2.0;
-  const protein_g = Math.round(proteinPerKg * TARGET_WEIGHT);   // 165 / 135 / 150
-  const fat_g = Math.round(0.9 * TARGET_WEIGHT);                // ~68
+  const protein_g = Math.round(proteinPerKg * targetOf(p));     // anchored to your (editable) goal weight
+  const fat_g = Math.round(0.9 * targetOf(p));
   const carb_g = Math.max(Math.round((kcal - protein_g * 4 - fat_g * 9) / 4), 0);
   return {
     goal, kcal, maintenance,
@@ -678,16 +685,17 @@ export const MILESTONES = [
   { id: 's30', kind: 'streak', at: 30, label: '30 Days', note: 'A full month. Cilia are regrowing.', fx: 'takeover' },
   { id: 's100', kind: 'streak', at: 100, label: '100 Days', note: 'Triple digits. A different set of lungs.', fx: 'takeover' },
   { id: 's365', kind: 'streak', at: 365, label: 'One Year', note: 'New lungs, new you. Heart-disease risk halved.', fx: 'takeover' },
-  { id: 'w_band', kind: 'weight', at: 72, label: 'Entered the 75 kg band', note: 'Lean & strong — the physique target.', fx: 'ring' },
+  { id: 'w_band', kind: 'weight', at: 72, label: 'Entered the goal-weight band', note: 'Lean & strong — the physique target.', fx: 'ring' },
 ];
 export function nextMilestone(p) {
   const streakMs = MILESTONES.filter(m => m.kind === 'streak');
   return streakMs.find(m => m.at > p.streakDays) || streakMs[streakMs.length - 1];
 }
 export function achievedMilestones(p) {
+  const wBand = targetOf(p) - 3;
   return MILESTONES.filter(m =>
     (m.kind === 'streak' && p.streakDays >= m.at) ||
-    (m.kind === 'weight' && p.currentWeight >= m.at));
+    (m.kind === 'weight' && p.currentWeight >= wBand));
 }
 
 /* ============================================================================
@@ -811,7 +819,7 @@ export function aestheticBalance(p, exDb = {}, now = Date.now()) {
   const consistency = Math.max(0, Math.min(100, Math.round(recent / (3 * dial.trainingDays) * 100)));
 
   // leanness trajectory (informational): how close to the 75 kg band, gaining lean
-  const toGo = +(TARGET_WEIGHT - p.currentWeight).toFixed(1);
+  const toGo = +(targetOf(p) - p.currentWeight).toFixed(1);
   const leanness = Math.max(0, Math.min(100, Math.round(100 - Math.abs(toGo) / 19 * 100)));
 
   const score = total
@@ -877,9 +885,32 @@ export function bodyComposition(p) {
   return { bodyFat, leanMass, fatMass, vTaper, golden: 1.618, vTaperPct, usingShoulder: !!shoulder, waist: waist || null, hasData: !!(waist && h) };
 }
 
+// Measurement trends — latest entry vs one ~3+ weeks prior → per-field deltas + coaching directives.
+export function measurementTrends(p, now = Date.now()) {
+  const log = (p && p.measureLog) || {};
+  const dates = Object.keys(log).sort();
+  if (!dates.length) return { hasData: false, deltas: {}, directives: [], staleWeeks: null };
+  const latestKey = dates[dates.length - 1], latest = log[latestKey];
+  const latestT = Date.parse(latestKey + 'T00:00:00');
+  const staleWeeks = Math.round((now - latestT) / (7 * DAY_MS));
+  let prior = null;
+  for (let i = dates.length - 2; i >= 0; i--) { if (latestT - Date.parse(dates[i] + 'T00:00:00') >= 18 * DAY_MS) { prior = log[dates[i]]; break; } }
+  if (!prior && dates.length >= 2) prior = log[dates[0]];
+  const deltas = {};
+  if (prior) ['waist', 'shoulder', 'chest', 'arm', 'thigh', 'weight'].forEach(f => { if (latest[f] != null && prior[f] != null) deltas[f] = +(latest[f] - prior[f]).toFixed(1); });
+  const directives = [];
+  const wd = deltas.waist, sd = deltas.shoulder, gd = deltas.weight, cd = deltas.chest, ad = deltas.arm;
+  if (wd != null && sd != null && wd <= -0.5 && sd >= 0.5) directives.push({ sev: 'good', text: `Waist ${wd}cm and shoulders +${sd}cm since your last check — the V-taper is sharpening. Keep this exact approach.` });
+  else if (wd != null && gd != null && wd >= 1 && gd >= 0.5) directives.push({ sev: 'warn', text: `Waist +${wd}cm with weight up — that's drifting toward fat gain. Tighten nutrition (see the calorie nudge) and add a zone-2 session.` });
+  else if (wd != null && wd <= -1) directives.push({ sev: 'good', text: `Waist down ${wd}cm — you're leaning out. Hold protein high to keep the muscle.` });
+  const builds = [cd != null && cd >= 1 ? `chest +${cd}cm` : '', ad != null && ad >= 0.5 ? `arms +${ad}cm` : '', sd != null && sd >= 0.5 ? `shoulders +${sd}cm` : ''].filter(Boolean);
+  if (builds.length && !directives.length) directives.push({ sev: 'info', text: `Building since your last check: ${builds.join(', ')}.` });
+  return { hasData: true, deltas, prior: prior || null, latest, directives, staleWeeks };
+}
+
 // Least-squares weight trend over the last ~6 weeks → real rate + projection + pace.
 export function weightTrend(p, now = Date.now()) {
-  const goal = selectGoal(p.currentWeight);
+  const goal = selectGoal(p.currentWeight, targetOf(p), bodyComposition(p).bodyFat);
   const idealBand = goal === 'leanGain' ? [0.2, 0.5] : goal === 'cut' ? [-0.75, -0.3] : [-0.2, 0.2];
   const cutoff = now - 45 * DAY_MS;
   const pts = (p.weightHistory || [])
@@ -892,7 +923,7 @@ export function weightTrend(p, now = Date.now()) {
   const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
   let num = 0, den = 0; for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
   const ratePerWeek = +((den ? num / den : 0) * 7).toFixed(2);
-  const toGo = TARGET_WEIGHT - p.currentWeight;
+  const toGo = targetOf(p) - p.currentWeight;
   let weeksToTarget = null;
   if (Math.abs(ratePerWeek) > 0.02 && Math.sign(ratePerWeek) === Math.sign(toGo)) weeksToTarget = Math.max(1, Math.round(Math.abs(toGo) / Math.abs(ratePerWeek)));
   let onPace = 'on';
@@ -923,6 +954,8 @@ function dailyFocus(p, x, now) {
   if (x.adaptiveCal && x.adaptiveCal.suggestion) items.push({ icon: '🍽️', sev: 'info', text: x.adaptiveCal.note });
   if (x.aesthetic && x.aesthetic.hasData && x.aesthetic.weakestLabel) items.push({ icon: '◎', sev: 'info', text: `Lagging group: ${x.aesthetic.weakestLabel}. ${x.aesthetic.nudge}` });
   if (x.deload && x.deload.suggested && !x.deload.active) items.push({ icon: '↺', sev: 'info', text: `${x.deload.weeks} training weeks in — a deload week is due. Take it to recover and supercompensate.` });
+  if (x.mtrends && x.mtrends.directives && x.mtrends.directives[0]) { const d = x.mtrends.directives[0]; items.push({ icon: d.sev === 'warn' ? '⚠️' : '📏', sev: d.sev, text: d.text }); }
+  else if (x.mtrends && x.mtrends.hasData && x.mtrends.staleWeeks >= 5) items.push({ icon: '📏', sev: 'info', text: `No body measurements in ${x.mtrends.staleWeeks} weeks — log waist/shoulders to keep the body-comp read accurate.` });
   const log = wlog(p);
   let sessions7 = 0; for (let i = 0; i < 7; i++) { const d = log[isoFromMs(now - i * DAY_MS)]; if (d && Object.keys(d).length) sessions7++; }
   const dial = SPEED_DIAL[resolveMode(p)];
@@ -943,7 +976,7 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
   const m = macros(p, effMode);
   const cigsAvoided = Math.round(p.streakDays * p.smoking.baselineCigsPerDay);
   const moneySaved = Math.round(cigsAvoided * p.smoking.costPerCig);
-  const weightToGo = +(TARGET_WEIGHT - p.currentWeight).toFixed(1);
+  const weightToGo = +(targetOf(p) - p.currentWeight).toFixed(1);
   const weeksToTarget = weightToGo > 0 ? Math.ceil(weightToGo / 0.35) : 0;
   const tl = trainingLevel(p);
   // intelligence layer (assemble once, share across the plan + the coach)
@@ -951,11 +984,12 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
   const readiness = computeReadiness(p, now);
   const load = trainingLoad(p, now);
   const bodyComp = bodyComposition(p);
+  const mtrends = measurementTrends(p, now);
   const wTrend = weightTrend(p, now);
   const adaptiveCal = adaptiveCalories(p, m, now);
   const deload = deloadState(p);
   const grad = graduation(p);
-  const coach = dailyFocus(p, { readiness, load, aesthetic, adaptiveCal, deload, training: tl }, now);
+  const coach = dailyFocus(p, { readiness, load, aesthetic, adaptiveCal, deload, training: tl, mtrends }, now);
   const etaWeeks = wTrend.weeksToTarget != null ? wTrend.weeksToTarget : weeksToTarget;
   return {
     profile: p,
@@ -974,8 +1008,9 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
     training: tl,
     graduation: grad,                            // time/readiness phase → retires easy moves + adds skills
     deload,                                      // recovery-week state
-    aesthetic, bodyComp, load, coach,
+    aesthetic, bodyComp, load, coach, mtrends,
     weightTrend: wTrend, adaptiveCal,
+    target: targetOf(p),
     milestones: { next: nextMilestone(p), achieved: achievedMilestones(p), all: MILESTONES },
     readiness,
     stats: { cigsAvoided, moneySaved, weightToGo, weeksToTarget, etaWeeks, etaFromTrend: wTrend.weeksToTarget != null },

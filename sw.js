@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v22';  // bumped: last-view persistence + progress photos synced to cloud
+const CACHE = 'odyssey-v23';  // bumped: editable target weight + measurement-aware calc (Katch-McArdle, bf-aware goal, trends)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

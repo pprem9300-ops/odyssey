@@ -209,7 +209,7 @@
       <div class="bento" style="margin-top:24px" id="weight-trend-wrap">
         <div class="card col-12 reveal" id="weight-trend-card">
           <div style="display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px; margin-bottom:14px">
-            <h3 class="display">The climb to 75 kg</h3>
+            <h3 class="display" id="climb-title">The climb to 75 kg</h3>
             <span class="mono" style="color:var(--ink-faint); font-size:.8rem" id="weight-trend-delta"></span>
           </div>
           <div id="weight-trend-svg"></div>
@@ -396,7 +396,7 @@
   <!-- Supabase JS, vendored same-origin so the invite-only login gate works OFFLINE
        (cross-origin CDNs are bypassed by sw.js; this one is precached). Sets window.supabase. -->
   <script src="js/vendor/supabase.umd.js?v=4"></script>
-  <script type="module" src="js/app.js?v=22"></script>
+  <script type="module" src="js/app.js?v=23"></script>
   <!-- PWA service worker — only on a real host (skipped on localhost so local dev never serves stale cache) -->
   <script>
     if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', ''].includes(location.hostname)) {

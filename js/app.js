@@ -1,7 +1,7 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=7';
+import * as E from './engine.js?v=8';
 import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
@@ -115,7 +115,7 @@ function renderCockpit() {
   const cards = [
     { ic: 'fuel', c: 'clay', k: 'Daily fuel', v: m.kcal, sm: 'kcal', sub: `${m.surplus >= 0 ? '+' : ''}${m.surplus} kcal · ${GOAL_LABEL[m.goal]}` },
     { ic: 'protein', c: 'sage', k: 'Protein', v: m.protein_g, sm: 'g', sub: `${m.proteinPerFeeding_g}g × ${m.feedings} feeds` },
-    { ic: 'target', c: 'sage', k: 'Weight → 75kg', v: s.weightToGo, sm: 'kg', sub: `~${s.etaWeeks} wks ${s.etaFromTrend ? 'at your current pace' : 'at a healthy pace'}`, weight: true },
+    { ic: 'target', c: 'sage', k: `Weight → ${p.target}kg`, v: s.weightToGo, sm: 'kg', sub: `~${s.etaWeeks} wks ${s.etaFromTrend ? 'at your current pace' : 'at a healthy pace'}`, weight: true },
     { ic: 'cig', c: 'sky', k: 'Cigarettes avoided', v: s.cigsAvoided, sm: '', sub: 'since day one' },
     { ic: 'coin', c: 'clay', k: 'Money saved', v: s.moneySaved, sm: '₹', sub: `~₹${profile.smoking.baselineCigsPerDay * profile.smoking.costPerCig}/day`, money: true },
     { ic: 'level', c: 'sky', k: 'Lung level', v: cap(p.lung.level), sm: '', sub: `${p.lung.techniques.length} techniques unlocked`, txt: true },
@@ -126,19 +126,22 @@ function renderCockpit() {
       <div class="val">${c.money ? '<small>₹</small>' : ''}<span data-count="${c.txt ? '' : c.v}">${c.txt ? c.v : (c.weight ? c.v : 0)}</span>${c.sm && !c.money ? `<small> ${c.sm}</small>` : ''}</div>
       <div class="k">${c.k}</div>
       <div class="sub" style="font-size:.8rem;color:var(--ink-faint)">${c.sub}</div>
-      ${c.weight ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="chip" data-w="-0.5">– 0.5</button><button class="chip" data-w="0.5">+ 0.5</button><span class="chip">${profile.currentWeight} kg now</span></div>` : ''}
+      ${c.weight ? `<div style="display:flex;gap:6px;margin-top:8px"><button class="chip" data-w="-0.5">– 0.5</button><button class="chip" data-w="0.5">+ 0.5</button><span class="chip">${profile.currentWeight} kg now</span></div>
+      <div style="display:flex;gap:6px;margin-top:6px;align-items:center"><span class="mono" style="font-size:.64rem;color:var(--ink-faint);letter-spacing:.12em">GOAL</span><button class="chip" data-goal="-1" aria-label="lower goal">–</button><span class="chip">${p.target} kg</span><button class="chip" data-goal="1" aria-label="raise goal">+</button></div>` : ''}
     </div>`).join('');
   // animate numeric counters
   $$('#stat-cards [data-count]').forEach(el => { const v = el.getAttribute('data-count'); if (v !== '') M.countUp(el, v, { dp: (+v % 1 ? 1 : 0) }); });
   $$('#stat-cards [data-w]').forEach(b => b.onclick = () => { adjustWeight(+b.dataset.w); });
+  $$('#stat-cards [data-goal]').forEach(b => b.onclick = () => { adjustTarget(+b.dataset.goal); });
 
   // weight-trend chart — only meaningful once weight has been logged
   const hist = profile.weightHistory || [];
   const trendWrap = $('#weight-trend-wrap');
+  const ct = $('#climb-title'); if (ct) ct.textContent = `The climb to ${p.target} kg`;
   if (trendWrap) {
     if (hist.length) {
       trendWrap.style.display = '';
-      $('#weight-trend-svg').innerHTML = weightTrendSVG(hist, { target: E.TARGET_WEIGHT, current: profile.currentWeight, startWeight: hist[0] ? hist[0].kg : undefined });
+      $('#weight-trend-svg').innerHTML = weightTrendSVG(hist, { target: p.target, current: profile.currentWeight, startWeight: hist[0] ? hist[0].kg : undefined });
       $('#weight-trend-delta').textContent = weightDeltaLabel(hist);
     } else {
       trendWrap.style.display = 'none';
@@ -483,7 +486,7 @@ function setPacer(name, autostart = false) {
 /* ---- Fuel --------------------------------------------------------------- */
 function renderFuel() {
   const m = plan.macros, diet = plan.diet;
-  $('#fuel-sub').innerHTML = `${m.kcal} kcal · ${m.protein_g}g protein — a lacto-veg, eggless ${GOAL_LABEL[m.goal]} plan, anchored to your 75 kg target.${plan.adaptiveCal && plan.adaptiveCal.note ? ` <span class="adapt-cal">${plan.adaptiveCal.suggestion ? '⚖ ' : ''}${plan.adaptiveCal.note}</span>` : ' Combine grains + legumes across the day for complete protein.'}`;
+  $('#fuel-sub').innerHTML = `${m.kcal} kcal · ${m.protein_g}g protein — a lacto-veg, eggless ${GOAL_LABEL[m.goal]} plan, anchored to your ${plan.target} kg target.${plan.adaptiveCal && plan.adaptiveCal.note ? ` <span class="adapt-cal">${plan.adaptiveCal.suggestion ? '⚖ ' : ''}${plan.adaptiveCal.note}</span>` : ' Combine grains + legumes across the day for complete protein.'}`;
   const macs = [['Protein', m.protein_g, 'sage'], ['Carbs', m.carb_g, 'clay'], ['Fat', m.fat_g, 'sky']];
   $('#macro-band').innerHTML = macs.map(([k, g, c]) => `
     <div class="macro card--${c}">
@@ -813,7 +816,8 @@ function renderMeasure() {
       <div class="bc-stat"><div class="bc-k mono">Body-fat</div><div class="bc-v">${plan.bodyComp.bodyFat}<small>%</small></div></div>
       <div class="bc-stat"><div class="bc-k mono">Lean mass</div><div class="bc-v">${plan.bodyComp.leanMass != null ? plan.bodyComp.leanMass : '—'}<small>kg</small></div></div>
       <div class="bc-stat"><div class="bc-k mono">V-taper</div><div class="bc-v">${plan.bodyComp.vTaper != null ? plan.bodyComp.vTaper : '—'}<small>${plan.bodyComp.vTaperPct != null ? ' · ' + plan.bodyComp.vTaperPct + '%' : ''}</small></div></div>
-    </div>` : ''}
+    </div>
+    <p class="mono" style="font-size:.72rem;color:var(--ink-faint);margin-top:10px">⚙ Your calories now use Katch-McArdle BMR from this composition — more accurate than height/weight alone.</p>` : ''}
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center">
       <button class="btn btn--clay magnetic" id="measure-save" style="padding:11px 18px">Log today</button>
       ${latest ? `<button class="mini-reset" id="measure-del">↺ Delete last entry</button>` : ''}
@@ -1079,6 +1083,11 @@ function adjustWeight(delta) {
   profile.weightHistory = (profile.weightHistory || []).filter(e => e.date !== t);
   profile.weightHistory.push({ date: t, kg: profile.currentWeight });
   save(); renderAll();
+}
+function adjustTarget(delta) {
+  const cur = (profile.targetWeight != null) ? profile.targetWeight : 75;
+  profile.targetWeight = Math.max(45, Math.min(120, Math.round(cur + delta)));
+  save(); recompute(); renderAll();
 }
 function lungsSVG(rec) {
   const f = 0.18 + (rec / 100) * 0.60;            // recovery → fill opacity
