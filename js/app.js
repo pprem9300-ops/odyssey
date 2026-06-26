@@ -835,21 +835,30 @@ function adjustWeightTo(kg) {
   profile.weightHistory.push({ date: t, kg: profile.currentWeight });
 }
 
-const PHOTO_KEY = 'odyssey.photos.v1';
-function loadPhotos() { try { return JSON.parse(localStorage.getItem(PHOTO_KEY)) || []; } catch (_) { return []; } }
-function savePhotos(arr) { try { localStorage.setItem(PHOTO_KEY, JSON.stringify(arr)); return true; } catch (e) { alert('Photo storage is full — delete some older photos first.'); return false; } }
+// Progress photos now live on the synced profile (→ localStorage + Supabase), with a
+// one-time migration from the old local-only key. Capped + compressed to keep the
+// cloud payload sane (each profile push re-uploads them).
+function photoStore() {
+  profile.photoLog = profile.photoLog || [];
+  if (!profile.photoLog.length) {
+    try { const old = JSON.parse(localStorage.getItem('odyssey.photos.v1')); if (Array.isArray(old) && old.length) { profile.photoLog = old.slice(-12); localStorage.removeItem('odyssey.photos.v1'); save(); } } catch (_) {}
+  }
+  return profile.photoLog;
+}
+function loadPhotos() { return photoStore(); }
+function savePhotos(arr) { profile.photoLog = arr; save(); return true; }   // → localStorage + cloud
 let photoSel = [];
 function renderPhotos() {
   const el = $('#photos-card'); if (!el) return;
   const photos = loadPhotos();
   el.innerHTML = `
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
-      <p class="eyebrow">Progress photos · on-device only</p>
+      <p class="eyebrow">Progress photos · synced</p>
       <span class="mono" style="font-size:.72rem;color:var(--ink-faint)">${photos.length}</span>
     </div>
     <label class="photo-add" for="photo-input">+ Add photo</label>
     <input id="photo-input" type="file" accept="image/*" style="display:none">
-    <div class="photo-grid" id="photo-grid">${photos.length ? photos.map((p, i) => `<div class="photo-cell${photoSel.includes(i) ? ' sel' : ''}" data-i="${i}"><img src="${p.data}" alt="${p.date}" loading="lazy"><span class="photo-date mono">${fmtDate(p.date)}</span><button class="photo-del" data-del="${i}" aria-label="Delete photo">×</button></div>`).join('') : `<p style="color:var(--ink-faint);font-size:.86rem;grid-column:1/-1;line-height:1.5">No photos yet. Same pose · same light · monthly. Stored only on this device (not synced).</p>`}</div>
+    <div class="photo-grid" id="photo-grid">${photos.length ? photos.map((p, i) => `<div class="photo-cell${photoSel.includes(i) ? ' sel' : ''}" data-i="${i}"><img src="${p.data}" alt="${p.date}" loading="lazy"><span class="photo-date mono">${fmtDate(p.date)}</span><button class="photo-del" data-del="${i}" aria-label="Delete photo">×</button></div>`).join('') : `<p style="color:var(--ink-faint);font-size:.86rem;grid-column:1/-1;line-height:1.5">No photos yet. Same pose · same light · monthly. Backed up to your account (last 12 kept).</p>`}</div>
     ${photos.length >= 2 ? `<p class="mono" style="font-size:.72rem;color:var(--ink-faint);margin-top:10px">Tap two to compare ${photoSel.length === 2 ? '· <button class="mini-reset" id="photo-clear">clear</button>' : ''}</p>` : ''}
     <div id="photo-compare"></div>`;
   $('#photo-input').onchange = (e) => { const f = e.target.files && e.target.files[0]; if (f) addPhoto(f); };
@@ -871,13 +880,13 @@ function addPhoto(file) {
   reader.onload = () => {
     const img = new Image();
     img.onload = () => {
-      const max = 720; let w = img.width, h = img.height;
+      const max = 600; let w = img.width, h = img.height;
       if (w > h && w > max) { h = h * max / w; w = max; } else if (h > max) { w = w * max / h; h = max; }
       const c = document.createElement('canvas'); c.width = w; c.height = h;
       c.getContext('2d').drawImage(img, 0, 0, w, h);
-      const data = c.toDataURL('image/jpeg', 0.7);
+      const data = c.toDataURL('image/jpeg', 0.6);
       const arr = loadPhotos(); arr.push({ date: todayISO(), data });
-      while (arr.length > 30) arr.shift();          // cap local storage
+      while (arr.length > 12) arr.shift();           // cap — photos sync to the cloud
       if (savePhotos(arr)) renderPhotos();
     };
     img.src = reader.result;
@@ -1121,6 +1130,7 @@ function initJourneyScroll() {
 }
 
 function switchView(name) {
+  try { localStorage.setItem('odyssey.lastView', name); } catch (_) {}   // restore on next open
   M.transitionView(() => {
     $$('.view').forEach(v => v.classList.toggle('is-active', v.dataset.view === name));
     $$('.nav-link').forEach(l => l.classList.toggle('is-active', l.dataset.view === name));
@@ -1340,6 +1350,12 @@ function enterApp() {
 
   // first-run welcome → calibration (only when nothing has ever been saved)
   if (!localStorage.getItem(STORE)) openProfileEditor(true);
+
+  // restore the last open view (device-local UX state) — reopens where you left off
+  try {
+    const lv = localStorage.getItem('odyssey.lastView');
+    if (lv && lv !== 'landing' && $(`#view-${lv}`)) switchView(lv);
+  } catch (_) {}
 
   console.log('%cODYSSEY','color:#D97757;font:600 16px sans-serif','— engine online. Signed in:', Cloud.currentUser()?.email || '—', '· Plan:', plan);
 }
