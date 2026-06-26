@@ -424,7 +424,7 @@ const DAY_BREATH = {
    → conditioning finisher (zone-2 base / agility / intervals) → breath cooldown.
    Strength & hypertrophy emphasis UNDULATE across the week.
    ========================================================================== */
-export function generateWeek(p, now = Date.now()) {
+export function generateWeek(p, now = Date.now(), weakGroup = null) {
   const mode = resolveMode(p);
   const dial = SPEED_DIAL[mode];
   const tl = trainingLevel(p);
@@ -505,6 +505,13 @@ export function generateWeek(p, now = Date.now()) {
         aesthetic: PATTERN_AESTHETIC[k] || '',
       };
     });
+
+    // weak-point auto-targeting — one bonus set on the lagging muscle group's block
+    const WEAK_PATTERN = { shoulders: 'vpush', back: 'pull', chest: 'push', core: 'core', legs: 'squat' };
+    if (weakGroup && WEAK_PATTERN[weakGroup]) {
+      const wp = blocks.find(b => b.pattern === WEAK_PATTERN[weakGroup]);
+      if (wp) { wp.sets += 1; wp.priority = true; wp.aesthetic += ' · priority bring-up'; }
+    }
 
     // power (plyometrics) — placed FIRST when fresh, on leg/lower/full days
     let power = null;
@@ -686,10 +693,10 @@ export function achievedMilestones(p) {
 /* ============================================================================
    §13  SLEEP → READINESS  (autoregulates today's intensity)
    ========================================================================== */
-export function computeReadiness(profile) {
+export function computeReadiness(profile, now = Date.now()) {
   const log = (profile.sleepLog || []).slice().sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
   const last = log[0];
-  if (!last) return { score: null, band: 'unknown', advice: 'Log last night’s sleep to get today’s readiness — it tunes how hard to push.', lastNight: null };
+  if (!last) return { score: null, band: 'unknown', advice: 'Log last night’s sleep to get today’s readiness — it tunes how hard to push.', lastNight: null, factors: {} };
 
   const hoursScore = (h) => {
     if (h >= 7.5 && h <= 9) return 60;
@@ -708,14 +715,22 @@ export function computeReadiness(profile) {
     const avgPrior = prior.reduce((s, n) => s + nightScore(n), 0) / prior.length;
     score = Math.round(score * 0.7 + avgPrior * 0.3);
   }
-  score = Math.max(0, Math.min(100, score));
+  // comprehensive: fold in accumulated training load + today's mood
+  const load = trainingLoad(profile, now);
+  const factors = { sleep: Math.max(0, Math.min(100, score)), load: 0, mood: 0 };
+  if (load.band === 'high') { score -= 10; factors.load = -10; }       // accumulated fatigue
+  else if (load.band === 'low') { score += 4; factors.load = 4; }      // fresh
+  const todayMood = (profile.moodLog || {})[isoFromMs(now)];
+  if (todayMood != null) { const a = (todayMood - 2) * 3; score += a; factors.mood = a; }  // 0..4 → -6..+6
+
+  score = Math.max(0, Math.min(100, Math.round(score)));
   const band = score >= 75 ? 'high' : score >= 50 ? 'mid' : 'low';
   const advice = band === 'high'
     ? 'Recovered and primed — train as planned, and it’s a strong day to push the top of your rep ranges.'
     : band === 'mid'
       ? 'Decent recovery — train as planned and keep your rest periods honest.'
       : 'Under-recovered — keep today gentle: full breathwork, an easy zone-2 walk, and lighter volume. Muscle is built while you sleep, not when you grind tired.';
-  return { score, band, advice, lastNight: last, suggestGentle: band === 'low' };
+  return { score, band, advice, lastNight: last, suggestGentle: band === 'low', load, factors };
 }
 
 /* ============================================================================
@@ -819,6 +834,107 @@ export function aestheticBalance(p, exDb = {}, now = Date.now()) {
 }
 
 /* ============================================================================
+   §14b  CURRENT-STATE INTELLIGENCE — body comp · weight trend · adaptive cals ·
+         training load · daily-focus coach (all pure, derived from the logs)
+   ========================================================================== */
+
+// Training load: acute (7d) vs chronic (28d avg-weekly) rep×load → ACWR.
+export function trainingLoad(p, now = Date.now()) {
+  const log = wlog(p);
+  const dayVol = (date) => { const d = log[date]; if (!d) return 0; let v = 0; Object.values(d).forEach(arr => arr.forEach(s => v += (s.reps || 0) * Math.max(s.weight || 0, 1))); return v; };
+  const sumWindow = (days) => { let v = 0; for (let i = 0; i < days; i++) v += dayVol(isoFromMs(now - i * DAY_MS)); return v; };
+  const acute = sumWindow(7);
+  const chronicWeekly = sumWindow(28) / 4;
+  const acwr = chronicWeekly > 0 ? +(acute / chronicWeekly).toFixed(2) : (acute > 0 ? null : 0);
+  let band = 'none', flag = '';
+  if (acute || chronicWeekly) {
+    if (acwr != null && acwr > 1.5) { band = 'high'; flag = 'Training load is spiking — you’re ramping volume fast. Watch the joints; a lighter day or a deload cuts injury risk.'; }
+    else if (acwr != null && acwr < 0.8 && chronicWeekly > 0) { band = 'low'; flag = 'Training load is dropping — detraining creeps in. Add a session to hold your gains.'; }
+    else { band = 'optimal'; flag = 'Training load is in the sweet spot — progressing without overreaching.'; }
+  }
+  return { acute: Math.round(acute), chronicWeekly: Math.round(chronicWeekly), acwr, band, flag };
+}
+
+// Body composition from the latest measurement (RFM needs only height + waist).
+export function bodyComposition(p) {
+  const log = (p && p.measureLog) || {};
+  const dates = Object.keys(log).sort();
+  const latest = dates.length ? log[dates[dates.length - 1]] : null;
+  const waist = latest && +latest.waist;
+  const shoulder = latest && +latest.shoulder;
+  const chest = latest && +latest.chest;
+  const weight = (latest && +latest.weight) || p.currentWeight;
+  const h = p.heightCm;
+  let bodyFat = null, leanMass = null, fatMass = null;
+  if (waist && h) {
+    bodyFat = (p.sex === 'female' ? 76 : 64) - 20 * (h / waist);    // Relative Fat Mass (height + waist)
+    bodyFat = +Math.max(3, Math.min(50, bodyFat)).toFixed(1);
+    if (weight) { fatMass = +(weight * bodyFat / 100).toFixed(1); leanMass = +(weight - fatMass).toFixed(1); }
+  }
+  const top = shoulder || chest;                                   // shoulder preferred; chest is the fallback
+  const vTaper = (top && waist) ? +(top / waist).toFixed(2) : null;
+  const vTaperPct = vTaper ? Math.max(0, Math.min(100, Math.round((vTaper / 1.618) * 100))) : null;
+  return { bodyFat, leanMass, fatMass, vTaper, golden: 1.618, vTaperPct, usingShoulder: !!shoulder, waist: waist || null, hasData: !!(waist && h) };
+}
+
+// Least-squares weight trend over the last ~6 weeks → real rate + projection + pace.
+export function weightTrend(p, now = Date.now()) {
+  const goal = selectGoal(p.currentWeight);
+  const idealBand = goal === 'leanGain' ? [0.2, 0.5] : goal === 'cut' ? [-0.75, -0.3] : [-0.2, 0.2];
+  const cutoff = now - 45 * DAY_MS;
+  const pts = (p.weightHistory || [])
+    .filter(e => e && /^\d{4}-\d{2}-\d{2}$/.test(e.date) && Number.isFinite(+e.kg))
+    .map(e => ({ t: Date.parse(e.date + 'T00:00:00'), kg: +e.kg }))
+    .filter(o => o.t >= cutoff).sort((a, b) => a.t - b.t);
+  if (pts.length < 2) return { ratePerWeek: null, weeksToTarget: null, onPace: null, idealBand, goal, points: pts.length };
+  const n = pts.length, t0 = pts[0].t;
+  const xs = pts.map(o => (o.t - t0) / DAY_MS), ys = pts.map(o => o.kg);
+  const mx = xs.reduce((a, b) => a + b, 0) / n, my = ys.reduce((a, b) => a + b, 0) / n;
+  let num = 0, den = 0; for (let i = 0; i < n; i++) { num += (xs[i] - mx) * (ys[i] - my); den += (xs[i] - mx) ** 2; }
+  const ratePerWeek = +((den ? num / den : 0) * 7).toFixed(2);
+  const toGo = TARGET_WEIGHT - p.currentWeight;
+  let weeksToTarget = null;
+  if (Math.abs(ratePerWeek) > 0.02 && Math.sign(ratePerWeek) === Math.sign(toGo)) weeksToTarget = Math.max(1, Math.round(Math.abs(toGo) / Math.abs(ratePerWeek)));
+  let onPace = 'on';
+  if (ratePerWeek < idealBand[0]) onPace = goal === 'cut' ? 'fast' : 'slow';
+  else if (ratePerWeek > idealBand[1]) onPace = goal === 'cut' ? 'slow' : 'fast';
+  return { ratePerWeek, weeksToTarget, onPace, idealBand, goal, points: n };
+}
+
+// Auto-calibrate calories to the real weight trend.
+export function adaptiveCalories(p, m = macros(p), now = Date.now()) {
+  const wt = weightTrend(p, now);
+  if (wt.ratePerWeek == null) return { ...wt, suggestion: 0, kcalAdjusted: m.kcal, note: 'Log 2+ weigh-ins over a couple of weeks and I’ll auto-calibrate your calories to your real rate.' };
+  const [lo, hi] = wt.idealBand, rate = wt.ratePerWeek, goal = wt.goal;
+  let delta = 0, note = '';
+  if (rate > hi) { delta = -200; note = goal === 'cut' ? `Losing only ${rate} kg/wk — trim ~200 kcal to keep the cut moving.` : `Gaining ${rate} kg/wk — faster than the lean range; trim ~200 kcal to stay lean.`; }
+  else if (rate < lo) { delta = +220; note = goal === 'cut' ? `Dropping ${Math.abs(rate)} kg/wk — too fast; add ~220 kcal to protect muscle.` : `Only ${rate} kg/wk — add ~220 kcal to keep building.`; }
+  else { note = `On pace at ${rate} kg/wk — hold calories here.`; }
+  const floor = Math.max(Math.round((m.maintenance || 1800) * 0.75), p.sex === 'female' ? 1200 : 1500);
+  return { ...wt, suggestion: delta, kcalAdjusted: Math.max(floor, m.kcal + delta), note };
+}
+
+// Synthesize the 1–3 things that matter most today across every signal.
+function dailyFocus(p, x, now) {
+  const items = [];
+  if (x.readiness && x.readiness.band === 'low') items.push({ icon: '🌙', sev: 'warn', text: 'Under-recovered today — keep it light: full breathwork, an easy zone-2 walk, lighter sets. You grow in recovery, not in the grind.' });
+  if (x.load && x.load.band === 'high') items.push({ icon: '⚠️', sev: 'warn', text: x.load.flag });
+  else if (x.load && x.load.band === 'low') items.push({ icon: '📉', sev: 'info', text: x.load.flag });
+  if (x.adaptiveCal && x.adaptiveCal.suggestion) items.push({ icon: '🍽️', sev: 'info', text: x.adaptiveCal.note });
+  if (x.aesthetic && x.aesthetic.hasData && x.aesthetic.weakestLabel) items.push({ icon: '◎', sev: 'info', text: `Lagging group: ${x.aesthetic.weakestLabel}. ${x.aesthetic.nudge}` });
+  if (x.deload && x.deload.suggested && !x.deload.active) items.push({ icon: '↺', sev: 'info', text: `${x.deload.weeks} training weeks in — a deload week is due. Take it to recover and supercompensate.` });
+  const log = wlog(p);
+  let sessions7 = 0; for (let i = 0; i < 7; i++) { const d = log[isoFromMs(now - i * DAY_MS)]; if (d && Object.keys(d).length) sessions7++; }
+  const dial = SPEED_DIAL[resolveMode(p)];
+  if (!Object.keys(log).length) items.push({ icon: '▲', sev: 'info', text: 'Log your first session — every set teaches the engine and starts your auto-progression.' });
+  else if (sessions7 < Math.max(2, dial.trainingDays - 2)) items.push({ icon: '📅', sev: 'info', text: `Only ${sessions7} session${sessions7 === 1 ? '' : 's'} in the last 7 days — consistency is the multiplier. Aim for ${dial.trainingDays}.` });
+  if (!items.some(i => i.sev === 'warn') && items.length < 2) items.push({ icon: '✓', sev: 'good', text: 'Recovered, balanced and on pace — train as planned and push the top of your rep ranges today.' });
+  const order = { warn: 0, info: 1, good: 2 };
+  items.sort((a, b) => order[a.sev] - order[b.sev]);
+  return items.slice(0, 3);
+}
+
+/* ============================================================================
    §15  AGGREGATOR — one call returns everything the UI needs
    ========================================================================== */
 export function computePlan(profile, exDb = {}, now = Date.now()) {
@@ -830,6 +946,17 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
   const weightToGo = +(TARGET_WEIGHT - p.currentWeight).toFixed(1);
   const weeksToTarget = weightToGo > 0 ? Math.ceil(weightToGo / 0.35) : 0;
   const tl = trainingLevel(p);
+  // intelligence layer (assemble once, share across the plan + the coach)
+  const aesthetic = aestheticBalance(p, exDb, now);
+  const readiness = computeReadiness(p, now);
+  const load = trainingLoad(p, now);
+  const bodyComp = bodyComposition(p);
+  const wTrend = weightTrend(p, now);
+  const adaptiveCal = adaptiveCalories(p, m, now);
+  const deload = deloadState(p);
+  const grad = graduation(p);
+  const coach = dailyFocus(p, { readiness, load, aesthetic, adaptiveCal, deload, training: tl }, now);
+  const etaWeeks = wTrend.weeksToTarget != null ? wTrend.weeksToTarget : weeksToTarget;
   return {
     profile: p,
     effectiveMode: effMode,
@@ -839,17 +966,18 @@ export function computePlan(profile, exDb = {}, now = Date.now()) {
     bmr: Math.round(bmr(p)),
     macros: m,
     recovery: recoveryPct(p.streakDays),
-    week: generateWeek(p, now),
+    week: generateWeek(p, now, aesthetic.weakest),   // weak-point auto-targeting
     split: { style: resolveSplit(p), recommended: recommendSplit(SPEED_DIAL[effMode].trainingDays), styles: SPLITS },
     lung: generateLungWeek(p),
     diet: generateDietDay(p, m),
     level: tl.stage,                             // TRAINING level (performance-based)
     training: tl,
-    graduation: graduation(p),                   // time/readiness phase → retires easy moves + adds skills
-    deload: deloadState(p),                      // recovery-week state
-    aesthetic: aestheticBalance(p, exDb, now),
+    graduation: grad,                            // time/readiness phase → retires easy moves + adds skills
+    deload,                                      // recovery-week state
+    aesthetic, bodyComp, load, coach,
+    weightTrend: wTrend, adaptiveCal,
     milestones: { next: nextMilestone(p), achieved: achievedMilestones(p), all: MILESTONES },
-    readiness: computeReadiness(p),
-    stats: { cigsAvoided, moneySaved, weightToGo, weeksToTarget },
+    readiness,
+    stats: { cigsAvoided, moneySaved, weightToGo, weeksToTarget, etaWeeks, etaFromTrend: wTrend.weeksToTarget != null },
   };
 }

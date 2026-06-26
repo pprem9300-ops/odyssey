@@ -5,6 +5,20 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D23 · Intelligence layer (synthesise the logs into accurate state + adaptive direction)
+
+User: "add all smart features that make the app more accurate and comprehensive in direction and current state." The app now *collects* a lot, so the leap is to *synthesise* it. All pure engine, node-tested (**50 asserts**), surfaced cleanly.
+
+- **Body composition** — `bodyComposition(p)`: **RFM body-fat %** (`64 − 20·height/waist` for men) from the measurements, lean/fat mass, and the **shoulder:waist V-taper ratio vs the golden 1.618** (added a `shoulder` measurement). Quantifies the looksmaxx goal. Shown in the measurements card + a line in the aesthetic card.
+- **Adaptive nutrition** — `weightTrend(p)` least-squares-regresses the logged weigh-ins → real **kg/wk rate** + pace vs the goal's ideal band; `adaptiveCalories(p)` turns that into a **calorie nudge** ("gaining 1.05 kg/wk — trim ~200 kcal"). **ETA to 75 kg now comes from the real trend** (`stats.etaWeeks`), not a static formula.
+- **Comprehensive readiness + training load** — `trainingLoad(p)` = acute(7d):chronic(28d) **ACWR** with overtraining(>1.5)/detraining(<0.8) flags; `computeReadiness` now **blends sleep + load + mood** (returns `factors` + `load`). Surfaced on the readiness card.
+- **Daily-focus coach** — `dailyFocus()` synthesises readiness, load, nutrition pace, weak-point, deload-due and consistency into the **1–3 prioritised directives** that matter today (warn → info → good). New **Coach card leads the Today view**.
+- **Weak-point auto-targeting** — `generateWeek(p, now, weakGroup)`: the aesthetic engine's laggard group (computed in `computePlan`, threaded in) gets a **+1 bonus "bring-up" set** on its block. Closes assessment → action.
+
+`computePlan` now assembles the intelligence once and shares it (engine stays pure; `computeReadiness` gained a `now` param). Cache-bust → `?v=21` (engine import `?v=7`), `sw odyssey-v21`.
+
+---
+
 ## 2026-06-26 — D22 · Four feature increments (deload/equipment · measurements/photos · analytics/plate · grocery/swaps)
 
 User picked **all four** queued features in one go. Built as four verified increments on top of the training brain (D21); engine logic node-tested (**39 asserts**), UI verified live.

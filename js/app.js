@@ -1,7 +1,7 @@
 /* ============================================================================
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
-import * as E from './engine.js?v=6';
+import * as E from './engine.js?v=7';
 import * as M from './motion.js?v=10';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
@@ -66,6 +66,7 @@ function renderAll() {
   recompute();
   renderNav();
   renderCockpit();
+  renderCoach();
   renderAesthetic();
   renderSleep();
   renderMood();
@@ -114,7 +115,7 @@ function renderCockpit() {
   const cards = [
     { ic: 'fuel', c: 'clay', k: 'Daily fuel', v: m.kcal, sm: 'kcal', sub: `${m.surplus >= 0 ? '+' : ''}${m.surplus} kcal · ${GOAL_LABEL[m.goal]}` },
     { ic: 'protein', c: 'sage', k: 'Protein', v: m.protein_g, sm: 'g', sub: `${m.proteinPerFeeding_g}g × ${m.feedings} feeds` },
-    { ic: 'target', c: 'sage', k: 'Weight → 75kg', v: s.weightToGo, sm: 'kg', sub: `~${s.weeksToTarget} wks at a healthy pace`, weight: true },
+    { ic: 'target', c: 'sage', k: 'Weight → 75kg', v: s.weightToGo, sm: 'kg', sub: `~${s.etaWeeks} wks ${s.etaFromTrend ? 'at your current pace' : 'at a healthy pace'}`, weight: true },
     { ic: 'cig', c: 'sky', k: 'Cigarettes avoided', v: s.cigsAvoided, sm: '', sub: 'since day one' },
     { ic: 'coin', c: 'clay', k: 'Money saved', v: s.moneySaved, sm: '₹', sub: `~₹${profile.smoking.baselineCigsPerDay * profile.smoking.costPerCig}/day`, money: true },
     { ic: 'level', c: 'sky', k: 'Lung level', v: cap(p.lung.level), sm: '', sub: `${p.lung.techniques.length} techniques unlocked`, txt: true },
@@ -226,6 +227,16 @@ function renderDial() {
     : `${dial.label}: ${dial.trainingDays} training days · ${Math.round(dial.volumeMod * 100)}% volume. Recommended for your level: ${cap(plan.recommendedMode)}.`;
 }
 
+/* ---- Coach · today's focus (synthesis of readiness/load/nutrition/weak-point) -- */
+function renderCoach() {
+  const el = $('#coach-card'); if (!el) return;
+  const items = plan.coach || [];
+  const sevCls = { warn: 'coach-warn', info: 'coach-info', good: 'coach-good' };
+  el.innerHTML = `
+    <p class="eyebrow" style="color:var(--clay-deep)">Coach · today's focus</p>
+    <div class="coach-list">${items.map(it => `<div class="coach-item ${sevCls[it.sev] || ''}"><span class="coach-ic">${it.icon}</span><span>${it.text}</span></div>`).join('')}</div>`;
+}
+
 /* ---- Aesthetic / looksmaxx index — scored from the workout log ---------- */
 function subScore(k, v) {
   return `<div class="ab-ss"><div class="ab-ss-k mono">${k}</div><div class="ab-ss-v display">${v}</div></div>`;
@@ -260,6 +271,7 @@ function renderAesthetic() {
     <div class="ab-sub">${subScore('Balance', a.balance)}${subScore('Posture', a.posture)}${subScore('Consistency', a.consistency)}</div>
     <p class="eyebrow" style="margin-top:22px">Muscle balance vs your V-taper target <span class="ab-target-key">▏ target</span></p>
     <div class="ab-bars">${bars}</div>
+    ${plan.bodyComp.vTaper ? `<p class="ab-vtaper mono">Shoulder : waist <strong>${plan.bodyComp.vTaper}</strong> · ${plan.bodyComp.vTaperPct}% of the golden 1.618${plan.bodyComp.bodyFat ? ` · est. ${plan.bodyComp.bodyFat}% body-fat` : ''}</p>` : ''}
     <div class="ab-nudge"><span class="ab-nudge-ic">◎</span><div>${a.nudge}</div></div>
     ${phaseHtml}
     <p class="ab-foot mono">Pull : push ${a.hasData ? a.pullPushRatio + '× — aim ≥ 1 for posture &amp; back width' : '— log sets to score it'} · last 28 days of training</p>`;
@@ -287,6 +299,7 @@ function renderSleep() {
           <span class="mono" style="color:var(--ink-faint);font-size:.78rem">${r.score == null ? '' : '/100 · ' + band + ' readiness'}</span>
         </div>
         <p style="color:var(--ink-soft);font-size:.92rem;line-height:1.5">${r.advice}</p>
+        ${r.load && r.load.band && r.load.band !== 'none' ? `<p class="load-line mono">Training load · <span class="load-${r.load.band}">${r.load.band}</span>${r.load.acwr ? ` · ACWR ${r.load.acwr}` : ''}</p>` : ''}
         ${r.lastNight ? `<p class="mono" style="font-size:.74rem;color:var(--ink-faint);margin-top:8px">Last night · ${r.lastNight.hours}h · ${qLabels[r.lastNight.quality] || ''}</p>` : ''}
       </div>
       <div>
@@ -470,7 +483,7 @@ function setPacer(name, autostart = false) {
 /* ---- Fuel --------------------------------------------------------------- */
 function renderFuel() {
   const m = plan.macros, diet = plan.diet;
-  $('#fuel-sub').textContent = `${m.kcal} kcal · ${m.protein_g}g protein — a lacto-veg, eggless ${GOAL_LABEL[m.goal]} plan, anchored to your 75 kg target. Combine grains + legumes across the day for complete protein.`;
+  $('#fuel-sub').innerHTML = `${m.kcal} kcal · ${m.protein_g}g protein — a lacto-veg, eggless ${GOAL_LABEL[m.goal]} plan, anchored to your 75 kg target.${plan.adaptiveCal && plan.adaptiveCal.note ? ` <span class="adapt-cal">${plan.adaptiveCal.suggestion ? '⚖ ' : ''}${plan.adaptiveCal.note}</span>` : ' Combine grains + legumes across the day for complete protein.'}`;
   const macs = [['Protein', m.protein_g, 'sage'], ['Carbs', m.carb_g, 'clay'], ['Fat', m.fat_g, 'sky']];
   $('#macro-band').innerHTML = macs.map(([k, g, c]) => `
     <div class="macro card--${c}">
@@ -771,7 +784,7 @@ function renderMacroHistory() {
 /* ============================================================================
    WELLNESS — body measurements + progress photos (photos local-only)
    ========================================================================== */
-const MEASURES = [['waist', 'Waist', 'cm'], ['chest', 'Chest', 'cm'], ['arm', 'Arm', 'cm'], ['thigh', 'Thigh', 'cm'], ['weight', 'Weight', 'kg']];
+const MEASURES = [['waist', 'Waist', 'cm'], ['shoulder', 'Shoulders', 'cm'], ['chest', 'Chest', 'cm'], ['arm', 'Arm', 'cm'], ['thigh', 'Thigh', 'cm'], ['weight', 'Weight', 'kg']];
 function measureStore() { profile.measureLog = profile.measureLog || {}; return profile.measureLog; }
 function latestMeasure() {
   const log = measureStore(); const dates = Object.keys(log).sort();
@@ -796,6 +809,11 @@ function renderMeasure() {
       ${latest ? `<span class="mono" style="font-size:.72rem;color:var(--ink-faint)">last ${fmtDate(latest.date)}</span>` : ''}
     </div>
     <div class="m-grid">${rows}</div>
+    ${plan.bodyComp.hasData ? `<div class="bodycomp">
+      <div class="bc-stat"><div class="bc-k mono">Body-fat</div><div class="bc-v">${plan.bodyComp.bodyFat}<small>%</small></div></div>
+      <div class="bc-stat"><div class="bc-k mono">Lean mass</div><div class="bc-v">${plan.bodyComp.leanMass != null ? plan.bodyComp.leanMass : '—'}<small>kg</small></div></div>
+      <div class="bc-stat"><div class="bc-k mono">V-taper</div><div class="bc-v">${plan.bodyComp.vTaper != null ? plan.bodyComp.vTaper : '—'}<small>${plan.bodyComp.vTaperPct != null ? ' · ' + plan.bodyComp.vTaperPct + '%' : ''}</small></div></div>
+    </div>` : ''}
     <div style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap;align-items:center">
       <button class="btn btn--clay magnetic" id="measure-save" style="padding:11px 18px">Log today</button>
       ${latest ? `<button class="mini-reset" id="measure-del">↺ Delete last entry</button>` : ''}
