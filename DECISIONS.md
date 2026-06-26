@@ -5,6 +5,18 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D25 · Full design + animation refactor (PLANNED — the active next task)
+
+User wants a **major overhaul of animation, visual design and overall feel** — more interactive, awwwards-grade, with a smooth scroll-driven journey — now that all features/views/links exist. **The cinematic-dark direction (D20) is intentionally being evolved/replaced** (this supersedes D20 as the design north-star once the new direction is chosen).
+
+**References** (replicate the motion language, scroll journey, smoothness + **colour mood** with our OWN original code — study the techniques/engine; do **not** copy their code or assets): `wearedaima.framer.website`, `agentura.framer.website`, `dragonfly.xyz`. All Framer sites → expect Framer Motion + smooth-scroll + scroll-linked reveals; dragonfly likely adds WebGL/canvas. User likes the animation, design AND colour of all three.
+
+**Approach (next session, fresh context):** (1) research the refs' techniques; (2) propose a palette/type/motion direction and get sign-off via a `show_widget` live demo BEFORE any teardown; (3) refactor incrementally — motion/token layer (`css :root` + `js/motion.js`) first, then per view; re-introduce **Lenis** smooth-scroll via the `awwwards-web-motion` one-ticker setup (gated on `prefers-reduced-motion` + low `deviceMemory`, pins off on mobile); animate transform/opacity/clip-path only; (4) verify (preview freezes gsap.ticker/IO + boots at a 2px viewport → `preview_resize` 1440; use force-state screenshots + `show_widget` + live), bump `?v=` + `sw.js` CACHE, ship, update docs + memory.
+
+**Guardrails:** the `engine.js` intelligence (performance progression, graduation, aesthetic/looksmaxx, body-comp, adaptive cals, training-load, coach, measurement trends, editable target) and the synced `profile.*Log` data MUST keep working untouched. Keep the feature pattern. Never gate critical logic (view-swap, saves) on gsap/IO callbacks. **Push notifications: declined by the user.** Full brief in PROJECT_STATUS "▶ RESUME HERE → 🎨 NEXT UP".
+
+---
+
 ## 2026-06-26 — D24 · Last-state persistence + photos→cloud · editable goal weight · measurement-aware calc
 
 Three asks across two shipped increments.

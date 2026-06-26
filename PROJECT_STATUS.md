@@ -4,7 +4,7 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-26
-**Current phase:** `P16 — Persistence + all-data-in-cloud, editable goal weight, measurement-aware calc (Katch-McArdle BMR + body-fat-aware goal + measurement-trend coaching) (D24). 60 node asserts + verified live. Only remaining optional: reminders/notifications (needs a push server).`
+**Current phase:** `P16 LIVE — all features below shipped, 60 node asserts, verified. ▶ NEXT (active task) = P17 FULL DESIGN + ANIMATION REFACTOR: awwwards-grade scroll-driven motion + refreshed visual design/color, inspired by daima / agentura / dragonfly, across every view. See "▶ RESUME HERE → 🎨 NEXT UP". (Push notifications: declined by user.)`
 **Overall progress:** ▰▰▰▰▰▰▰ ~99% (everything below + reopen-last-view · all-data-in-cloud · editable target · measurement-aware calc — live, verified). Cache-bust now `?v=23`, `sw odyssey-v23` (engine import `?v=8`, chart `?v=4`, exercises `?v=4`).
 **🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
@@ -14,6 +14,27 @@
 ---
 
 ## ▶ RESUME HERE (next session)
+
+### 🎨 NEXT UP — FULL DESIGN + ANIMATION REFACTOR (the ACTIVE task, briefed 2026-06-26)
+
+**The user wants a major overhaul** of the app's **animation, visual design, and overall feel** — more interactive, awwwards-grade, with a smooth scroll-driven journey — now that every feature/view/link exists (Today + Coach + Aesthetic index, Week + analytics + periodize + plate, Moves, Lung Lab, Fuel + swaps + grocery + macro, Journey + measurements + photos, all modals). **The current cinematic-dark (D20) is to be evolved/replaced — an intentional design change.**
+
+**Reference feel** (replicate the motion language, scroll journey, smoothness AND colour mood — with our OWN original code; study the techniques/engine, do **NOT** copy their code or assets):
+- https://wearedaima.framer.website/
+- https://agentura.framer.website/
+- https://www.dragonfly.xyz/
+
+(All three are Framer sites — expect Framer Motion + smooth-scroll + scroll-linked reveals; dragonfly likely adds WebGL/canvas. User likes the animation, design **and** colour of all three.)
+
+**Plan for the fresh session** (use the `awwwards-web-motion` + `frontend-design` + `ui-ux-pro-max` skills):
+1. **Research** the references' techniques — smooth scroll, pinned/scroll-driven timelines, parallax, masked/clip-path + split-text reveals, magnetic hover, view/page transitions, count-ups, marquee, easing curves, palettes. (Observe; don't lift assets.)
+2. **Propose a direction** (palette + type + motion language) and get sign-off via a `show_widget` live demo BEFORE any teardown (the Claude preview freezes motion; the widget runs in the user's real browser).
+3. **Refactor incrementally:** motion/token layer first (css `:root` + `js/motion.js`), then re-apply across every view. Re-introduce **Lenis** smooth-scroll carefully via the skill's ONE-ticker setup (it was removed earlier for jank — if re-added: `gsap.ticker`-driven, `lagSmoothing(0)`, drive `ScrollTrigger.update` off it, **drop pins on mobile**, gate on `prefers-reduced-motion` + low `deviceMemory`). Animate transform/opacity/clip-path only; `content-visibility` on long lists.
+4. **Verify** (force-state screenshots + `show_widget` + live; **preview boots at a 2px viewport → `preview_resize` to 1440 first**), **bump `?v=` + `sw.js` CACHE**, ship, update docs + memory.
+
+**Hard guardrails — do NOT break the brain or the data:** all of `engine.js` (performance progression, graduation, aesthetic/looksmaxx, body-comp, adaptive calories, training-load, coach synthesis, measurement trends, editable target) and the synced `profile.*Log` data MUST keep working. Keep the feature pattern (per-date logs, render-once + `paint*()` in place). Motion stays CSS/IO/rAF or one-ticker GSAP — **never gate critical logic (view-swap, saves) on gsap/IO callbacks.** See `DECISIONS.md` **D25**.
+
+---
 
 **Everything below is DONE, LIVE, and verified (2026-06-26, tree clean & pushed).** Shipped: invite-only auth (Brevo), the **cinematic-dark redesign**, native-scroll perf, the daily feature increments (water/mood/meals/sleep/journal/export), and — newest — the **performance-driven TRAINING BRAIN v2 (D21)**: calisthenics / aesthetics / **looksmaxx** programming that auto-progresses from your logged sets (basic→advanced) and is **decoupled from the smoke-free streak**, with agility/cardio/plyo woven into a pro week, an **auto-graduation** layer (retires easy moves + adds skill work after ~14 training-weeks / demonstrated peak / a manual "I'm ready" toggle), and **reset + undo across every log**. **Plus the D22 wave:** deload + equipment toggles, body measurements + progress photos (photos local-only), training analytics (volume + progression charts) + a plate calculator, and meal swaps + grocery list + macro history. **Plus the D23 intelligence layer:** a **Coach card** that synthesises readiness + load + nutrition pace + weak-point into the day's 1–3 priorities; **body-composition** (RFM body-fat % + shoulder:waist V-taper ratio vs golden 1.618); **adaptive calories** from the real weight trend; **training-load (ACWR)** + sleep/load/mood readiness; and **weak-point auto-targeting** (the laggard muscle group gets a bonus set). **Plus D24:** the app **reopens on your last view**, **all data (incl. progress photos) now syncs to the cloud**, the **goal weight is editable** (cockpit stepper, was hardcoded 75), and the **calc layer is measurement-aware** (Katch-McArdle BMR from your lean mass, body-fat-aware goal, measurement-trend coaching). Nothing is mid-flight. The only remaining optional item is reminders/notifications (needs a push server). **First, read this block + DECISIONS D18–D24 to reload context.**
 
