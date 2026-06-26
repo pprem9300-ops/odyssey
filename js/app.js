@@ -3,8 +3,8 @@
    ========================================================================== */
 import * as E from './engine.js?v=8';
 import * as M from './motion.js?v=13';
-import * as Cloud from './cloud.js?v=4';
-import { initGate } from './gate.js?v=5';
+import * as Cloud from './cloud.js?v=5';
+import { initGate } from './gate.js?v=6';
 import { openCalibration } from './onboard.js?v=3';
 import { weightTrendSVG, weightDeltaLabel, barChartSVG, lineChartSVG } from './chart.js?v=5';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=4';

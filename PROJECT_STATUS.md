@@ -7,7 +7,7 @@
 **Current phase:** `P17 LIVE — D26 "Oxygen" design + motion refactor (palette + one-ticker Lenis + cinematic cold-boot + masked reveals + breathing aura) PLUS D27 (bespoke per-view pins for Lung Lab / Week / Fuel, desktop-only). Lenis smooth-scroll on desktop (wheel/trackpad); mobile uses NATIVE touch momentum (D27.1 — syncTouch:false, after Lenis-driven touch stuttered on the phone). engine/data untouched, no console errors. See "▶ RESUME HERE". (Push notifications: declined.)`
 **Overall progress:** ▰▰▰▰▰▰▰ ~99% (all features + the D26/D27 awwwards-grade design/motion overhaul — live). Cache-bust now `app.js?v=26` / `css?v=24`, `sw odyssey-v26` (motion `?v=13`, chart `?v=5`, engine `?v=8`, exercises `?v=4`).
 **🎨 Design = OXYGEN (D26 — supersedes cinematic-dark D20):** `:root` is a deep oxygenated void (`#08090C`) + warm off-white (`#F2EEE6`) + **ember-coral `--clay #FF6B42`** (energy/streak/CTA) + **oxygen-teal `--sky #4FD4C4`** (breath/lungs/recovery — the ring + lungs SVG are teal) + muted sage/lilac; `--grad` = teal→coral vital gradient. Fraunces serif headlines + Space Grotesk eyebrows. Motion = one-ticker **Lenis** (desktop only) + **cinematic cold-boot** + masked split-line reveals + breathing hero aura + scroll-progress rail. Don't reintroduce the old `#0B0B0C`/`#EA7C52`/`#82ABE0` values.
-**🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
+**🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (8-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
 > **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=` cache-bust (now `?v=24`). Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
 
@@ -279,9 +279,9 @@ Use **`serve.py`** (no-cache), NOT plain `http.server`. Serve over http (not `fi
 
 ## 10. Auth + cloud-sync setup (Supabase + Brevo — free, ~10 min, no card)
 
-The app is **invite-only**: `js/gate.js` shows a login gate until you sign in, with **two ways in** — an emailed **6-digit code** (recommended) **or** email + **password**. Codes/emails are delivered by **Brevo** (SMTP) because Supabase's built-in mailer is rate-limited (~2–3/hr → testing only). Supabase RLS keeps every user's data private to them. The `anon`/publishable key is public-by-design.
+The app is **invite-only**: `js/gate.js` shows a login gate until you sign in, with **two ways in** — an emailed **8-digit code** (recommended; length set in Supabase Auth → Email OTP length) **or** email + **password**. Codes/emails are delivered by **Brevo** (SMTP) because Supabase's built-in mailer is rate-limited (~2–3/hr → testing only). Supabase RLS keeps every user's data private to them. The `anon`/publishable key is public-by-design.
 
-**✅ DONE & verified live (2026-06-20):** Supabase project + `odyssey_state` table + RLS · gate + auth code · **Brevo SMTP wired into Supabase** · Magic-Link template emits `{{ .Token }}` (6-digit code) · Auth URL Configuration set. A real code was delivered and sign-in confirmed on phone. The steps below are kept as the reference for re-doing it or onboarding a new device/provider.
+**✅ DONE & verified live (2026-06-20):** Supabase project + `odyssey_state` table + RLS · gate + auth code · **Brevo SMTP wired into Supabase** · Magic-Link template emits `{{ .Token }}` (8-digit code) · Auth URL Configuration set. A real code was delivered and sign-in confirmed on phone. The steps below are kept as the reference for re-doing it or onboarding a new device/provider.
 
 **Setup reference (dashboard steps):**
 
@@ -293,7 +293,7 @@ The app is **invite-only**: `js/gate.js` shows a login gate until you sign in, w
 **B. Supabase → point auth emails at Brevo**
 4. **Project Settings → Authentication → SMTP Settings → Enable custom SMTP:**
    - Host `smtp-relay.brevo.com` · Port `587` · Username = your Brevo login · Password = the Brevo **SMTP key** · Sender email = the **verified** sender from step 2 · Sender name `Odyssey`.
-5. **Authentication → Email Templates → "Magic Link"** → make sure the body includes the **code token** so "email me a code" delivers a 6-digit code (not only a link). Use e.g.:
+5. **Authentication → Email Templates → "Magic Link"** → make sure the body includes the **code token** so "email me a code" delivers a code (not only a link; the **code length** is set separately in Supabase **Auth → Email OTP length** — currently **8**, and the gate input matches it). Use e.g.:
    ```html
    <h2>Your Odyssey code</h2>
    <p>Enter this code to sign in:</p>
@@ -306,7 +306,7 @@ The app is **invite-only**: `js/gate.js` shows a login gate until you sign in, w
 **C. The invite list (in code — I seeded yours)**
 8. `js/config.js` → `ALLOWED_EMAILS` already contains `pprem9300@gmail.com`. Add a line per invited person; `git push` to deploy. Only listed emails can sign in/up from the app.
 
-**Verify:** open the live site → gate appears → enter your email → **Email me a code** → type the 6-digit code → you're in (or use a password). Sign out (Profile-area "Synced ✓" modal) re-shows the gate.
+**Verify:** open the live site → gate appears → enter your email → **Email me a code** → type the 8-digit code → you're in (or use a password). Sign out (Profile-area "Synced ✓" modal) re-shows the gate.
 
 **Optional hardening — make invite-only *server-side* too (recommended).** The `ALLOWED_EMAILS` list is a **client** gate: it stops casual access and unwanted accounts in the UI, but the publishable key in `config.js` is public, so a determined person could call Supabase's signup API directly and self-provision an (empty) account. **RLS already prevents them seeing anyone else's data** — the only gap is unwanted account creation. To close it, pick one:
 - **Easiest:** Supabase → **Authentication → Sign In / Providers** (or Auth → Settings) → turn **OFF "Allow new users to sign up."** Then create your account once (sign in via code while it's still on, or use the dashboard's **Add user**), and turn it off. New invitees need you to add them in the dashboard.

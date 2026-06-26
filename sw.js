@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v26';  // bumped: D27.1 — Lenis syncTouch:false (native touch momentum; phone stuttered with Lenis driving touch)
+const CACHE = 'odyssey-v27';  // bumped: D27.2 — login gate accepts the 8-digit Supabase OTP (was capped at 6)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and

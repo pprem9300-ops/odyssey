@@ -5,7 +5,7 @@
    data) only boots once initGate() calls onEnter(). On sign-out the app reloads,
    bringing the gate back. Allowlist is enforced in cloud.js (config.js list).
    ========================================================================== */
-import * as Cloud from './cloud.js?v=4';
+import * as Cloud from './cloud.js?v=5';
 
 const OMEGA = 'Ω';
 
@@ -86,7 +86,7 @@ export function initGate(onEnter) {
   function renderMethod() {
     h(`<p class="gate-checking mono">${email}</p>
        <p class="gate-title">How would you like to sign in?</p>
-       <p class="gate-sub">We can email you a one-time 6-digit code — nothing to remember.</p>
+       <p class="gate-sub">We can email you a one-time 8-digit code — nothing to remember.</p>
        <button class="btn btn--clay magnetic gate-btn" id="gate-send">Email me a code</button>
        <p class="gate-alt">or <button class="gate-link" id="gate-use-pass">use a password</button></p>
        <p id="gate-status" class="gate-status"></p>
@@ -112,9 +112,9 @@ export function initGate(onEnter) {
   function renderCode() {
     h(`<p class="gate-checking mono">${email}</p>
        <p class="gate-title">Enter your code</p>
-       <p class="gate-sub">We emailed a 6-digit code. It expires shortly.</p>
+       <p class="gate-sub">We emailed an 8-digit code. It expires shortly.</p>
        <input id="gate-code" class="gate-input gate-code" inputmode="numeric" autocomplete="one-time-code"
-              maxlength="6" placeholder="••••••" />
+              maxlength="8" placeholder="••••••••" />
        <button class="btn btn--clay magnetic gate-btn" id="gate-verify">Verify &amp; enter</button>
        <p id="gate-status" class="gate-status"></p>
        <p class="gate-foot"><button class="gate-link" id="gate-resend">Resend code</button>
@@ -123,7 +123,7 @@ export function initGate(onEnter) {
     code.focus();
     const submit = async () => {
       const token = code.value.replace(/\D/g, '');
-      if (token.length < 6) { setStatus('Enter the 6-digit code.', 'err'); return; }
+      if (token.length < 8) { setStatus('Enter the 8-digit code.', 'err'); return; }
       setStatus('Verifying…');
       $('#gate-verify').disabled = true;
       try {

@@ -1,7 +1,7 @@
 /* ============================================================================
    ODYSSEY — CLOUD + AUTH  (Supabase, free tier · local-first sync · invite-only)
    ----------------------------------------------------------------------------
-   Two ways in (see gate.js): a 6-digit code emailed via Brevo, OR email+password.
+   Two ways in (see gate.js): an 8-digit code emailed via Brevo, OR email+password.
    Sign-in/up is gated to ALLOWED_EMAILS (config.js). Dormant + zero external
    dependency until config.js is filled in.
    ========================================================================== */
@@ -62,7 +62,7 @@ export async function initCloud() {
   }
 }
 
-/* ---- AUTH: emailed 6-digit code (passwordless) ------------------------- */
+/* ---- AUTH: emailed 8-digit code (passwordless; length set in Supabase) - */
 // Sends a one-time code (and/or magic link, per the Supabase email template).
 export async function sendCode(email) {
   requireClient(); requireAllowed(email);
@@ -73,7 +73,7 @@ export async function sendCode(email) {
   if (error) throw error;
   return true;
 }
-// Verify the 6-digit code the user typed in.
+// Verify the 8-digit code the user typed in (length-agnostic — Supabase checks it).
 export async function verifyCode(email, token) {
   requireClient(); requireAllowed(email);
   const { data, error } = await client.auth.verifyOtp({
