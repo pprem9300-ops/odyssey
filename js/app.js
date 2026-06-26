@@ -2,7 +2,7 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=8';
-import * as M from './motion.js?v=11';
+import * as M from './motion.js?v=12';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
@@ -82,6 +82,9 @@ function renderAll() {
   renderMeasure();
   renderPhotos();
   renderDisclaimers();
+  // rebuild the active view's bespoke scroll moments on fresh DOM (re-render-safe)
+  const _av = document.querySelector('.view.is-active');
+  if (_av && ['lab', 'week', 'fuel'].includes(_av.dataset.view)) M.initViewScroll(_av.dataset.view);
 }
 
 function renderNav() {
@@ -1059,6 +1062,7 @@ function openExerciseDetail(name) {
   })();
   M.bindMagnetic($('#ex-modal'));
   $('#ex-modal').classList.add('on');
+  M.lenisStop();
 }
 
 /* ---- Disclaimers -------------------------------------------------------- */
@@ -1152,6 +1156,7 @@ function switchView(name) {
     requestAnimationFrame(() => {
       M.revealHeadline(view); M.bindMagnetic(view); M.refreshScrollTriggers();
       if (name === 'journey') initJourneyScroll();
+      else if (name === 'lab' || name === 'week' || name === 'fuel') M.initViewScroll(name);
     });
   });
 }
@@ -1199,10 +1204,12 @@ function titleFx(label) {
 
 function openSOS() {
   $('#sos-modal').classList.add('on');
+  M.lenisStop();
   sosPacer = M.runPacer($('#sos-core'), [4, 7, 8, 0]);
 }
 function closeSOS() {
   $('#sos-modal').classList.remove('on');
+  M.lenisStart();
   if (sosPacer) { sosPacer.stop(); sosPacer = null; }
 }
 
@@ -1336,16 +1343,16 @@ function enterApp() {
   });
   $('#profile-btn').onclick = () => openProfileEditor(false);
   $('#nav-m-profile').onclick = () => openProfileEditor(false);
-  $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
+  $('#nav-m-account').onclick = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); M.lenisStop(); };
 
   // exercise detail modal
-  const closeEx = () => { $('#ex-modal').classList.remove('on'); clearInterval(restInterval); restInterval = null; };
+  const closeEx = () => { $('#ex-modal').classList.remove('on'); M.lenisStart(); clearInterval(restInterval); restInterval = null; };
   $('#ex-close').onclick = closeEx;
   $('#ex-modal').onclick = (e) => { if (e.target.id === 'ex-modal') closeEx(); };
 
   // account / sync modal — cloud is already initialised by the gate.
-  const openSync = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); };
-  const closeSync = () => $('#sync-modal').classList.remove('on');
+  const openSync = () => { updateSyncUI(); $('#sync-modal').classList.add('on'); M.lenisStop(); };
+  const closeSync = () => { $('#sync-modal').classList.remove('on'); M.lenisStart(); };
   $('#sync-btn').onclick = openSync;
   $('#sync-close').onclick = closeSync;
   $('#sync-modal').onclick = (e) => { if (e.target.id === 'sync-modal') closeSync(); };

@@ -26,13 +26,14 @@ const lowEnd   = () => (navigator.deviceMemory && navigator.deviceMemory < 4) ||
 let lenis = null;
 export function initSmoothScroll() {
   if (lenis) return lenis;
-  if (RM || !Lenis || !gsap || !ScrollTrigger || coarse() || lowEnd()) return null;
+  if (RM || !Lenis || !gsap || !ScrollTrigger) return null;   // only skip for reduced-motion / missing libs
   try {
     lenis = new Lenis({
       duration: 1.1,                                   // 1.0–1.3 = the awwwards feel
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),  // expo-out
       smoothWheel: true,
-      syncTouch: false,                                // native momentum on touch
+      syncTouch: true,                                 // smooth-scroll on phones too (user opted in) — Lenis drives touch
+      touchMultiplier: 1.6,                            // keep touch feeling responsive under the smoothing
     });
     gsap.ticker.add((t) => lenis.raf(t * 1000));       // ONE loop — no second rAF
     gsap.ticker.lagSmoothing(0);                       // scrubbed anims never "catch up"
@@ -239,12 +240,14 @@ export function celebrate({ eyebrow, title, note }) {
   document.getElementById('celebrate-note').textContent = note || '';
   document.documentElement.setAttribute('data-takeover', 'on');
   el.classList.add('on');
+  lenisStop();                                         // freeze the page behind the takeover
   burst();
   if (!RM && gsap) gsap.from('#celebrate-title', { scale: 0.7, opacity: 0, duration: 0.9, ease: 'back.out(1.6)' });
 }
 export function closeCelebrate() {
   document.getElementById('celebrate').classList.remove('on');
   document.documentElement.removeAttribute('data-takeover');
+  lenisStart();
 }
 
 export function refreshScrollTriggers() { if (ScrollTrigger && !RM) ScrollTrigger.refresh(); }
@@ -259,6 +262,51 @@ export function journeyScroll(reached = 0) {
   gsap.set(fill, { scaleY: 0 });
   gsap.to(fill, { scaleY: Math.max(0.03, Math.min(1, reached)), ease: 'none',
     scrollTrigger: { id: 'journey', trigger: rail, start: 'top 75%', end: 'bottom 60%', scrub: 0.6 } });
+  ScrollTrigger.refresh();
+}
+
+/* ============================================================================
+   PER-VIEW SCROLL CHOREOGRAPHY — bespoke pinned + parallax moments
+   Desktop-only PINS (matchMedia min-width:769 → auto-revert off mobile, no
+   pin-spacer trap); parallax runs on ALL devices. Triggers target PERSISTENT
+   mount elements (their innerHTML is swapped on re-render, the node stays), and
+   the whole thing is rebuilt via ONE reverted matchMedia → re-render-safe.
+   Called on view-enter (switchView) AND after renderAll for the active view.
+   ========================================================================== */
+let viewMM = null;
+const DESKTOP = '(min-width: 769px)';
+export function initViewScroll(name) {
+  if (!gsap || !ScrollTrigger || RM) return;
+  if (viewMM) { viewMM.revert(); viewMM = null; }     // tear down the previous view's triggers
+  const view = document.getElementById('view-' + name);
+  if (!view) return;
+  const q = (sel) => view.querySelector(sel);
+  const parallax = (el, amt) => { if (el) gsap.fromTo(el, { yPercent: amt }, { yPercent: -amt, ease: 'none',
+    scrollTrigger: { trigger: el, start: 'top bottom', end: 'bottom top', scrub: 0.8 } }); };
+  viewMM = gsap.matchMedia();
+
+  if (name === 'lab') {
+    const hero = q('.lab-hero'), lungs = q('#lungs-mount');
+    if (hero && lungs) {
+      viewMM.add(DESKTOP, () => {                       // pin the hero, scrub the lungs alive (grey→oxygenated scale)
+        gsap.fromTo(lungs, { scale: 0.9, autoAlpha: 0.72 }, { scale: 1.06, autoAlpha: 1, ease: 'none',
+          scrollTrigger: { trigger: hero, start: 'top 12%', end: '+=70%', pin: true, scrub: 0.6, anticipatePin: 1, invalidateOnRefresh: true } });
+      });
+      viewMM.add('(max-width: 768px)', () => parallax(lungs, 7));
+    }
+  } else if (name === 'week') {
+    viewMM.add(DESKTOP, () => {                         // hold the analytics while you read the charts
+      const prog = q('#train-progress');
+      if (prog) ScrollTrigger.create({ trigger: prog, start: 'top 16%', end: '+=40%', pin: true, anticipatePin: 1, invalidateOnRefresh: true });
+    });
+    viewMM.add('all', () => { parallax(q('#periodize'), 9); parallax(q('#plate-card'), 12); });
+  } else if (name === 'fuel') {
+    viewMM.add(DESKTOP, () => {                         // brief "here are your macros" hold, then the meals flow
+      const macro = q('#macro-band');
+      if (macro) ScrollTrigger.create({ trigger: macro, start: 'top 16%', end: '+=32%', pin: true, anticipatePin: 1, invalidateOnRefresh: true });
+    });
+    viewMM.add('all', () => parallax(q('#food-rail'), 7));
+  }
   ScrollTrigger.refresh();
 }
 
