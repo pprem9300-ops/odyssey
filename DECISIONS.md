@@ -5,6 +5,21 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D27 · Bespoke per-view scroll moments (Lab/Week/Fuel pins) + Lenis on ALL phones
+
+Follow-up to D26: push the motion per-view. **User chose (via a quick options ask) to run Lenis smooth-scroll on ALL phones** — explicitly overriding the "mobile stays native" default and accepting the historical jank risk; **pins stay desktop-only** (a pin + mobile's resizing toolbar viewport genuinely breaks layout — not a stylistic choice).
+
+- **`initViewScroll(name)` (motion.js):** desktop-only **pins** via `gsap.matchMedia('(min-width:769px)')` (auto-reverts off mobile → no pin-spacer/dynamic-viewport trap) + **universal parallax** (transform-only, all devices). All triggers target **persistent mount nodes** (innerHTML swaps on re-render, the node stays) and are rebuilt through ONE reverted `matchMedia` → **re-render-safe**. Wired from `switchView` (on enter) AND the end of `renderAll` (active bespoke view) so a data-log re-render rebuilds the triggers on fresh DOM.
+  - **Lung Lab** — pin `.lab-hero`, scrub the lungs *alive* (scale 0.9→1.06 + opacity) as you scroll; mobile gets a light lungs parallax.
+  - **Week** — pin `#train-progress` (hold the analytics while you read the charts) + parallax `#periodize`/`#plate-card`.
+  - **Fuel** — pin `#macro-band` (a brief "here are your macros" hold) + parallax `#food-rail`.
+- **Lenis on all phones:** `initSmoothScroll` drops the coarse-pointer/low-`deviceMemory` gate (keeps the reduced-motion gate), `syncTouch:true` + `touchMultiplier:1.6` so Lenis drives touch scrolling. **The old jank was Lenis's own rAF fighting the ticker + the particle canvas — both gone — so the one-ticker setup should hold; still, `syncTouch:true` is the historically risky setting → confirm on a real phone. One-line dial-back = `syncTouch:false`** (Lenis active, native touch momentum).
+- **`lenisStop`/`lenisStart`** wired on the exercise / SOS / sync / celebrate overlays (open→stop, close→start) so the page can't drift behind a modal on touch.
+
+Guardrails held: `engine.js`/`exercises.js`/`cloud.js`/`gate.js` untouched (only `motion.js`, `app.js`, `index.html`, `sw.js`). Verified in preview: no console errors, exactly the expected triggers (1 pin-spacer, no leak), views not collapsed (Fuel 3243px). ⚠️ pins/parallax/Lenis don't animate in the frozen preview → **live verification pending.** Cache-bust → `app.js?v=25`, `motion.js?v=12`, `sw odyssey-v25` (css unchanged at `?v=24`).
+
+---
+
 ## 2026-06-26 — D26 · Full design + motion refactor → "OXYGEN" (BUILT — supersedes D25's plan + D20's palette as the design north-star)
 
 Executed D25's brief. Studied the three Framer refs' technique (deep-dark + one warm accent, big editorial type, smooth scroll, scroll-linked reveals, restraint), ran the `awwwards-web-motion` + `frontend-design` + `ui-ux-pro-max` skills, and **got sign-off via a `show_widget` live demo (palette + type + motion toggles) BEFORE any teardown.** User chose **Oxygen** palette + **Fraunces** serif + full cold-boot + "all kinds of fancy animations." Refactored incrementally (token layer → motion engine → wire → verify → landing polish) and shipped (`fe28c1e`).
