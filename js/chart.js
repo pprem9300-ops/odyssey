@@ -10,15 +10,15 @@
    Fonts: --font-display 'Fraunces' serif · --font-mono 'JetBrains Mono'.
    ========================================================================== */
 
-/* CINEMATIC DARK palette (matches css :root) — light text/lines glow on dark cards.
+/* OXYGEN palette (matches css :root, D26) — light text/lines glow on the dark void.
    -deep values are the LIGHT tints (text on dark); base values are the glowing fills. */
 const HEX = {
-  cream: '#0B0B0C', paper: '#161618', haze: '#2C2C31', ink: '#F4F1EA',
-  inkSoft: '#AAA69D', inkFaint: '#6F6B63',
-  clay: '#EA7C52', clayDeep: '#F4A988', claySoft: '#402619',
-  sky: '#82ABE0', skyDeep: '#B2CBEF', skySoft: '#1F2B3B',
-  sage: '#9FC081', sageDeep: '#C5DAAF', sageSoft: '#26311D',
-  lilac: '#B9AAE8', lilacDeep: '#D5CBF3',
+  cream: '#08090C', paper: '#101216', haze: '#272D35', ink: '#F2EEE6',
+  inkSoft: '#9AA3AC', inkFaint: '#646C76',
+  clay: '#FF6B42', clayDeep: '#FFA98A', claySoft: '#3A2015',
+  sky: '#4FD4C4', skyDeep: '#8CE6DB', skySoft: '#123330',
+  sage: '#93C17D', sageDeep: '#BCDCA8', sageSoft: '#21301B',
+  lilac: '#B6A6E8', lilacDeep: '#D2C7F4',
 };
 const MONO = "'JetBrains Mono', ui-monospace, monospace";
 const SERIF = "'Fraunces', Georgia, serif";

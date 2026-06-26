@@ -2,11 +2,11 @@
    ODYSSEY — APP  ·  state · routing · render · persistence · interactions
    ========================================================================== */
 import * as E from './engine.js?v=8';
-import * as M from './motion.js?v=10';
+import * as M from './motion.js?v=11';
 import * as Cloud from './cloud.js?v=4';
 import { initGate } from './gate.js?v=5';
 import { openCalibration } from './onboard.js?v=3';
-import { weightTrendSVG, weightDeltaLabel, barChartSVG, lineChartSVG } from './chart.js?v=4';
+import { weightTrendSVG, weightDeltaLabel, barChartSVG, lineChartSVG } from './chart.js?v=5';
 import { EXERCISE_DB, EXERCISE_LIST, EXERCISE_FAMILIES } from './exercises.js?v=4';
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -1293,17 +1293,13 @@ function enterApp() {
   renderAll();
 
   // motion
-  M.initSmoothScroll();
+  M.initSmoothScroll();                 // Lenis (desktop) — one ticker, gated on RM/coarse/low-end
   M.initCursor();                       // removes the old custom-cursor nodes
   M.initReveals();
   M.revealHeadline();
   M.bindMagnetic();
-  M.breathField($('#breath-field'), () => plan.recovery);
+  M.initScrollProgress();               // top progress rail + nav scrolled-state
   M.intro(() => M.initHero());          // cold-boot intro → then animate the hero in
-
-  // nav scroll state
-  const nav = $('#nav');
-  addEventListener('scroll', () => nav.classList.toggle('is-scrolled', scrollY > 20), { passive: true });
 
   // routing — any [data-view]
   document.addEventListener('click', (e) => {
