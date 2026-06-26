@@ -4,7 +4,7 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-26
-**Current phase:** `P17 LIVE — D26 "Oxygen" design + motion refactor (palette + one-ticker Lenis + cinematic cold-boot + masked reveals + breathing aura) PLUS D27 (bespoke per-view pins for Lung Lab / Week / Fuel, desktop-only). Lenis smooth-scroll on desktop (wheel/trackpad); mobile uses NATIVE touch momentum (D27.1 — syncTouch:false, after Lenis-driven touch stuttered on the phone). engine/data untouched, no console errors. See "▶ RESUME HERE". (Push notifications: declined.)`
+**Current phase:** `P17 LIVE — D26 "Oxygen" design + motion refactor (palette + one-ticker Lenis + cinematic cold-boot + masked reveals + breathing aura) PLUS D27 (bespoke per-view pins for Lung Lab / Week / Fuel, desktop-only). Lenis smooth-scroll on desktop (wheel/trackpad); mobile uses NATIVE touch momentum (D27.1 — syncTouch:false, after Lenis-driven touch stuttered on the phone). engine/data untouched, no console errors. ▶ D28 bug scan done — 4 real clusters (scroll-trigger lifecycle · engine NaN-on-partial-profile · new-device data-loss · smaller), FIXES DEFERRED ("fix later") → see "🐛 KNOWN BUGS" at the top of RESUME HERE. See "▶ RESUME HERE". (Push notifications: declined.)`
 **Overall progress:** ▰▰▰▰▰▰▰ ~99% (all features + the D26/D27 awwwards-grade design/motion overhaul — live). Cache-bust now `app.js?v=26` / `css?v=24`, `sw odyssey-v26` (motion `?v=13`, chart `?v=5`, engine `?v=8`, exercises `?v=4`).
 **🎨 Design = OXYGEN (D26 — supersedes cinematic-dark D20):** `:root` is a deep oxygenated void (`#08090C`) + warm off-white (`#F2EEE6`) + **ember-coral `--clay #FF6B42`** (energy/streak/CTA) + **oxygen-teal `--sky #4FD4C4`** (breath/lungs/recovery — the ring + lungs SVG are teal) + muted sage/lilac; `--grad` = teal→coral vital gradient. Fraunces serif headlines + Space Grotesk eyebrows. Motion = one-ticker **Lenis** (desktop only) + **cinematic cold-boot** + masked split-line reveals + breathing hero aura + scroll-progress rail. Don't reintroduce the old `#0B0B0C`/`#EA7C52`/`#82ABE0` values.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (8-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
@@ -14,6 +14,20 @@
 ---
 
 ## ▶ RESUME HERE (next session)
+
+### 🐛 KNOWN BUGS — scanned 2026-06-26 (D28), fixes DEFERRED ("fix later") → THIS IS THE NEXT TASK
+
+A full 4-agent bug scan ran; **nothing was shipped** (tree clean at `8ba0c1b`). Full detail + exact fixes in `DECISIONS.md` **D28**. Ranked:
+
+- **🔴 A · Scroll-trigger lifecycle (the D27 pin regression, desktop).** (1) **Scroll JUMPS on any data edit** on a pinned view (Week/Lab/Fuel) — `renderAll` rebuilds the pin + `ScrollTrigger.refresh()` every tick → **fix: delete the `renderAll`-end `M.initViewScroll` call** (`app.js` ~86–88); also fixes the exercise-modal Save/Clear pin corruption. (2) **Stale pins leak on leave** (`viewMM` reverts only on re-entry) → **fix: `switchView` should ALWAYS call `M.initViewScroll(name)`**. (3) **Hero parallax leaks** (3 triggers never killed → faded scroll-hint on return-to-landing) → **fix: move `heroParallax` into `initViewScroll('landing')`'s `viewMM`, drop it from `initHero`, add an initial `initViewScroll(activeView)` in `enterApp`**.
+- **🔴 B · Engine NaN/crash on partial synced profiles** (shallow `{...DEFAULT, ...stored}` wipes nested defaults). `engine.js:977` missing `smoking.costPerCig` → `moneySaved=NaN` / `smoking:null` → throws; `engine.js:608` missing `diet` → `computePlan` THROWS (kills render); `engine.js:705` null `sleepLog` entry → throws. **Fix: deep-merge `p.smoking`/`p.diet` after line 974 + `.filter(e=>e&&e.date)` at 705 + `app.js:123` use `p.profile.smoking`.** (These 3 were drafted then reverted — re-apply.)
+- **🔴 C · Auth data-loss.** New-device login opens firstRun onboarding *before* `syncPull` lands → saving overwrites real cloud data (`app.js:1360/1364`); hourly `TOKEN_REFRESHED` re-pulls + overwrites mid-session (`app.js:1361`). **Fix: gate firstRun behind `syncPull()` returning `hadRemote`; only pull on a user-id transition.**
+- **🟡 D · Smaller:** `etaWeeks`=0 for cutters (`engine.js:980` → use `Math.abs`); ACWR says "deload" on the first logged session; `lungsSVG` static gradient ids (latent collision); milestone cosmetic labels.
+- **📐 E · Architectural (decide first):** cloud sync is **last-writer-wins**, no `updated_at` reconciliation → two devices/day can lose edits.
+
+**Verified clean:** chart math, Lenis one-ticker, `?v=`/cache map, 8-digit gate, `lenisStop/Start` null-safety, devbypass localhost-only, engine purity. (Over-claim corrected: calibration does NOT drop unknown symptom keys.)
+
+---
 
 ### ✅ JUST SHIPPED — D26 FULL DESIGN + MOTION REFACTOR → "OXYGEN" (2026-06-26, `fe28c1e`)
 

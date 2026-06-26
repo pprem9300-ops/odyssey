@@ -5,6 +5,33 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D28 · Full bug scan (findings RECORDED; fixes DEFERRED at user's request "fix later")
+
+Ran a comprehensive 4-agent review across `engine.js` / `app.js` / `motion.js` / `chart.js` / `gate.js` / `cloud.js` / `onboard.js` + cross-verified the load-bearing claims by hand (one agent over-claim corrected — see bottom). **No code shipped** — user said "stop, fix later," so this is the actionable to-do list. Tree is clean at `8ba0c1b`. Ranked by value:
+
+**A · Scroll-trigger lifecycle — the D27 regression (desktop pins; mobile is parallax-only so less affected).** One root cause (triggers created/refreshed outside a single revert lifecycle):
+- **Scroll JUMPS on any data edit** while on a pinned view (Week/Lab/Fuel): `renderAll` ends by calling `M.initViewScroll(activeView)` → `viewMM.revert()` + rebuild pin + `ScrollTrigger.refresh()` → page snaps when you log water/mood/equipment/etc. **Fix:** delete the `renderAll`-end `initViewScroll` block (`app.js` ~86–88). This also fixes the **exercise-modal Save/Clear** (opened from Week/Lab) corrupting the underlying pin while the modal covers it.
+- **Stale pins leak on leave:** `viewMM` only reverts on the *next* `initViewScroll`, but `switchView` only calls it for lab/week/fuel → leaving to today/moves/landing leaves the pin live on a `display:none` view, skewing later `refresh()`. **Fix:** in `switchView`'s rAF, ALWAYS `M.initViewScroll(name)` (it reverts then no-ops for non-bespoke views).
+- **Hero parallax leaks** (3 triggers on `.hero`, made once in `initHero`→`heroParallax`, never killed) → return-to-landing can show a faded scroll-hint / offset hero. **Fix:** move `heroParallax` into `initViewScroll`'s `'landing'` branch (inside `viewMM`, desktop matchMedia) so it reverts+resets on leave; drop the `heroParallax` call in `initHero`; add an initial `M.initViewScroll(activeView)` at the end of `enterApp` so the boot landing still gets parallax.
+- (minor) journey spine trigger (`id:'journey'`) not killed on leave — self-heals on re-entry; optional kill-on-leave.
+
+**B · Engine crashes / NaN on partial profiles** (reachable via cloud sync of an OLD profile — `{...DEFAULT, ...stored}` is shallow, so a missing nested key wipes the default):
+- `engine.js:977-978` `p.smoking.costPerCig` missing → **`moneySaved = NaN`** on the dashboard; `smoking:null` → **throws**. `engine.js:608` `p.diet.vegan` with `diet` null/missing → **`computePlan` throws** (whole render dies; `groceryList:647` already guards, `generateDietDay` doesn't). **Fix (one place):** after `const p = {...DEFAULT_PROFILE, ...profile}` (line 974) add `p.smoking = {...DEFAULT_PROFILE.smoking, ...(p.smoking||{})}` and same for `p.diet`. Also `app.js:123` reads `profile.smoking.*` directly → use the engine-merged `p.profile.smoking.*`.
+- `engine.js:705` a `null`/date-less entry in `sleepLog` → throws in `computeReadiness`. **Fix:** `.filter(e => e && e.date)` before the sort.
+*(These three were drafted + then reverted to keep the tree clean — re-apply.)*
+
+**C · Auth data-loss:**
+- `app.js:1360/1364` **new-device login can overwrite cloud data**: a returning user signing in on a fresh device fires `syncPull()` (async) AND `openProfileEditor(firstRun)` (immediate) → onboarding opens seeded from DEFAULTS before the pull lands; saving it clobbers the real cloud streak/weight history. **Fix:** make `syncPull()` return `hadRemote`; only open firstRun when no-local AND (signed-in ⇒ no-remote).
+- `app.js:1361` `onAuth` runs a full `syncPull()` on **every** emit incl the hourly `TOKEN_REFRESHED` → re-pulls + overwrites local mid-session. **Fix:** only syncPull on an actual user-id transition (track `lastUserId`).
+
+**D · Smaller real bugs:** `engine.js:980` `weeksToTarget`/`etaWeeks` = **0 for cutters** (target<weight) until a trend exists → use `Math.abs(weightToGo)`. · `engine.js` ACWR flags **"load spiking — deload" on the FIRST logged session** (acute≫chronic cold start) → gate the high/low band on ≥~14 days of chronic history. · `lungsSVG` (`app.js`) static gradient ids `lobeFill`/`aura` → collision if two lung SVGs ever co-exist (latent) → suffix per-render like `chart.js`. · milestone cosmetics (`w_band` hardcoded `at:72` label vs dynamic `targetOf-3`; `nextMilestone` returns achieved s365 past 365d). · `gate.js:126` `token.length < 8` lets a pasted 9+ digit value through the local check (maxlength caps typing, low risk) → `!== 8`.
+
+**E · Architectural (needs a product decision, not a quick fix):** cloud sync is **last-writer-wins**, no `updated_at` reconciliation → two devices in one day can lose edits. Proper fix = timestamp reconciliation or union the dated logs (`cleanDates`/`workoutLog`/`weightHistory`/…).
+
+**Verified CLEAN (don't re-hunt):** chart SVG math (empty/single/all-equal data all guarded), Lenis one-ticker, the whole `?v=`/`sw CACHE` map, the 8-digit gate, `lenisStop/Start` null-safety, devbypass localhost-only, sign-up anti-enumeration, engine purity (no input mutation), no divide-by-zero in the numeric core. **Corrected over-claim:** "calibration save drops unknown symptom keys (e.g. `post-weed-tightness`)" is NOT real — `onboard.js:79` copies all keys into the draft and `:156` saves them back; unknown keys are preserved (just shown as their raw key).
+
+---
+
 ## 2026-06-26 — D27 · Bespoke per-view scroll moments (Lab/Week/Fuel pins) + Lenis on ALL phones
 
 Follow-up to D26: push the motion per-view. **User chose (via a quick options ask) to run Lenis smooth-scroll on ALL phones** — explicitly overriding the "mobile stays native" default and accepting the historical jank risk; **pins stay desktop-only** (a pin + mobile's resizing toolbar viewport genuinely breaks layout — not a stylistic choice).
