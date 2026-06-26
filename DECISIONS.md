@@ -5,6 +5,20 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D29 · Fixed the D28 bug-scan findings (A scroll-trigger lifecycle · B engine guards · C data-loss · D); E left open
+
+User: "fix the bugs." Applied + verified A–D (shipped `edcf702`, `?v=28` / `sw odyssey-v28`); **E** (last-writer-wins sync) left as a noted architectural item.
+
+- **A · Scroll-trigger lifecycle (the D27 pin regression).** `motion.js`: hero parallax moved OUT of `initHero` into `initViewScroll('landing')`'s reverted `viewMM` (reverts + resets inline transforms on leave → fixes the leaked/faded scroll-hint on return-to-landing); `initViewScroll` kills the journey spine on leave. `app.js`: **removed the `renderAll`-end `initViewScroll` rebuild** (it fired on every data edit → `ScrollTrigger.refresh()` → the scroll-JUMP, and corrupted the underlying pin on exercise-modal Save/Clear); `switchView` now **always** calls `M.initViewScroll(name)` so the prior view's pins revert on leave; `enterApp` seeds the boot-landing parallax; `closeEx` does a soft `refreshScrollTriggers()`. **Verified in preview: 3 ScrollTriggers after navigating all 6 views and back (was an accumulating leak), no console errors.** (Pins are desktop-only; the no-jump-on-edit + mobile parallax need a live desktop/phone confirm — frozen preview can't run rAF/pins.)
+- **B · Engine NaN/throw on partial synced profiles.** `computePlan` now deep-merges nested defaults: `p.smoking = {...DEFAULT.smoking, ...(p.smoking||{})}` + same for `p.diet` — a partial/old/null nested object can no longer NaN the money-saved card or throw the whole render. `computeReadiness` filters null/date-less `sleepLog` entries. `app.js` reads the merged `p.profile.smoking`. **Node-tested**: empty / partial-smoking / null-smoking / null-diet / null-sleep / cutter / full all pass — no throw, finite output.
+- **C · Auth data-loss.** `syncPull()` returns `hadRemote`; first-run calibration only opens when **no local AND no remote** profile → a returning user on a fresh device no longer sees onboarding that would overwrite their cloud data. `onAuth` only re-pulls on a real **user-id transition**, not on every hourly `TOKEN_REFRESHED` (which was re-pulling + clobbering unsynced local edits).
+- **D · Smaller.** `weeksToTarget` uses `Math.abs` (cutters no longer show "0 weeks"); ACWR gates its high/low band on a real chronic base (`chronic28 - acute > 0`) so it stops yelling "deload" on the first logged session (node-verified: cold-start → `optimal`, real base + spike → still `high`); `lungsSVG` gradient ids are per-render unique (`lung{n}-lobe`/`-aura`) — latent collision closed; gate OTP check is `=== 8`.
+- **E · STILL OPEN (architectural).** Cloud sync is last-writer-wins, no `updated_at` reconciliation → two devices editing the same day can still lose edits. The C fix removes the worst case (new-device wipe) but not concurrent two-device edits. Proper fix = timestamp reconciliation or per-log union — a product decision, deferred.
+
+Cache-bust → `engine.js?v=9`, `motion.js?v=14`, `gate.js?v=7`, `app.js?v=28`, `sw odyssey-v28` (css/chart/cloud/onboard unchanged).
+
+---
+
 ## 2026-06-26 — D28 · Full bug scan (findings RECORDED; fixes DEFERRED at user's request "fix later")
 
 Ran a comprehensive 4-agent review across `engine.js` / `app.js` / `motion.js` / `chart.js` / `gate.js` / `cloud.js` / `onboard.js` + cross-verified the load-bearing claims by hand (one agent over-claim corrected — see bottom). **No code shipped** — user said "stop, fix later," so this is the actionable to-do list. Tree is clean at `8ba0c1b`. Ranked by value:
