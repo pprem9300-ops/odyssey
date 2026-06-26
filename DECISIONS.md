@@ -5,7 +5,25 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
-## 2026-06-26 — D25 · Full design + animation refactor (PLANNED — the active next task)
+## 2026-06-26 — D26 · Full design + motion refactor → "OXYGEN" (BUILT — supersedes D25's plan + D20's palette as the design north-star)
+
+Executed D25's brief. Studied the three Framer refs' technique (deep-dark + one warm accent, big editorial type, smooth scroll, scroll-linked reveals, restraint), ran the `awwwards-web-motion` + `frontend-design` + `ui-ux-pro-max` skills, and **got sign-off via a `show_widget` live demo (palette + type + motion toggles) BEFORE any teardown.** User chose **Oxygen** palette + **Fraunces** serif + full cold-boot + "all kinds of fancy animations." Refactored incrementally (token layer → motion engine → wire → verify → landing polish) and shipped (`fe28c1e`).
+
+**Direction = "OXYGEN"** — subject-grounded to escape the generic "dark + one bright accent" AI-default `frontend-design` flagged: the interface is *breathing, oxygenated space*, and **colour temperature is the recovery metaphor** — **oxygen-teal `#4FD4C4`** (breath/lungs/recovery) ↔ **ember-coral `#FF6B42`** (energy/streak/CTA), with a `--grad` teal→coral "vital gradient" as the one signature element per view. Deeper, slightly-cool void `#08090C` + warm off-white `#F2EEE6` + muted sage/lilac. Kept the 4 accent var families (clay/sky/sage/lilac) so the swap is mostly a `:root` flip + `chart.js`/confetti hexes — components adapt automatically.
+
+**Type:** kept **Fraunces** serif headlines (the warm, distinctive signature — deliberately *unlike* the refs' grotesques, which keeps Odyssey un-templated) at a bigger/tighter scale; Space Grotesk eyebrows/data; Inter body; JetBrains mono.
+
+**Motion (`js/motion.js` rebuilt, every export preserved):**
+- **Lenis re-introduced the correct way** (it was pulled earlier for jank): **ONE ticker** driven by `gsap.ticker` (`lagSmoothing(0)`, `lenis.on('scroll',ScrollTrigger.update)`, no second rAF), **gated on reduced-motion / `(hover:none),(pointer:coarse)` / low `deviceMemory`/Save-Data** → desktop-only; mobile + low-end keep native scroll. **No gsap pins anywhere** (journey rail = CSS `position:sticky` + scrubbed `scaleY`; hero parallax = scrub-without-pin) → no mobile pin-spacer trap. The old jank came from Lenis's own rAF fighting the ticker + the particle canvas — both gone.
+- **Cinematic cold-boot** (`intro()`): breath-omega blurs/scales in (`back.out`) → wordmark+tag rise → loading rail fills with a live `%` counter → clip-away + omega punch; tap-to-skip; reduced-motion = quick fade.
+- **Hero** owned by `initHero` (excluded from the global `initReveals`): masked split-line title + staggered eyebrow/lead/CTA + breathing **oxygen aura** (CSS) + desktop scroll parallax.
+- **Top scroll-progress rail** (`initScrollProgress`, rAF-throttled, transform-only) replaced the inline nav handler. Reveals (IO), masked headlines, magnetic (cached rect, off on coarse), count-ups (rAF), journey spine (scrubbed), pacer, recoloured confetti all kept. **View-swap stays swap-first — never gated on gsap/IO** (the hard rule). Dead `breathField` canvas + hero word-swap deleted (safe no-op `breathField` export kept).
+
+**Guardrails held:** `engine.js` / `exercises.js` / `cloud.js` / `gate.js` **untouched** — only `css/styles.css`, `js/motion.js`, `js/app.js` (import bumps + dead-call removal + `initScrollProgress` swap), `js/chart.js` (HEX), `index.html`, `sw.js`. Feature pattern intact. Verified in preview (desktop 1440 + mobile 375): no console errors, engine + synced data render, no horizontal scroll, ring teal. Cache-bust → `?v=24`, `sw odyssey-v24` (motion `?v=11`, chart `?v=5`). ⚠️ Preview freezes gsap.ticker/IO/Lenis-raf → motion proven via the show_widget demo + force-state; **live perf/cold-boot to confirm on the real device.**
+
+---
+
+## 2026-06-26 — D25 · Full design + animation refactor (PLANNED → DELIVERED in D26 "Oxygen")
 
 User wants a **major overhaul of animation, visual design and overall feel** — more interactive, awwwards-grade, with a smooth scroll-driven journey — now that all features/views/links exist. **The cinematic-dark direction (D20) is intentionally being evolved/replaced** (this supersedes D20 as the design north-star once the new direction is chosen).
 

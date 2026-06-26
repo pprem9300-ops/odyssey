@@ -4,35 +4,35 @@
 > Companion docs: [`DECISIONS.md`](DECISIONS.md) (why we chose what) · [`BUILD_SPEC.md`](BUILD_SPEC.md) (technical spec — rule-engine formulas + screens + motion).
 
 **Last updated:** 2026-06-26
-**Current phase:** `P16 LIVE — all features below shipped, 60 node asserts, verified. ▶ NEXT (active task) = P17 FULL DESIGN + ANIMATION REFACTOR: awwwards-grade scroll-driven motion + refreshed visual design/color, inspired by daima / agentura / dragonfly, across every view. See "▶ RESUME HERE → 🎨 NEXT UP". (Push notifications: declined by user.)`
-**Overall progress:** ▰▰▰▰▰▰▰ ~99% (everything below + reopen-last-view · all-data-in-cloud · editable target · measurement-aware calc — live, verified). Cache-bust now `?v=23`, `sw odyssey-v23` (engine import `?v=8`, chart `?v=4`, exercises `?v=4`).
-**🎨 Design = CINEMATIC DARK (D20):** `:root` in css is dark (void `#0B0B0C` / off-white `#F4F1EA` / pastels retuned to glow); `--font-grotesk` Space Grotesk for eyebrows+marquee, Fraunces for headlines. The old "breathy light pastel" is superseded — don't reintroduce light tokens.
+**Current phase:** `P17 LIVE — D26 FULL DESIGN + MOTION REFACTOR shipped: "Oxygen" palette + one-ticker Lenis smooth-scroll + cinematic cold-boot + masked reveals + breathing hero aura, across every view. Verified desktop 1440 + mobile 375, engine/data untouched, no console errors. See "▶ RESUME HERE". (Push notifications: declined by user.)`
+**Overall progress:** ▰▰▰▰▰▰▰ ~99% (all features + the D26 awwwards-grade design/motion overhaul — live, verified). Cache-bust now `?v=24`, `sw odyssey-v24` (motion import `?v=11`, chart `?v=5`, engine `?v=8`, exercises `?v=4`).
+**🎨 Design = OXYGEN (D26 — supersedes cinematic-dark D20):** `:root` is a deep oxygenated void (`#08090C`) + warm off-white (`#F2EEE6`) + **ember-coral `--clay #FF6B42`** (energy/streak/CTA) + **oxygen-teal `--sky #4FD4C4`** (breath/lungs/recovery — the ring + lungs SVG are teal) + muted sage/lilac; `--grad` = teal→coral vital gradient. Fraunces serif headlines + Space Grotesk eyebrows. Motion = one-ticker **Lenis** (desktop only) + **cinematic cold-boot** + masked split-line reveals + breathing hero aura + scroll-progress rail. Don't reintroduce the old `#0B0B0C`/`#EA7C52`/`#82ABE0` values.
 **🌐 LIVE:** **https://pprem9300-ops.github.io/odyssey/** · repo `github.com/pprem9300-ops/odyssey` (public). Auto-redeploys on `git push origin main`. The app is **invite-only** — a login gate (`js/gate.js`) blocks access until you sign in (6-digit code via Brevo **or** email+password). Brevo SMTP + the `{{ .Token }}` email template + URL Configuration are **all configured and confirmed working** (real code delivered + signed in on phone).
 
-> **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=` cache-bust (now `?v=17`). Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
+> **Dev note (important):** the app is served by **`serve.py`** (no-cache) via `launch.json` + `Odyssey.app`. Module imports carry a `?v=` cache-bust (now `?v=24`). Do NOT use plain `python -m http.server` — it heuristically caches CSS/JS and you'll chase "my edits don't show" ghosts. Bump `?v=` (or rely on serve.py's no-cache) when shipping changes; bump `CACHE` in `sw.js` for the PWA.
 
 ---
 
 ## ▶ RESUME HERE (next session)
 
-### 🎨 NEXT UP — FULL DESIGN + ANIMATION REFACTOR (the ACTIVE task, briefed 2026-06-26)
+### ✅ JUST SHIPPED — D26 FULL DESIGN + MOTION REFACTOR → "OXYGEN" (2026-06-26, `fe28c1e`)
 
-**The user wants a major overhaul** of the app's **animation, visual design, and overall feel** — more interactive, awwwards-grade, with a smooth scroll-driven journey — now that every feature/view/link exists (Today + Coach + Aesthetic index, Week + analytics + periodize + plate, Moves, Lung Lab, Fuel + swaps + grocery + macro, Journey + measurements + photos, all modals). **The current cinematic-dark (D20) is to be evolved/replaced — an intentional design change.**
+The awwwards-grade overhaul is **LIVE**. Direction = **OXYGEN** (signed off via a `show_widget` live demo before any teardown): an evolution of cinematic-dark into a deeper, oxygenated void built on the *breath-as-recovery* thesis (teal = oxygen/breath, coral = energy). Built with the `awwwards-web-motion` + `frontend-design` + `ui-ux-pro-max` skills. Refs studied (techniques, not assets): daima · agentura · dragonfly.
 
-**Reference feel** (replicate the motion language, scroll journey, smoothness AND colour mood — with our OWN original code; study the techniques/engine, do **NOT** copy their code or assets):
-- https://wearedaima.framer.website/
-- https://agentura.framer.website/
-- https://www.dragonfly.xyz/
+**What shipped (`?v=24` / `sw odyssey-v24`, motion `?v=11`, chart `?v=5`):**
+- **Palette → OXYGEN** (`:root` + `chart.js` HEX + motion confetti): void `#08090C`, warm off-white `#F2EEE6`, **ember-coral `--clay #FF6B42`**, **oxygen-teal `--sky #4FD4C4`** (recovery ring + lungs SVG are now teal), muted sage/lilac. `--grad` teal→coral "vital gradient" (journey spine, intro bar, milestone numerals). Kept the 4 accent var families so every component adapts via tokens.
+- **Type:** kept **Fraunces** serif display (bigger, tighter `-0.03em`) + Space Grotesk eyebrows/data + Inter body + JetBrains mono.
+- **`js/motion.js` rebuilt (export contract preserved):** real **ONE-ticker Lenis** smooth-scroll (`gsap.ticker`-driven, `lagSmoothing(0)`, `lenis.on('scroll',ScrollTrigger.update)`) **gated on reduced-motion / coarse-pointer / low `deviceMemory`** → native scroll on mobile/low-end; **no gsap pins anywhere** (journey = CSS sticky + scrubbed `scaleY`; hero parallax = scrub-no-pin) so no mobile pin trap. **Cinematic cold-boot** (breath-omega in → wordmark rise → loading rail + live `%` counter → clip-away, tap-to-skip). **Hero** masked-line reveal + breathing **oxygen aura** + scroll parallax. **Top scroll-progress rail.** Reveals / masked headlines / magnetic / count-ups / journey-spine / pacer / celebrate all kept. **View-swap stays swap-first — never gated on gsap/IO.** Dead `breathField` particle canvas + hero word-swap deleted (kept a no-op `breathField` export for safety).
+- **Landing beats** → ruled, numbered editorial layout (Space Grotesk number + hairline rule), masked-headline reveals. **`data-lenis-prevent`** on the scrollable ex-modal.
 
-(All three are Framer sites — expect Framer Motion + smooth-scroll + scroll-linked reveals; dragonfly likely adds WebGL/canvas. User likes the animation, design **and** colour of all three.)
+**Verified** in preview (desktop 1440 + mobile 375): no console errors; engine + synced data intact (coach/aesthetic/body-comp/charts render, streak 41, ring teal); Oxygen tokens applied; **no horizontal scroll on mobile**. ⚠️ The Claude preview **freezes gsap.ticker + IO + Lenis raf** so cold-boot / Lenis / parallax / reveals don't animate there and below-fold screenshots come back blank — motion was proven via the `show_widget` demo (real browser) + force-state checks. **Confirm Lenis smoothness + the cold-boot live on the real site/phone.**
 
-**Plan for the fresh session** (use the `awwwards-web-motion` + `frontend-design` + `ui-ux-pro-max` skills):
-1. **Research** the references' techniques — smooth scroll, pinned/scroll-driven timelines, parallax, masked/clip-path + split-text reveals, magnetic hover, view/page transitions, count-ups, marquee, easing curves, palettes. (Observe; don't lift assets.)
-2. **Propose a direction** (palette + type + motion language) and get sign-off via a `show_widget` live demo BEFORE any teardown (the Claude preview freezes motion; the widget runs in the user's real browser).
-3. **Refactor incrementally:** motion/token layer first (css `:root` + `js/motion.js`), then re-apply across every view. Re-introduce **Lenis** smooth-scroll carefully via the skill's ONE-ticker setup (it was removed earlier for jank — if re-added: `gsap.ticker`-driven, `lagSmoothing(0)`, drive `ScrollTrigger.update` off it, **drop pins on mobile**, gate on `prefers-reduced-motion` + low `deviceMemory`). Animate transform/opacity/clip-path only; `content-visibility` on long lists.
-4. **Verify** (force-state screenshots + `show_widget` + live; **preview boots at a 2px viewport → `preview_resize` to 1440 first**), **bump `?v=` + `sw.js` CACHE**, ship, update docs + memory.
+### 🔜 OPTIONAL NEXT (only if the user asks)
+- **Deeper per-view scroll choreography** — the new motion already applies across every view via the foundation (reveals, masked headlines, magnetic, parallax, smooth scroll); a future increment could add bespoke scroll-pinned/parallax moments per interior view (Week analytics, Lung Lab, Fuel). **Keep any pins desktop-only.**
+- **Confirm live perf** at 4× CPU throttle on a real mid-tier phone (Lenis is desktop-only → mobile is native scroll; should be jank-free).
+- Reminders/notifications — the only deferred feature (needs a push server; **push declined by the user**).
 
-**Hard guardrails — do NOT break the brain or the data:** all of `engine.js` (performance progression, graduation, aesthetic/looksmaxx, body-comp, adaptive calories, training-load, coach synthesis, measurement trends, editable target) and the synced `profile.*Log` data MUST keep working. Keep the feature pattern (per-date logs, render-once + `paint*()` in place). Motion stays CSS/IO/rAF or one-ticker GSAP — **never gate critical logic (view-swap, saves) on gsap/IO callbacks.** See `DECISIONS.md` **D25**.
+**Hard guardrails (unchanged):** never break `engine.js` (progression / graduation / aesthetic-looksmaxx / body-comp / adaptive-cals / training-load / coach / measurement-trends / editable-target) or the synced `profile.*Log`; keep the feature pattern (per-date logs, render-once + `paint*()` in place); **never gate view-swap/saves on gsap/IO callbacks.** See `DECISIONS.md` **D26**.
 
 ---
 
