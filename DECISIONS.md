@@ -5,6 +5,20 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D30 · Cloud-sync MERGE (cluster E) — converge two devices instead of last-writer-wins
+
+User picked "whichever is better" → the answer is **both, combined**: UNION the dated logs + RECENCY for settings. Replaced `syncPull`'s blind `profile = {...DEFAULT, ...remote}` overwrite with a pure, node-testable `mergeState(local, remote)` in `engine.js`.
+
+- **Dated logs UNION** (per-date entries from BOTH devices survive): `workoutLog` deep-unions exercises within a date; `mealLog`/`checklistLog` array-union per date; `waterLog`/`moodLog`/`journalLog`/`measureLog` take the newer side per same date; `cleanDates`/`weightHistory`/`sleepLog` union by date; `photoLog` dedups by image data + caps last 12. `groceryChecked` OR-unions; **`mealSwaps` per-slot union**; **`equipment` OR-union** (gear toggled ON on either device survives). `currentWeight` re-derived from the latest weigh-in; **`streakDays` re-derived from the unioned `cleanDates`** by the caller.
+- **Settings by recency**: `profile.updatedAt` (ISO, stamped in `save()`) → newer side wins the scalar settings. `diet`/`smoking`/`symptoms` are single-screen settings so recency is intended; `equipment`/`mealSwaps` are independent per-key edits so they union (the bug the review caught).
+- **`syncPull`** merges then `save()`s the merged result so both devices converge (commutative/idempotent on the log data). **Open exercise modal** re-derives on a `syncPull` so a stale Save can't clobber just-merged sets.
+
+**Verification (heavy — it's data integrity):** 27 node assertions (concurrent cross-device edits both survive · same-date conflicts · dedup/cap · order-independent convergence · idempotency · equipment/mealSwaps) + a **4-lens adversarial-verification workflow** (data-loss / convergence / wiring-race / malformed-data, each finding refute-checked): 8 findings → **2 HIGH fixed** (equipment + mealSwaps whole-object clobber — a setting toggled on the older device was being dropped), **1 LOW fixed** (stale exercise modal), **4 refuted** (journal-typing race, currentWeight-NaN, seed-updatedAt, redundant-write — all proven harmless). **1 MED accepted + documented**: array-union for `mealLog`/`checklistLog` can't sync a *deletion* (un-logging a meal / un-ticking on one device resurrects it on the other) — kept union because preserving a logged item beats honoring a rare cross-device un-tick; a true fix needs per-item tombstones.
+
+Cache-bust → `engine.js?v=10`, `app.js?v=29`, `sw odyssey-v29`. **The D28 bug scan is now FULLY resolved (A–E).**
+
+---
+
 ## 2026-06-26 — D29 · Fixed the D28 bug-scan findings (A scroll-trigger lifecycle · B engine guards · C data-loss · D); E left open
 
 User: "fix the bugs." Applied + verified A–D (shipped `edcf702`, `?v=28` / `sw odyssey-v28`); **E** (last-writer-wins sync) left as a noted architectural item.
