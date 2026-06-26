@@ -5,6 +5,20 @@ See [`PROJECT_STATUS.md`](PROJECT_STATUS.md) for current state.
 
 ---
 
+## 2026-06-26 — D24 · Last-state persistence + photos→cloud · editable goal weight · measurement-aware calc
+
+Three asks across two shipped increments.
+
+**Persistence + all-data-in-cloud (`83c5454`):** the last open view is saved to localStorage on every nav and restored on boot — the app **reopens where you left off** (device-local UX, intentionally not synced). **Progress photos moved from a local-only key into `profile.photoLog` → now synced to localStorage + Supabase** (this SUPERSEDES the D22 "photos local-only" decision), with a one-time migration from the old key, compressed to 600px q0.6 and capped at the last 12 to keep each profile push sane. Everything recorded is now in the cloud when signed in.
+
+**Editable goal weight (`eeae6ce`):** the 75 kg target was a hardcoded `const`; now an editable per-profile field. `targetOf(p)` (default 75, backward-compatible with saved profiles) threads through `selectGoal` / `macros` (protein+fat anchor) / `aestheticBalance` / `weightTrend` / `computePlan` stats / the weight milestone (scales to target−3) and every "75" UI string. A goal **stepper lives on the cockpit weight card**.
+
+**Measurement-aware calculation layer (`eeae6ce`):** measurements now drive the MATH, not just the body-comp readout. `bmr(p)` uses **Katch-McArdle** (370 + 21.6·LBM) from the estimated lean mass when measurements exist (else Mifflin-St Jeor) → measurement-accurate TDEE/calories (shown with a "calibrated to your composition" note). `selectGoal` is **body-fat-aware** (carrying fat under target → recomp, not a bulk). `measurementTrends(p)` compares the latest entry vs one ~3 weeks prior → V-taper-sharpening / fat-gain / leaning-out **coach directives** + a stale-measurement nudge.
+
+60 node asserts (10 new); verified live. **Install as an app:** iPhone Safari → Share → Add to Home Screen; Mac Safari 17+ → File → Add to Dock (or Chrome → Install page as app) — pointed at the live Pages URL. Cache-bust → `?v=23` (engine `?v=8`), `sw odyssey-v23`.
+
+---
+
 ## 2026-06-26 — D23 · Intelligence layer (synthesise the logs into accurate state + adaptive direction)
 
 User: "add all smart features that make the app more accurate and comprehensive in direction and current state." The app now *collects* a lot, so the leap is to *synthesise* it. All pure engine, node-tested (**50 asserts**), surfaced cleanly.
