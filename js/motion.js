@@ -32,8 +32,7 @@ export function initSmoothScroll() {
       duration: 1.1,                                   // 1.0–1.3 = the awwwards feel
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),  // expo-out
       smoothWheel: true,
-      syncTouch: true,                                 // smooth-scroll on phones too (user opted in) — Lenis drives touch
-      touchMultiplier: 1.6,                            // keep touch feeling responsive under the smoothing
+      syncTouch: false,                                // native momentum on touch — Lenis driving touch stuttered on phone; smooths desktop wheel/trackpad only
     });
     gsap.ticker.add((t) => lenis.raf(t * 1000));       // ONE loop — no second rAF
     gsap.ticker.lagSmoothing(0);                       // scrubbed anims never "catch up"

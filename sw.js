@@ -9,7 +9,7 @@
    Bump CACHE on every shippable change so old shells are evicted on activate.
    ========================================================================== */
 
-const CACHE = 'odyssey-v25';  // bumped: D27 — bespoke per-view pins (Lab/Week/Fuel, desktop) + Lenis on all phones
+const CACHE = 'odyssey-v26';  // bumped: D27.1 — Lenis syncTouch:false (native touch momentum; phone stuttered with Lenis driving touch)
 
 /* Real app shell — every file the zero-build site needs to boot offline.
    Paths are relative to the SW scope (the site root), matching index.html and
